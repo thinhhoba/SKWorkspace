@@ -1,0 +1,7 @@
+{
+  "model": "claude-opus-5-5",
+  "defaultSubagentModel": "claude-sonnet-5-5",
+  "workflow": {
+    "sizeGuideline": "medium"
+  }
+}
