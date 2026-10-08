@@ -1,6 +1,9 @@
 {
   "model": "claude-opus-5-5",
   "defaultSubagentModel": "claude-sonnet-5-5",
+  "env": {
+    "CLAUDE_CODE_AUTO_MODE_SERVER": "0"
+  },
   "workflow": {
     "sizeGuideline": "medium"
   }
