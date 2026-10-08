@@ -3,26 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SK Workspace — UI PWA (Mobile)</title>
+<title>SK Workspace — UI PWA Redesign</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,ital,wght@6..72,1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,ital,wght@6..72,1,400&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#F6F5F1;--surface:#fff;--line:#E8E6E0;--ink:#11110F;--muted:#8A8682;--gold:#C8B98A;--green:#1A7A4C;--red:#C0392B;--blue:#2E5AAC}
-body{background:var(--bg);color:var(--ink);font-family:'Instrument Sans',sans-serif}
-.page-head{max-width:1280px;margin:0 auto;padding:28px 24px 0}
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:26px;letter-spacing:-.03em;margin-top:6px} h1 em{font-family:'Newsreader',serif;font-style:italic;font-weight:400;color:#8A7A5A}
-.hint{font-size:12px;color:var(--muted);margin-top:8px}
-.grid{max-width:1280px;margin:18px auto 40px;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+:root{--bg:#F2F0EB;--line:#E8E6E0;--ink:#11110F;--muted:#8A8682;--gold:#C8B98A;--green:#0E7A4A;--red:#C0392B;--blue:#2563EB}
+*{font-family:'Instrument Sans',sans-serif}
+body{background:var(--bg);color:var(--ink)}
+.page{max-width:1360px;margin:0 auto;padding:22px 18px 36px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.eyebrow b{color:var(--ink);border:1px solid var(--line);background:#fff;padding:3px 8px;border-radius:999px;font-size:10px}
+h1{font-size:28px;letter-spacing:-.03em;margin-top:8px} h1 em{font-family:'Newsreader',serif;font-style:italic;font-weight:400;color:#8A7A5A}
+.sub{font-size:13px;color:var(--muted);margin-top:6px;max-width:860px;line-height:1.5}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+.chip.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 @media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
 .phone{border:1px solid var(--line);border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 16px 40px rgba(0,0,0,.08);display:flex;flex-direction:column}
 .phone-head{height:42px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--line);background:#fff}
-.logo-mark{width:24px;height:24px;border-radius:8px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700}
-.phone-title{font-size:12px;font-weight:700;letter-spacing:-.01em}
-.phone-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;background:#111;color:#fff;padding:4px 8px;border-radius:999px}
-.screen{padding:12px;background:var(--bg);flex:1}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.mark{width:24px;height:24px;border-radius:8px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700}
+.phone-title{font-size:12px;font-weight:700}
+.badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:#fff;padding:4px 8px;border-radius:999px}
+.screen{padding:12px;background:#F6F5F1;flex:1;display:flex;flex-direction:column;gap:10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
 .card-head h3{font-size:12px}
 .mini{font-size:11px;color:var(--muted)}
@@ -31,144 +36,163 @@ h1{font-size:26px;letter-spacing:-.03em;margin-top:6px} h1 em{font-family:'Newsr
 .kpi label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .kpi strong{font-size:15px;display:block;margin-top:4px}
 .pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:#F6F5F1}
-.pill.green{background:#E8F5E9;color:#1A7A4C;border-color:#C8E6C9} .pill.amber{background:#FFF8E1;color:#8D6E00;border-color:#FFE082} .pill.red{background:#FBE9E7;color:#C0392B;border-color:#FFCCBC}
-.btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#fff}
+.pill.green{background:#E8F5E9;color:var(--green);border-color:#C8E6C9} .pill.amber{background:#FFF8E1;color:#8D6E00;border-color:#FFE082} .pill.red{background:#FBE9E7;color:var(--red);border-color:#FFCCBC}
+.btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
 .btn.ghost{background:#fff;color:var(--ink)}
 .btn.block{width:100%;text-align:center}
+.search{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.gbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 12px;display:flex;gap:8px;justify-content:center;align-items:center;font-size:13px;font-weight:600}
+.gbtn i{width:16px;height:16px;border-radius:999px;background:conic-gradient(#EA4335,#FBBC05,#34A853,#4285F4);display:inline-block}
+.tabbar{height:52px;display:flex;justify-content:space-around;align-items:center;border-top:1px solid var(--line);background:#fff}
+.tabbar span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar span.active{color:var(--ink);font-weight:700}
 .table{width:100%;border-collapse:collapse;font-size:12px}
 .table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);background:#FCFCFA}
 .table td{padding:8px 10px;border-bottom:1px solid #F0EFEB}
-.tabbar{height:52px;display:flex;align-items:center;justify-content:space-around;border-top:1px solid var(--line);background:#fff}
-.tabbar span{font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
-.tabbar span.active{color:var(--ink);font-weight:700}
-.search{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.banner{background:#111;color:#F6F5F1;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px}
 </style>
 </head>
 <body>
-<div class="page-head">
-  <div class="eyebrow">SK Workspace &mdash; UI Preview &middot; PWA Mobile</div>
-  <h1>PWA trên điện thoại <em>— 1 codebase, cài Add to Home Screen</em></h1>
-  <div class="hint">4 màn hình chính — vuốt/xem như app &middot; Dùng chung shell + RBAC với bản web &middot; <a href="./ui-web.html">← Quay lại bản Web</a> &nbsp;|&nbsp; <a href="./architecture.html">Sơ đồ kiến trúc →</a></div>
-</div>
+<div class="page">
+  <div class="eyebrow">SK Workspace · UI PWA Redesign · 1 codebase — Web đủ, PWA gọn <b>Web ↔ PWA chung shell + RBAC + Google</b> <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><a class="chip" href="ui-web.html">Web →</a><a class="chip" href="mindmap.html">Sơ đồ tư duy →</a><a class="chip" href="sk-workspace-platform-architecture.html">Blueprint tối</a><a class="chip" href="sk-workspace-enterprise-clean.html">Clean sáng</a></span></div>
+  <h1>PWA trên điện thoại <em>— cài Add to Home Screen là thành app</em></h1>
+  <p class="sub">Cùng shell, cùng <code style="background:#fff;border:1px solid #E8E6E0;padding:1px 6px;border-radius:6px">#app/*</code> và <code style="background:#fff;border:1px solid #E8E6E0;padding:1px 6px;border-radius:6px">hasAppAccess(appId)</code> với bản Web. Google đăng nhập 1 chạm. Tabbar 5 mục: Home · Đơn · Mua · Kho · Tôi.</p>
+  <div class="chips"><span class="chip dark">next-pwa · manifest + SW</span><span class="chip">Google OAuth (Auth.js)</span><span class="chip">Chấm công GPS optional</span><span class="chip">VietQR linh hoạt</span><span class="chip">Offline cache</span></div>
 
-<div class="grid">
+  <div class="grid">
 
-  <!-- Phone 1: Dashboard -->
-  <div class="phone">
-    <div class="phone-head"><span class="logo-mark">SK</span><span class="phone-title">Dashboard</span><span class="phone-badge">PWA</span></div>
-    <div class="screen">
-      <div class="search">⌕ Tìm đơn, NCC, khách…</div>
-      <div class="kpi-row" style="margin-top:10px">
-        <div class="kpi"><label>Doanh thu T10</label><strong>1.842T ₫</strong><span class="mini">↗ +8,4%</span></div>
-        <div class="kpi"><label>Công nợ thu</label><strong>642T ₫</strong><span class="mini" style="color:var(--red)">12 quá hạn</span></div>
-        <div class="kpi"><label>Công nợ trả</label><strong>318T ₫</strong><span class="mini">5 NCC tới hạn</span></div>
-        <div class="kpi"><label>Tồn kho</label><strong>1.204 SKU</strong><span class="mini" style="color:var(--red)">18 dưới mức</span></div>
+    <!-- Phone 0: Login -->
+    <div class="phone">
+      <div class="phone-head"><span class="mark">SK</span><span class="phone-title">Đăng nhập</span><span class="badge">Google</span></div>
+      <div class="screen">
+        <div style="text-align:center;padding:8px 0 4px"><div class="mark" style="margin:0 auto 8px;width:32px;height:32px">SK</div><div style="font-weight:700">SK Workspace</div><div class="mini">Cty TNHH Thực Phẩm Sơn Khang</div></div>
+        <button class="gbtn"><i></i> Tiếp tục với Google</button>
+        <div class="mini" style="text-align:center">Allowlist <b>sonkhang.vn</b> hoặc invite · RBAC theo app</div>
+        <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase"><span style="flex:1;height:1px;background:var(--line)"></span> hoặc <span style="flex:1;height:1px;background:var(--line)"></span></div>
+        <div class="card"><div style="padding:10px;display:grid;gap:8px"><input placeholder="Email" style="border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:13px"><input placeholder="Mật khẩu / OTP" type="password" style="border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:13px"><button class="btn block">Đăng nhập</button></div></div>
+        <div class="mini" style="text-align:center">PWA: lưu phiên, mở lại không cần đăng nhập lại</div>
       </div>
-      <div class="card" style="margin-top:10px">
-        <div class="card-head"><h3>Nhắc việc</h3><span class="pill amber">3</span></div>
-        <div style="padding:10px;display:grid;gap:8px">
-          <div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center"><span>⚠</span><div><div style="font-size:12px;font-weight:600">18 SKU dưới định mức</div><div class="mini">Tạo đề nghị mua?</div></div><span class="pill" style="margin-left:auto">Tạo</span></div>
-          <div style="background:#FBE9E7;border:1px solid #FFCCBC;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center"><span>⏰</span><div><div style="font-size:12px;font-weight:600">12 khách quá hạn</div><div class="mini">Gửi nhắc nợ</div></div></div>
-          <div style="background:#E8F5E9;border:1px solid #C8E6C9;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center"><span>✓</span><div><div style="font-size:12px;font-weight:600">4 HĐ InBot mới</div><div class="mini">Đã tải về</div></div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>Đơn gần đây</h3><span class="mini">Sapo</span></div>
-        <table class="table"><tr><th>Mã</th><th>Tổng</th><th></th></tr><tr><td>SP-0841</td><td>42.8T</td><td><span class="pill green">Đã giao</span></td></tr><tr><td>SP-0840</td><td>18.3T</td><td><span class="pill amber">Đang giao</span></td></tr></table>
-      </div>
+      <div class="tabbar"><span>⬢<br>Home</span><span>▦<br>Đơn</span><span>◈<br>Mua</span><span>⬣<br>Kho</span><span class="active">👤<br>Tôi</span></div>
     </div>
-    <div class="tabbar"><span class="active">⬢<br>Home</span><span>▦<br>Đơn</span><span>◈<br>Kho</span><span>⬣<br>Tôi</span></div>
-  </div>
 
-  <!-- Phone 2: Procurement + VietQR -->
-  <div class="phone">
-    <div class="phone-head"><span class="logo-mark">SK</span><span class="phone-title">Mua hàng & QR</span><span class="phone-badge" style="background:#C8B98A;color:#111">VietQR</span></div>
-    <div class="screen">
-      <div style="display:flex;gap:8px"><span class="pill">Đề nghị → Duyệt → Đơn → Nhập</span></div>
-      <div class="card" style="margin-top:10px">
-        <div class="card-head"><h3>So sánh giá</h3><span class="mini">theo SKU</span></div>
-        <table class="table"><tr><th>NCC</th><th>Giá</th><th></th></tr><tr><td>NCC B</td><td><strong>39.500</strong></td><td><span class="pill green">Rẻ nhất</span></td></tr><tr><td>NCC A</td><td>42.000</td><td></td></tr><tr><td>NCC C</td><td>41.000</td><td></td></tr></table>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>PR-0412 — An Thịnh Food</h3><span class="pill amber">Chờ duyệt</span></div>
-        <div style="padding:10px">
-          <div class="mini">Tổng: <strong style="color:var(--ink);font-size:13px">38.200.000 ₫</strong></div>
-          <div style="margin-top:8px;background:#111;color:#F6F5F1;border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center">
-            <div style="width:64px;height:64px;background:#fff;border-radius:8px;display:grid;place-items:center;color:#111;font-size:9px;text-align:center">QR<br>VietQR</div>
-            <div><div style="font-size:12px;font-weight:600">QR linh hoạt</div><div style="font-size:11px;opacity:.7">Theo đơn / NCC / tùy chỉnh</div><div style="font-size:10px;font-family:'JetBrains Mono',monospace;opacity:.6;margin-top:4px">38.200.000 — PR-0412 — An Thịnh</div></div>
+    <!-- Phone 1: Home + Dashboard -->
+    <div class="phone">
+      <div class="phone-head"><span class="mark">SK</span><span class="phone-title">Home & Dashboard</span><span class="badge">PWA</span></div>
+      <div class="screen">
+        <div class="search">⌕ Tìm app, đơn, NCC…</div>
+        <div class="kpi-row">
+          <div class="kpi"><label>Doanh thu T10</label><strong>1.842T ₫</strong><span class="mini">↗ +8,4%</span></div>
+          <div class="kpi"><label>Công nợ thu</label><strong>642T ₫</strong><span class="mini" style="color:var(--red)">12 quá hạn</span></div>
+          <div class="kpi"><label>Công nợ trả</label><strong>318T ₫</strong><span class="mini">5 NCC tới hạn</span></div>
+          <div class="kpi"><label>Tồn kho</label><strong>1.204 SKU</strong><span class="mini" style="color:var(--red)">18 dưới mức</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>14 app — vuốt để xem</h3><span class="pill"> #home 5×3</span></div>
+          <div style="padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="border:1px solid var(--line);border-radius:10px;padding:8px"><div style="font-size:11px;font-weight:700">💰 Tài chính</div><div class="mini">Sapo2Misa 63 cột</div></div>
+            <div style="border:1px solid var(--line);border-radius:10px;padding:8px"><div style="font-size:11px;font-weight:700">🛒 Mua + QR</div><div class="mini">VietQR linh hoạt</div></div>
+            <div style="border:1px solid var(--line);border-radius:10px;padding:8px"><div style="font-size:11px;font-weight:700">📦 Bán & CRM</div><div class="mini">Giá theo khách</div></div>
+            <div style="border:1px solid var(--line);border-radius:10px;padding:8px"><div style="font-size:11px;font-weight:700">🏬 Kho</div><div class="mini">Q7 / Q12</div></div>
           </div>
-          <button class="btn block" style="margin-top:8px">Chia sẻ QR / Tải ảnh</button>
+          <div class="mini" style="padding:0 10px 10px">+ 10 app khác: Giao vận, Tài sản, Nhân sự, SKTask, SKContract, Thư viện…</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Nhắc việc (Workflow)</h3><span class="pill amber">3</span></div>
+          <div style="padding:10px;display:grid;gap:8px">
+            <div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center"><span>⚠</span><div><div style="font-size:12px;font-weight:600">18 SKU dưới định mức</div><div class="mini">Tạo đề nghị mua?</div></div><span class="pill" style="margin-left:auto">Tạo</span></div>
+            <div style="background:#FBE9E7;border:1px solid #FFCCBC;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center"><span>⏰</span><div><div style="font-size:12px;font-weight:600">12 khách quá hạn</div><div class="mini">Gửi nhắc nợ</div></div></div>
+            <div style="background:#E8F5E9;border:1px solid #C8E6C9;border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center"><span>✓</span><div><div style="font-size:12px;font-weight:600">4 HĐ InBot mới</div><div class="mini">Đã tải PDF/XML</div></div></div>
+          </div>
         </div>
       </div>
+      <div class="tabbar"><span class="active">⬢<br>Home</span><span>▦<br>Đơn</span><span>◈<br>Mua</span><span>⬣<br>Kho</span><span>👤<br>Tôi</span></div>
     </div>
-    <div class="tabbar"><span>⬢<br>Home</span><span class="active">▦<br>Mua</span><span>◈<br>Kho</span><span>⬣<br>Tôi</span></div>
+
+    <!-- Phone 2: Mua + VietQR -->
+    <div class="phone">
+      <div class="phone-head"><span class="mark">SK</span><span class="phone-title">Mua hàng & QR</span><span class="badge" style="background:#C8B98A;color:#111">VietQR</span></div>
+      <div class="screen">
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill">Đề nghị → Duyệt → Đơn → Nhập</span></div>
+        <div class="card">
+          <div class="card-head"><h3>So sánh giá</h3><span class="mini">theo SKU</span></div>
+          <table class="table"><tr><th>NCC</th><th>Giá</th><th></th></tr><tr><td>NCC B</td><td><strong>39.500</strong></td><td><span class="pill green">Rẻ nhất</span></td></tr><tr><td>NCC A</td><td>42.000</td><td></td></tr></table>
+          <div style="padding:8px"><button class="btn ghost block">Chọn NCC B & tạo đơn</button></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>PR-0412 — An Thịnh Food</h3><span class="pill amber">Chờ duyệt</span></div>
+          <div style="padding:10px">
+            <div class="mini">Tổng: <strong style="color:var(--ink);font-size:13px">38.200.000 ₫</strong></div>
+            <div style="margin-top:8px;background:#111;color:#F6F5F1;border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center">
+              <div style="width:64px;height:64px;background:#fff;border-radius:8px;display:grid;place-items:center;color:#111;font-size:9px;text-align:center">QR<br>VietQR</div>
+              <div><div style="font-size:12px;font-weight:600">QR linh hoạt</div><div style="font-size:11px;opacity:.7">Theo đơn / NCC / tùy chỉnh</div><div style="font-size:10px;font-family:'JetBrains Mono',monospace;opacity:.6;margin-top:4px">38.200.000 — PR-0412</div></div>
+            </div>
+            <button class="btn block" style="margin-top:8px">Chia sẻ QR / Tải ảnh</button>
+            <div class="mini" style="margin-top:6px;text-align:center">Tạo QR tại quầy / gửi NCC — Sepay / Casso</div>
+          </div>
+        </div>
+      </div>
+      <div class="tabbar"><span>⬢<br>Home</span><span>▦<br>Đơn</span><span class="active">◈<br>Mua</span><span>⬣<br>Kho</span><span>👤<br>Tôi</span></div>
+    </div>
+
+    <!-- Phone 3: Bán + chấm công -->
+    <div class="phone">
+      <div class="phone-head"><span class="mark">SK</span><span class="phone-title">Bán hàng & Chấm công</span></div>
+      <div class="screen">
+        <div class="card">
+          <div class="card-head"><h3>Đơn SO-1021</h3><span class="pill amber">Chờ giao</span></div>
+          <div style="padding:10px">
+            <div class="mini">Khách: <strong style="color:var(--ink)">An Thịnh Mart</strong> — Giá riêng: Bò viên 88.000</div>
+            <table class="table" style="margin-top:8px"><tr><th>SKU</th><th>SL</th><th>Tiền</th></tr><tr><td>Bò viên 1kg</td><td>20</td><td>1.760.000</td></tr><tr><td>Chả lụa 500g</td><td>30</td><td>2.100.000</td></tr></table>
+            <div style="display:flex;gap:8px;margin-top:8px"><button class="btn ghost" style="flex:1">Báo giá</button><button class="btn" style="flex:1">Giao hàng</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Chấm công</h3><span class="mini">GPS optional</span></div>
+          <div style="padding:12px;text-align:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:-.02em">08:04</div>
+            <div class="mini">07/10/2026 — Ca sáng</div>
+            <button class="btn block" style="margin-top:10px">✓ Check-in</button>
+            <div class="mini" style="margin-top:6px">Vào 07:58 — Ra — Đúng giờ</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>CRM · Nhắc nợ</h3><span class="pill red">12 quá hạn</span></div>
+          <div style="padding:10px;display:flex;gap:8px;align-items:center"><div><div style="font-size:12px;font-weight:600">An Thịnh Mart — 84.2T</div><div class="mini">Quá hạn 12 ngày</div></div><button class="btn ghost" style="margin-left:auto">Nhắc</button></div>
+        </div>
+      </div>
+      <div class="tabbar"><span>⬢<br>Home</span><span class="active">▦<br>Bán</span><span>◈<br>Mua</span><span>⬣<br>Kho</span><span>👤<br>Tôi</span></div>
+    </div>
+
   </div>
 
-  <!-- Phone 3: Sales + HR check-in -->
-  <div class="phone">
-    <div class="phone-head"><span class="logo-mark">SK</span><span class="phone-title">Bán hàng & Chấm công</span></div>
-    <div class="screen">
-      <div class="card">
-        <div class="card-head"><h3>Đơn SO-1021</h3><span class="pill amber">Chờ giao</span></div>
-        <div style="padding:10px">
-          <div class="mini">Khách: <strong style="color:var(--ink)">An Thịnh Mart</strong> — Giá riêng: Bò viên 88.000</div>
-          <table class="table" style="margin-top:8px"><tr><th>SKU</th><th>SL</th><th>Tiền</th></tr><tr><td>Bò viên 1kg</td><td>20</td><td>1.760.000</td></tr><tr><td>Chả lụa 500g</td><td>30</td><td>2.100.000</td></tr></table>
-          <div style="display:flex;gap:8px;margin-top:8px"><button class="btn ghost" style="flex:1">Báo giá</button><button class="btn" style="flex:1">Giao hàng</button></div>
+  <!-- bottom PWA row: Kho -->
+  <div class="grid" style="margin-top:0">
+    <div class="phone">
+      <div class="phone-head"><span class="mark">SK</span><span class="phone-title">Kho & Giao vận</span></div>
+      <div class="screen">
+        <div class="card">
+          <div class="card-head"><h3>Tồn kho Q7 / Q12</h3><span class="mini">Sapo sync</span></div>
+          <table class="table"><tr><th>SKU</th><th>Tồn</th><th></th></tr><tr><td>Heo xay 500g</td><td>12</td><td><span class="pill red">Thiếu</span></td></tr><tr><td>Bò viên 1kg</td><td>60</td><td><span class="pill amber">Sắp thiếu</span></td></tr><tr><td>Chả lụa 500g</td><td>200</td><td><span class="pill green">Đủ</span></td></tr></table>
+          <div style="padding:8px;display:flex;gap:8px"><button class="btn ghost" style="flex:1">Nhập</button><button class="btn ghost" style="flex:1">Xuất</button><button class="btn" style="flex:1">Kiểm kê</button></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Giao vận DL-0311</h3><span class="pill amber">Đang giao</span></div>
+          <div style="padding:10px">
+            <div style="display:flex;gap:8px;align-items:center"><span class="mini">Xe 51C-123.45 — Q7→Q1→Q3</span></div>
+            <div style="margin-top:8px;height:36px;background:linear-gradient(90deg,#E8F5E9 0%, #0E7A4A 70%, #F6F5F1 100%);border-radius:999px;border:1px solid var(--line)"></div>
+            <div class="mini" style="margin-top:4px">Tiến độ 2/3 điểm</div>
+          </div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-head"><h3>Chấm công</h3><span class="mini">GPS optional</span></div>
-        <div style="padding:12px;text-align:center">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:-.02em">08:04</div>
-          <div class="mini">07/10/2026 — Ca sáng</div>
-          <button class="btn block" style="margin-top:10px">✓ Check-in</button>
-          <div class="mini" style="margin-top:6px">Vào 07:58 — Ra — Trạng thái: Đúng giờ</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>Nhắc nợ</h3><span class="pill red">12 quá hạn</span></div>
-        <div style="padding:10px;display:flex;gap:8px;align-items:center"><div><div style="font-size:12px;font-weight:600">An Thịnh Mart — 84.2T</div><div class="mini">Quá hạn 12 ngày</div></div><button class="btn ghost" style="margin-left:auto">Nhắc</button></div>
+      <div class="tabbar"><span>⬢<br>Home</span><span>▦<br>Đơn</span><span>◈<br>Mua</span><span class="active">⬣<br>Kho</span><span>👤<br>Tôi</span></div>
+    </div>
+    <div style="grid-column:span 3;display:flex;align-items:center">
+      <div class="banner" style="width:100%">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)">PWA</span>
+        <span style="font-size:13px">Mở SK Workspace trên Safari/Chrome → <strong>Chia sẻ → Thêm vào MH chính</strong> → mở như app. Offline cache qua <code style="background:#1E1E22;padding:2px 6px;border-radius:6px;color:var(--gold)">next-pwa</code> · manifest + service worker.</span>
+        <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9A9590">1 codebase + hash router #app/*</span>
       </div>
     </div>
-    <div class="tabbar"><span>⬢<br>Home</span><span class="active">▦<br>Bán</span><span>◈<br>Kho</span><span>⬣<br>Tôi</span></div>
-  </div>
-
-  <!-- Phone 4: Warehouse + Cashflow -->
-  <div class="phone">
-    <div class="phone-head"><span class="logo-mark">SK</span><span class="phone-title">Kho & Dòng tiền</span></div>
-    <div class="screen">
-      <div class="card">
-        <div class="card-head"><h3>Tồn kho</h3><span class="mini">Kho Q7 / Q12</span></div>
-        <table class="table"><tr><th>SKU</th><th>Tồn</th><th></th></tr><tr><td>Heo xay 500g</td><td>12</td><td><span class="pill red">Thiếu</span></td></tr><tr><td>Bò viên 1kg</td><td>60</td><td><span class="pill amber">Sắp thiếu</span></td></tr><tr><td>Chả lụa 500g</td><td>200</td><td><span class="pill green">Đủ</span></td></tr></table>
-        <div style="padding:8px;display:flex;gap:8px"><button class="btn ghost" style="flex:1">Nhập</button><button class="btn ghost" style="flex:1">Xuất</button><button class="btn" style="flex:1">Kiểm kê</button></div>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>Giao vận</h3><span class="mini">DL-0311 — Q7→Q1→Q3</span></div>
-        <div style="padding:10px">
-          <div style="display:flex;gap:8px;align-items:center"><span class="pill amber">Đang giao</span><span class="mini">Xe 51C-123.45 — Tải 1.5T</span></div>
-          <div style="margin-top:8px;height:36px;background:linear-gradient(90deg,#E8F5E9 0%, #1A7A4C 70%, #F6F5F1 100%);border-radius:999px;border:1px solid var(--line)"></div>
-          <div class="mini" style="margin-top:4px">Tiến độ giao — 2/3 điểm</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>Dòng tiền</h3><span class="pill green">+714T ròng</span></div>
-        <div style="padding:10px">
-          <div style="display:flex;gap:8px" class="mini"><span>Thu 1.842T</span><span>Chi 1.128T</span><span>Khớp 96,2%</span></div>
-          <div style="margin-top:8px;display:flex;align-items:end;gap:4px;height:40px"><span style="flex:1;background:#E8F5E9;height:40%;border-radius:6px 6px 0 0"></span><span style="flex:1;background:#1A7A4C;height:70%;border-radius:6px 6px 0 0"></span><span style="flex:1;background:#FFCCBC;height:30%;border-radius:6px 6px 0 0"></span><span style="flex:1;background:#1A7A4C;height:85%;border-radius:6px 6px 0 0"></span></div>
-          <button class="btn ghost block" style="margin-top:8px">Import sao kê / Đối soát</button>
-        </div>
-      </div>
-    </div>
-    <div class="tabbar"><span>⬢<br>Home</span><span>▦<br>Đơn</span><span class="active">◈<br>Kho</span><span>⬣<br>Tôi</span></div>
-  </div>
-
-</div>
-
-<div style="max-width:1280px;margin:0 auto;padding:0 24px 36px">
-  <div style="background:#111;color:#F6F5F1;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)">PWA</span>
-    <span style="font-size:13px">Cài đặt: mở SK Workspace trên Safari/Chrome → <strong>Chia sẻ → Thêm vào MH chính</strong> → mở như app. Offline cache qua <code style="background:#1E1E22;padding:2px 6px;border-radius:6px;color:var(--gold)">next-pwa</code>.</span>
-    <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9A9590">manifest.json + service worker</span>
   </div>
 </div>
 </body>
