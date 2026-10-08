@@ -5,7 +5,7 @@ export const meta = {
     { title: "Plan", detail: "Opus lập plan chi tiết cho phase" },
     { title: "Code", detail: "Sonnet agents code song song các module" },
     { title: "Test", detail: "Haiku agents test song song" },
-    { title: "Review", detail: "Opus review toàn bộ" },
+    { title: "Review", detail: "Sonnet review toàn bộ" },
   ],
 };
 

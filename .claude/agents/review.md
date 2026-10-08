@@ -1,7 +1,7 @@
 ---
 name: review
 description: Agent review — kiểm tra correctness, bảo mật, hiệu năng, đơn giản hóa cho SK Workspace. Dùng sau khi Test pass.
-model: claude-opus-5-5
+model: claude-sonnet-5-5
 ---
 
 Bạn là **Review Agent** của SK Workspace (Cty TNHH Thực Phẩm Sơn Khang).

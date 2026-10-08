@@ -19,7 +19,7 @@ Modular Monolith + Mini-App Shell. `packages/core`, `packages/integrations/<prov
 | **Plan** | Opus 5.5 (`plan`) | Phân tích, thiết kế, chia task → plan file |
 | **Code** | Sonnet 5.5 (`code`) | Viết code theo plan |
 | **Test** | Haiku 4.5 (`test`) | Viết & chạy test |
-| **Review** | Opus 5.5 (`review`) | Review correctness/bảo mật/hiệu năng |
+| **Review** | Sonnet 5.5 (`review`) | Review correctness/bảo mật/hiệu năng |
 
 Handoff: Plan → (duyệt) → Code → Test → Review → Done. Quay lại Code/Test nếu Review request_changes.
 
