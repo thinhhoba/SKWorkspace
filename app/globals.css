@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* Tailwind v4 — expose CSS vars as theme tokens */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* §3.1 Light — Enterprise Clean (default) — shadcn mapping + SK aliases */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --primary: #0ea5e9;
+  --primary-foreground: #ffffff;
+  --success: #059669;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --destructive: #e11d48;
+  --destructive-foreground: #fff1f2;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0ea5e9;
+  --radius: 0.625rem;
+
+  /* SK aliases — dùng chung với prototype §3.1 */
+  --bg: var(--background);
+  --surface: var(--card);
+  --surface-2: var(--muted);
+  --line: var(--border);
+  --ink: var(--foreground);
+  --muted2: #94a3b8;
+  --neutral: #475569;
+  --neutral-soft: #f8fafc;
+  --neutral-bd: #e2e8f0;
+  --primary-soft: #f0f9ff;
+  --primary-bd: #bae6fd;
+  --success-soft: #ecfdf5;
+  --success-bd: #a7f3d0;
+  --warning-soft: #fffbeb;
+  --warning-bd: #fde68a;
+  --danger: var(--destructive);
+  --danger-soft: #fff1f2;
+  --danger-bd: #fecdd3;
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Dark — thứ cấp, giảm tương phản so với Cockpit cũ (§3.1) */
+.dark {
+  --background: #0b1329;
+  --foreground: #f1f5f9;
+  --card: #111e3a;
+  --card-foreground: #f1f5f9;
+  --primary: #38bdf8;
+  --primary-foreground: #0b1329;
+  --success: #34d399;
+  --success-foreground: #0b1329;
+  --warning: #fbbf24;
+  --warning-foreground: #0b1329;
+  --destructive: #fb7185;
+  --destructive-foreground: #0b1329;
+  --muted: #0f172a;
+  --muted-foreground: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #38bdf8;
+
+  --bg: var(--background);
+  --surface: var(--card);
+  --surface-2: var(--muted);
+  --line: var(--border);
+  --ink: var(--foreground);
+  --muted2: #64748b;
+  --neutral: #94a3b8;
+  --neutral-soft: #0f172a;
+  --neutral-bd: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.mono {
+  font-family: var(--font-mono);
+}

@@ -55,7 +55,8 @@ await phase("Review", async () => {
   await agent(
     `Bạn là Review Agent. Review toàn bộ diff + test results cho phase "${phase}" ở mức high. ` +
     `Đọc plan để hiểu yêu cầu gốc, kiểm tra correctness/bảo mật/hiệu năng/đơn giản hóa. ` +
-    `Liệt kê findings với file:line + severity, kết luận approve hoặc request_changes.`,
+    `Liệt kê findings với file:line + severity, kết luận approve hoặc request_changes. ` +
+    `Ghi toàn bộ báo cáo nghiệm thu vào .claude/reports/latest.md.`,
     { label: "review", phase: "Review" }
   );
 });

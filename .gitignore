@@ -8,3 +8,5 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+proxy-config.json
+scripts/proxy-config.json

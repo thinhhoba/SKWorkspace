@@ -31,6 +31,9 @@ Workflow: `Workflow(script="export const meta={...} ...")`
 
 ## Quy ước
 - Plan file: `C:/Users/hobat/.claude/plans/<ten>.md` (global) hoặc `.claude/plans/` (project)
+- Directive file: `.claude/inbox/directive.md` — Kênh tiếp nhận chỉ thị trực tiếp từ Commander (Antigravity). Khi user gõ `/next` hoặc `Đọc directive.md`, Claude tự động đọc file này và thực thi 100%.
+- Report file: `.claude/reports/latest.md` và `.claude/reports/<phase>.md` — **BẮT BUỘC**: Mỗi khi hoàn thành 1 task/phase hoặc chạy xong Test/Review, Agent luôn tự động xuất bản tóm tắt kết quả vào `.claude/reports/latest.md` để Commander tự động đọc.
+- Chỉ huy & Nghiệm thu: Commander (Antigravity) ban hành chỉ thị qua `.claude/inbox/directive.md` và thẩm định nghiệm thu qua `.claude/reports/latest.md` + git diff.
 - Commit attribution: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
 - PR attribution: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
 - Ngôn ngữ: trả lời user bằng tiếng Việt.
