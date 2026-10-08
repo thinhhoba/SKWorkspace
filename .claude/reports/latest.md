@@ -1,20 +1,29 @@
-# Báo cáo Claymorphism — 08/10/2026
+# Báo cáo PWA 4 vai trò — 08/10/2026
 
-## Tổng quan directive
-Chủ tịch phê duyệt định hướng 3D Claymorphism + Glossy Soft Tech (Apple Widgets / Zalo Cloud / Linear) — nâng toàn bộ Shell + Bento + PWA từ phẳng sang xúc giác phồng/kính mờ bóng ngọc trai.
+## Tóm tắt đã làm
+PWA `/pwa` chuyển từ 4 tab cứng (Tổng quan / Kho / Giao vận / Tôi) sang 4 persona độc lập: Giám đốc (`admin`), Kế toán (`accountant`), Kho lạnh (`warehouse`), Giao hàng (`delivery`). Role Switcher trên topbar đổi vai; BottomNav và màn hình chính render theo `PwaRole`. Role shell cũ `ADMIN | MANAGER | STAFF | VIEWER` giữ nguyên.
 
-## File đã sửa
-- `app/globals.css` — tokens `.clay-card` (pearl gradient + dual-shadow + inset), `.clay-kpi` 3 tone sky/warning/danger (sky/warning/danger glow), `.clay-tile` (hover `translateY(-3px) scale(1.01)` cubic-bezier), `.glossy-pill/.glossy-btn` (viên thuốc specular), `.glossy-glass` (backdrop-blur 12px).
-- `app/(shell)/page.tsx` — 4 KPI `.clay-kpi[data-tone]` border-l-4 + 3 bento `.clay-card` + 14 mini-app `.clay-tile`.
-- `components/shell/Topbar.tsx` — `.glossy-glass` 56px sticky + search `.glossy-pill`.
-- `components/shell/Sidebar.tsx` — aside desktop + drawer mobile đổi sang `.glossy-glass` (240px/64px/280px <1024).
-- `app/(shell)/finance/sapo2misa/page.tsx` — stepper `.glossy-pill` + wrapper ngoài `.clay-card`, riêng `MisaGrid.tsx` giữ phẳng (0 clay) đảm bảo 60fps virtualized.
-- `app/pwa/_components/BottomNav.tsx` — floating pill `rounded-[9999px]` 56px `env(safe-area-inset-bottom)` active Sky glow; `QrViewport.tsx` khung `clay-card rounded-3xl` 4 góc + scanline.
-- `app/pwa/page.tsx` — thẻ thao tác `.clay-card` + pill `.glossy-pill`.
+## File
+- `packages/core/rbac.ts` — thêm `PwaRole` + `PWA_ROLES`; `Role` shell `ADMIN` vẫn còn.
+- `app/pwa/_components/RoleProvider.tsx` — context role/tab, persist localStorage.
+- `app/pwa/_components/RoleSwitcher.tsx` — dropdown topbar, `min-h-[52px]`.
+- `app/pwa/_components/roleNav.ts` — `PWA_NAV` 4 bộ 4 tab theo vai.
+- `app/pwa/_components/RoleHome.tsx` — home theo vai: KPI `128.400.000` / `540.200.000`, `SP-0842`, An Thịnh, Minh Khang, `-18.2°C`, VietQR `img.vietqr.io`, `tel:`, nút `min-h-[52px]`.
+- `app/pwa/_components/BottomNav.tsx` — nav theo `PWA_NAV[role]`, không còn hardcode 4 tab cũ.
+- `app/pwa/layout.tsx` — bọc `RoleProvider` + `RoleSwitcher`.
+- `app/pwa/page.tsx` — render `<RoleHome />`.
 
 ## Verify
-- `npx tsc --noEmit` — 0 lỗi.
-- `npm run build` (Next 15.5) — PASS (7 routes static).
-- Grep: `globals.css` 6 tokens đủ; `(shell)/page.tsx` clay-kpi/card/tile đủ; Topbar/Sidebar glossy-glass đủ; BottomNav floating-pill + safe-area đủ; `MisaGrid.tsx` 0 clay (giữ phẳng).
+- `npx tsc --noEmit` — exit 0.
+- `npm run build` (Next 15.5.10) — PASS, 7 routes static (`/`, `/finance/sapo2misa`, `/pwa`, `/pwa/giaovan`, `/pwa/kho`, `/pwa/toi`).
+- Grep:
+  - `PwaRole` `admin|accountant|warehouse|delivery` trong `rbac.ts`; `Role` `ADMIN` còn.
+  - `RoleSwitcher`, `RoleProvider`, `RoleHome` tồn tại.
+  - BottomNav lấy `PWA_NAV[role]` — không còn ITEMS cứng Tổng quan/Kho/Giao vận/Tôi.
+  - `vnd(128400000)`, `vnd(540200000)`, `SP-0842`, An Thịnh, Minh Khang, `-18.2°C`, `vietqr.io` / VietQR, `tel:`, `min-h-[52px]` — đủ.
 
-Sẵn sàng nghiệm thu — `npm run dev` → `/` (shell), `/finance/sapo2misa` (Grid 63), `/pwa`.
+## Cách thử
+```
+npm run dev
+```
+Mở `/pwa`. Trên topbar bấm Role Switcher → lần lượt Giám đốc / Kế toán / Kho lạnh / Giao hàng. BottomNav và nội dung đổi theo vai (4 tab khác nhau).
