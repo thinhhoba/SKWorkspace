@@ -1,137 +1,145 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-mu="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0B1329">
+<meta name="theme-color" content="#F8FAFC">
 <link rel="manifest" href="manifest.json">
-<title>SK Workspace — Modern Utility Light / Dark</title>
+<title>SK Workspace — Enterprise Clean</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>
-*{font-family:'Inter',system-ui,sans-serif}
-.mono{font-family:'JetBrains Mono',monospace}
+*{font-family:'Inter',system-ui,-apple-system,sans-serif}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
 .scrollbar{scrollbar-width:thin}
 .scrollbar::-webkit-scrollbar{width:6px;height:6px}
-.scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:999px}
-html[data-mu="light"]{--bg:#EBF3FA;--bg-grid:rgba(14,165,233,.04);--surface:#FFFFFF;--surface-2:#F1F5F9;--line:#D0E2F2;--ink:#0F172A;--muted:#64748B;--primary:#0ea5e9;--cta:#059669}
-html[data-mu="dark"]{--bg:#0B1329;--bg-grid:rgba(6,182,214,.06);--surface:#0F1D3A;--surface-2:#030712;--line:rgba(255,255,255,.08);--ink:#F1F5F9;--muted:#94a3b8;--primary:#38bdf8;--cta:#10b981}
-body{background:var(--bg);color:var(--ink)}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(var(--bg-grid) 1px, transparent 1px),linear-gradient(90deg,var(--bg-grid) 1px, transparent 1px);background-size:32px 32px}
-*:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-@media(max-width:1024px){
-  #layout{grid-template-columns:1fr !important}
-  #sidebar{position:fixed;inset:0 auto 0 0;width:280px;z-index:40;transform:translateX(-100%);transition:transform .25s}
-  #sidebar.open{transform:translateX(0)}
-  #backdrop{display:block !important}
+.scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}
+/* Tokens Enterprise Clean - Light default §3.1 */
+:root{
+  --bg:#F8FAFC; --surface:#FFFFFF; --surface-2:#F1F5F9; --line:#E2E8F0; --ink:#0F172A; --muted:#64748B; --muted-2:#94A3B8;
+  --primary:#0EA5E9; --primary-soft:#F0F9FF; --primary-bd:#BAE6FD;
+  --success:#059669; --success-soft:#ECFDF5; --success-bd:#A7F3D0;
+  --warning:#D97706; --warning-soft:#FFFBEB; --warning-bd:#FDE68A;
+  --danger:#E11D48; --danger-soft:#FFF1F2; --danger-bd:#FECDD3;
+  --neutral:#475569; --neutral-soft:#F8FAFC; --neutral-bd:#E2E8F0;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06); --shadow-md:0 4px 12px rgba(15,23,42,.08);
 }
+html[data-mu="dark"]{
+  --bg:#0B1329; --surface:#111E3A; --surface-2:#0F172A; --line:rgba(255,255,255,.08); --ink:#F1F5F9; --muted:#94A3B8; --muted-2:#64748B;
+  --primary:#38BDF8; --primary-soft:rgba(56,189,248,.12); --primary-bd:rgba(56,189,248,.25);
+  --success:#34D399; --success-soft:rgba(52,211,153,.12); --success-bd:rgba(52,211,153,.2);
+  --warning:#FBBF24; --warning-soft:rgba(251,191,36,.12); --warning-bd:rgba(251,191,36,.2);
+  --danger:#FB7185; --danger-soft:rgba(251,113,133,.12); --danger-bd:rgba(251,113,133,.2);
+}
+body{background:var(--bg);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+/* App Shell */
+#app-shell{display:flex;flex-direction:column;min-height:100dvh}
+#topbar{height:56px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:.75rem;padding:0 1rem;border-bottom:1px solid var(--line);background:var(--surface)}
+#shell-body{display:flex;flex:1;min-height:0}
+#sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:.75rem;padding:.75rem;overflow:auto}
+#canvas{flex:1;min-width:0;overflow:auto;background:var(--bg)}
 #backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}
+@media(max-width:1024px){
+  #sidebar{position:fixed;inset:0 auto 0 0;width:280px;z-index:40;transform:translateX(-100%);transition:transform .25s ease}
+  #sidebar.open{transform:translateX(0)}
+}
+/* Grid helpers */
+.kpi-card{border-radius:14px;border:1px solid var(--line);background:var(--surface);padding:1rem;position:relative;overflow:hidden}
+.bento{border-radius:14px;border:1px solid var(--line);background:var(--surface);overflow:hidden}
+.grid-63 th{position:sticky;top:0;background:var(--surface-2);z-index:1;white-space:nowrap}
+.grid-63 td{white-space:nowrap}
 </style>
 <script>
 function syncThemeMeta(m){
   var meta=document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', m==='light' ? '#EBF3FA' : '#0B1329');
+  if(meta) meta.setAttribute('content', m==='dark' ? '#0B1329' : '#F8FAFC');
 }
 (function(){
   try{
     var s=localStorage.getItem('sk-mu');
-    if(!s) s=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'light';
+    if(!s) s='light';
     document.documentElement.setAttribute('data-mu',s);
   }catch(e){document.documentElement.setAttribute('data-mu','light');}
 })();
 </script>
 </head>
-<body class="min-h-screen flex flex-col items-center py-5 px-3 gap-4">
-<!-- GLOBAL HEADER — single header -->
-<div class="w-full max-w-[1360px] flex items-center justify-between gap-3 flex-wrap">
-  <div class="flex items-center gap-3">
-    <button id="hamburger" onclick="toggleSidebar()" class="lg:hidden w-9 h-9 rounded-xl grid place-items-center border bg-white text-slate-700" aria-label="Mở menu">☰</button>
-    <div class="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow border border-slate-200">
-      <img src="assets/logo-sk-circle.png" alt="SK" class="w-6 h-6 rounded-full object-cover">
-      <span class="text-xs font-extrabold tracking-widest text-slate-800">SK WORKSPACE</span>
-      <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-[#0B1329] text-white">MODERN UTILITY</span>
+<body>
+<div id="app-shell">
+  <!-- Topbar 56px sticky -->
+  <header id="topbar">
+    <button id="hamburger" onclick="toggleSidebar()" class="lg:hidden w-9 h-9 rounded-xl grid place-items-center border shrink-0" style="border-color:var(--line);background:var(--surface)" aria-label="Mở menu">☰</button>
+    <a href="#home" class="flex items-center gap-2 shrink-0">
+      <img src="assets/logo-sk-circle.png" alt="SK" class="w-8 h-8 rounded-xl object-cover border" style="border-color:var(--line)">
+      <span class="hidden sm:block text-[13px] font-extrabold tracking-tight">SK Workspace</span>
+      <span class="hidden md:inline mono text-[10px] px-2 py-0.5 rounded-full border font-bold" style="border-color:var(--line);background:var(--surface-2)">14 app · Sapo ↔ Data Hub ↔ MISA</span>
+    </a>
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-3 relative">
+      <span class="absolute left-3 text-slate-400 text-xs">⌕</span>
+      <input id="topSearch" oninput="onTopSearch()" placeholder="Tìm app, đơn, KH… (⌘K)" class="w-full pl-8 pr-3 py-2 rounded-xl border text-xs outline-none" style="background:var(--surface-2);border-color:var(--line)">
     </div>
-    <span class="hidden md:inline text-xs text-slate-500">14 app · Sapo ↔ Data Hub ↔ MISA 63 cột</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <button id="btnLight" onclick="setMU('light')" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow" aria-pressed="false">☀ LIGHT</button>
-    <button id="btnDark" onclick="setMU('dark')" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15" aria-pressed="false">◐ DARK COCKPIT</button>
-    <div class="hidden lg:flex items-center gap-1.5 bg-white rounded-full p-1 border border-slate-200">
-      <a href="mindmap.html" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">Mindmap</a>
-      <a href="ui-pwa.html" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">PWA →</a>
+    <div class="flex-1 lg:hidden"></div>
+    <span id="clock" class="hidden sm:inline-flex items-center mono text-[11px] px-3 py-1.5 rounded-full border font-medium" style="border-color:var(--line);background:var(--surface-2)"></span>
+    <div class="hidden sm:flex items-center gap-1">
+      <a href="mindmap.html" class="mono text-[11px] px-3 py-1.5 rounded-full border hover:opacity-80" style="border-color:var(--line)">Mindmap</a>
+      <a href="ui-pwa.html" class="mono text-[11px] px-3 py-1.5 rounded-full border hover:opacity-80" style="border-color:var(--line)">PWA →</a>
     </div>
-  </div>
-</div>
-<div id="backdrop" onclick="toggleSidebar()"></div>
-
-<!-- WINDOW -->
-<div id="frame" class="w-full max-w-[1360px] rounded-[20px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,.25)] border" style="background:var(--surface);border-color:var(--line)">
-  <!-- TOPBAR — no window chrome, real actions -->
-  <div id="topbar" class="h-[56px] flex items-center gap-3 px-4 border-b shrink-0" style="background:var(--surface);border-color:var(--line)">
-    <div class="flex items-center gap-3">
-      <img id="topLogo" src="assets/logo-sk-circle.png" alt="SK" class="w-9 h-9 rounded-xl object-cover border" style="border-color:var(--line)">
-      <div>
-        <div id="topTitle" class="text-[13px] font-extrabold leading-none flex items-center gap-1.5"></div>
-        <div id="topSub" class="text-[11px]"></div>
-      </div>
-    </div>
-    <div class="flex-1"></div>
-    <div id="pillArea" class="hidden sm:flex items-center gap-2"></div>
-    <div id="clock" class="hidden md:flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border" style="border-color:var(--line)"></div>
-    <div class="flex items-center gap-1.5">
-      <button class="w-8 h-8 rounded-lg grid place-items-center border text-xs" style="border-color:var(--line)" aria-label="Tìm kiếm">⌕</button>
+    <div class="flex items-center gap-1">
+      <button onclick="setMU(document.documentElement.getAttribute('data-mu')==='dark'?'light':'dark')" class="w-8 h-8 rounded-lg grid place-items-center border text-xs" style="border-color:var(--line)" aria-label="Đổi giao diện" title="Đổi Light/Dark">◐</button>
       <button class="w-8 h-8 rounded-lg grid place-items-center border text-xs" style="border-color:var(--line)" aria-label="Thông báo">◉</button>
       <img src="assets/logo-sk-circle.png" alt="avatar" class="w-8 h-8 rounded-full object-cover border" style="border-color:var(--line)">
     </div>
-  </div>
+  </header>
 
-  <div id="layout" class="grid" style="grid-template-columns:240px 1fr; min-height:720px">
-    <!-- SIDEBAR 240px -->
-    <div id="sidebar" class="border-r p-3 flex flex-col gap-3" style="background:var(--surface);border-color:var(--line)">
+  <div id="shell-body">
+    <!-- Sidebar 240px -->
+    <aside id="sidebar" class="scrollbar">
       <div class="flex items-center justify-between lg:hidden">
-        <span class="mono text-[11px] font-bold">MENU</span>
-        <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg border grid place-items-center">✕</button>
+        <span class="text-xs font-bold tracking-widest" style="color:var(--muted)">MENU</span>
+        <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg border grid place-items-center" style="border-color:var(--line)">✕</button>
       </div>
-      <div id="sideHead" class="rounded-xl border p-3" style="border-color:var(--line)">
-        <div class="mono text-[10px] tracking-widest font-bold opacity-60">WORKSPACE</div>
-        <div class="text-sm font-extrabold flex items-center gap-2">SK Workspace <span class="mono text-[10px] px-1.5 py-0.5 rounded-full border" style="border-color:var(--line)">v2.4</span></div>
-        <div class="text-[11px] opacity-60">14 app · Data Hub · RBAC</div>
+      <div class="rounded-xl border p-3" style="border-color:var(--line);background:var(--surface-2)">
+        <div class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">WORKSPACE</div>
+        <div class="text-sm font-extrabold flex items-center gap-2">SK Workspace <span class="mono text-[10px] px-1.5 py-0.5 rounded-full border" style="border-color:var(--line);background:var(--surface)">v2.4</span></div>
+        <div class="text-[11px]" style="color:var(--muted)">14 app · Data Hub · RBAC</div>
       </div>
       <div class="relative">
         <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs">⌕</span>
         <input id="sideSearch" oninput="filterNav()" placeholder="Tìm app…" class="w-full pl-7 pr-3 py-2 rounded-xl border text-xs outline-none" style="background:var(--surface);border-color:var(--line);color:var(--ink)">
       </div>
-      <nav id="nav" class="space-y-1 overflow-auto scrollbar pr-1 flex-1"></nav>
-      <div id="sideCard" class="rounded-xl p-3 border" style="border-color:var(--line)">
-        <div class="text-xs font-bold flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Đồng bộ Sapo — Live</div>
-        <div class="text-[11px] opacity-70 mt-1">external_id · last_synced_at · integration_logs</div>
+      <nav id="nav" class="space-y-1 flex-1"></nav>
+      <div class="rounded-xl p-3 border" style="border-color:var(--line);background:var(--surface-2)">
+        <div class="text-xs font-bold flex items-center gap-2"><span class="w-2 h-2 rounded-full animate-pulse" style="background:var(--success)"></span> Đồng bộ Sapo — Live</div>
+        <div class="text-[11px] mt-1" style="color:var(--muted)">external_id · last_synced_at · integration_logs</div>
         <div class="mt-2 flex gap-2">
-          <span class="mono text-[10px] px-2 py-1 rounded-full border font-bold" style="border-color:var(--line)">Sapo2Misa 1/14</span>
-          <span class="mono text-[10px] px-2 py-1 rounded-full border font-bold" style="border-color:var(--line)">VietQR</span>
+          <span class="mono text-[10px] px-2 py-1 rounded-full border font-bold" style="border-color:var(--line);background:var(--surface)">Sapo2Misa 1/14</span>
+          <span class="mono text-[10px] px-2 py-1 rounded-full border font-bold" style="border-color:var(--line);background:var(--surface)">VietQR</span>
         </div>
       </div>
-    </div>
+    </aside>
+    <div id="backdrop" onclick="toggleSidebar()"></div>
 
-    <!-- CANVAS -->
-    <div id="canvas" class="p-4 md:p-5" style="background:var(--bg)">
-      <!-- LOGIN VIEW — restored -->
+    <!-- Canvas -->
+    <main id="canvas" class="p-4 md:p-6">
+      <!-- VIEW LOGIN -->
       <div id="viewLogin" class="hidden">
         <div class="max-w-[560px] mx-auto rounded-2xl border p-6 md:p-8" style="background:var(--surface);border-color:var(--line)">
           <div class="text-center">
             <img src="assets/logo-sk-circle.png" alt="SK" class="w-14 h-14 rounded-full mx-auto border object-cover" style="border-color:var(--line)">
             <h2 class="text-lg font-extrabold mt-3">Đăng nhập SK Workspace</h2>
-            <p class="mono text-[11px] opacity-60 mt-1">Cty TNHH Thực Phẩm Sơn Khang · allowlist sonkhang.vn</p>
+            <p class="mono text-[11px] mt-1" style="color:var(--muted)">Cty TNHH Thực Phẩm Sơn Khang · allowlist sonkhang.vn</p>
           </div>
-          <button type="button" onclick="mockGoogle()" class="mt-5 w-full py-3 rounded-full border font-bold text-sm flex items-center justify-center gap-2" style="background:var(--surface);border-color:var(--line);color:var(--ink)">
+          <button type="button" onclick="mockGoogle()" class="mt-5 w-full py-3 rounded-full border font-bold text-sm flex items-center justify-center gap-2" style="background:var(--surface);border-color:var(--line)">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.31v2.77h3.57a10.24 10.24 0 0 0 3.27-6.09z"/><path fill="#34A853" d="M12 23a10.9 10.9 0 0 0 7.56-2.75l-3.57-2.77A6.66 6.66 0 0 1 12 18.5c-2.96 0-5.47-2-6.37-4.68H1.9v2.94A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.63 13.82A6.6 6.6 0 0 1 5.28 12c0-.64.11-1.26.35-1.82V7.24H1.9A11 11 0 0 0 .8 12c0 1.78.42 3.46 1.1 4.94l3.73-3.12z"/><path fill="#EA4335" d="M12 5.5a6.04 6.04 0 0 1 4.27 1.67l3.2-3.2A10.88 10.88 0 0 0 12 1a11 11 0 0 0-10.1 6.24l3.73 2.94C6.53 7.5 9.04 5.5 12 5.5z"/></svg>
             Tiếp tục với Google
           </button>
-          <div class="flex items-center gap-2 mono text-[11px] opacity-50 my-4"><span class="flex-1 h-px" style="background:var(--line)"></span> hoặc <span class="flex-1 h-px" style="background:var(--line)"></span></div>
+          <div class="flex items-center gap-2 mono text-[11px] my-4" style="color:var(--muted)"><span class="flex-1 h-px" style="background:var(--line)"></span> hoặc <span class="flex-1 h-px" style="background:var(--line)"></span></div>
           <form onsubmit="return mockLogin(event)" novalidate class="space-y-3">
-            <label class="block"><span class="mono text-[10px] tracking-widest font-bold opacity-60">Email công ty</span><input id="loginEmail" type="email" autocomplete="email" placeholder="ten@sonkhang.vn" required class="mt-1 w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style="background:var(--surface);border-color:var(--line);color:var(--ink)"></label>
-            <label class="block"><span class="mono text-[10px] tracking-widest font-bold opacity-60">Mật khẩu / OTP</span><input id="loginPw" type="password" autocomplete="current-password" placeholder="••••••••" required class="mt-1 w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style="background:var(--surface);border-color:var(--line);color:var(--ink)"></label>
+            <label class="block"><span class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">Email công ty</span><input id="loginEmail" type="email" autocomplete="email" placeholder="ten@sonkhang.vn" required class="mt-1 w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style="background:var(--surface);border-color:var(--line)"></label>
+            <label class="block"><span class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">Mật khẩu / OTP</span><input id="loginPw" type="password" autocomplete="current-password" placeholder="••••••••" required class="mt-1 w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style="background:var(--surface);border-color:var(--line)"></label>
             <div id="loginOk" class="hidden text-xs p-2.5 rounded-xl border"></div>
             <div id="loginErr" class="hidden text-xs p-2.5 rounded-xl border"></div>
             <div class="flex gap-2">
@@ -139,138 +147,129 @@ function syncThemeMeta(m){
               <button type="button" onclick="mockGoogle()" class="px-5 py-2.5 rounded-full border font-bold text-sm" style="border-color:var(--line)">Gửi OTP</button>
             </div>
           </form>
-          <details class="mt-4 rounded-xl border p-3" style="border-color:var(--line)"><summary class="mono text-[11px] font-bold cursor-pointer">Auth.js — Google OAuth cấu hình</summary><p class="mono text-[11px] opacity-60 mt-2 leading-relaxed">Provider <code>google</code> · <code>GOOGLE_CLIENT_ID/SECRET</code> · callback <code>/api/auth/callback/google</code> · allowlist <code>sonkhang.vn</code> hoặc invite · JWT session · OTP fallback.</p></details>
-          <p class="text-center mono text-[11px] mt-4"><a href="#" onclick="showView('light');return false" class="underline">Bỏ qua — vào Bàn làm việc →</a></p>
+          <p class="text-center mono text-[11px] mt-4"><a href="#home" class="underline">Bỏ qua — vào Bàn làm việc →</a></p>
         </div>
       </div>
 
-      <!-- LIGHT VIEW -->
-      <div id="viewLight">
+      <!-- VIEW HOME = Bento Dashboard -->
+      <div id="viewHome">
         <div class="flex items-center justify-between flex-wrap gap-2">
-          <h2 class="text-[15px] font-extrabold flex items-center gap-2"><span class="w-7 h-7 rounded-lg border grid place-items-center" style="background:var(--surface);border-color:var(--line)">▦</span> Bàn làm việc — Home <span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:var(--surface);border-color:var(--line)"> #home 5×3</span></h2>
+          <h2 class="text-[16px] font-extrabold flex items-center gap-2"><span class="w-7 h-7 rounded-lg border grid place-items-center text-sm" style="background:var(--surface);border-color:var(--line)">▦</span> Bàn làm việc <span class="mono text-[11px] px-2 py-0.5 rounded-full border font-bold" style="background:var(--surface-2);border-color:var(--line)">#home Bento</span></h2>
           <div class="flex items-center gap-2">
-            <span class="hidden sm:inline mono text-[11px] px-2.5 py-1 rounded-full border" style="background:var(--surface);border-color:var(--line)">RBAC hasAppAccess(appId)</span>
-            <button onclick="showView('login')" class="mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Đăng nhập</button>
-            <span class="mono text-[11px] px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 font-bold">Sapo ↔ Hub ↔ MISA</span>
+            <span class="hidden sm:inline mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">RBAC hasAppAccess</span>
+            <button onclick="location.hash='#login'" class="mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Đăng nhập</button>
+            <span class="mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--warning-soft);color:var(--warning);border-color:var(--warning-bd)">Sapo ↔ Hub ↔ MISA</span>
           </div>
         </div>
-        <div class="mt-2 flex gap-2">
+        <div class="mt-3 flex gap-2 flex-wrap items-center">
           <div class="relative flex-1 max-w-sm">
             <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs">⌕</span>
-            <input id="gridSearch" oninput="renderHomeGrid()" placeholder="Tìm app, đơn, NCC…" class="w-full pl-7 pr-3 py-2 rounded-xl border text-xs outline-none" style="background:var(--surface);border-color:var(--line);color:var(--ink)">
+            <input id="gridSearch" oninput="renderHomeGrid()" placeholder="Tìm app, đơn, NCC…" class="w-full pl-7 pr-3 py-2 rounded-xl border text-xs outline-none" style="background:var(--surface);border-color:var(--line)">
           </div>
+          <div id="filterRow" class="flex gap-2 flex-wrap" role="tablist" aria-label="Lọc nhóm app"></div>
         </div>
-        <div id="filterRow" class="mt-3 flex gap-2 flex-wrap" role="tablist" aria-label="Lọc nhóm app"></div>
-        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="kpis"></div>
-        <div class="mt-4 grid gap-4" id="homeLayout" style="grid-template-columns: 300px 1fr">
-          <div class="rounded-xl border p-4" style="background:var(--surface);border-color:var(--line)">
-            <div class="mono text-[11px] tracking-widest font-extrabold opacity-60">QUY TRÌNH</div>
-            <div class="text-sm font-extrabold">Sapo → SK Hub → MISA</div>
-            <div class="relative mt-3">
-              <div class="absolute left-[15px] top-6 bottom-6 w-0.5" style="background:var(--line)"></div>
-              <div id="stepperLight" class="space-y-4 relative"></div>
-            </div>
-            <div class="mt-4 rounded-xl border p-3" style="background:var(--bg);border-color:var(--line)">
-              <div class="text-xs font-bold">Ranh giới Sapo2Misa</div>
-              <div class="text-[11px] leading-relaxed opacity-70 mt-1">Chỉ là 1 trong 14 app Tài chính — stepper 4 bước, Excel 63 cột, ledger chống trùng. Các app khác tự trị qua DataStore + appId.</div>
-            </div>
+        <!-- KPI row 4 -->
+        <div id="kpis" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+        <!-- Bento 2+1 / full -->
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div id="bentoOrders" class="bento p-4 lg:col-span-2"></div>
+          <div id="bentoStock" class="bento p-4"></div>
+          <div id="bentoDebt" class="bento p-4 lg:col-span-3"></div>
+        </div>
+        <!-- App grid 14 -->
+        <h3 class="text-sm font-extrabold mt-6 mb-3">Ứng dụng — 14 app</h3>
+        <div id="homeGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+      </div>
+
+      <!-- VIEW SAPO2MISA -->
+      <div id="viewSapo2Misa" class="hidden">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h2 class="text-[15px] font-extrabold flex items-center gap-2">Sapo2Misa <span class="mono text-[11px] px-2 py-0.5 rounded-full border font-bold" style="background:var(--primary-soft);color:var(--primary);border-color:var(--primary-bd)">1/14 · Tài chính</span></h2>
+          <span class="mono text-[11px] px-2.5 py-1 rounded-full border" style="background:var(--surface);border-color:var(--line)">Excel 63 cột · ledger external_id</span>
+          <a href="#home" class="ml-auto mono text-xs underline">← Về Bàn làm việc</a>
+        </div>
+        <!-- Stepper 4 -->
+        <div id="stepperSapo" class="mt-4"></div>
+        <!-- Actions -->
+        <div class="mt-4 flex gap-2 flex-wrap items-center">
+          <button onclick="openMapping()" class="px-4 py-2 rounded-xl border text-sm font-semibold" style="background:var(--surface);border-color:var(--line)">👁 Xem mapping</button>
+          <button onclick="exportExcelMock()" class="px-4 py-2 rounded-xl border text-sm font-semibold" style="background:var(--surface);border-color:var(--line)">💾 Sinh Excel 63 cột</button>
+          <button id="btnToggleCols" onclick="toggleCols()" class="ml-auto px-4 py-2 rounded-xl text-white text-sm font-bold" style="background:var(--primary)">Hiện đủ 63 cột</button>
+          <span id="colInfo" class="mono text-[11px]" style="color:var(--muted)"></span>
+        </div>
+        <!-- Data Grid -->
+        <div class="mt-3 rounded-xl border overflow-hidden" style="background:var(--surface);border-color:var(--line)">
+          <div class="overflow-auto scrollbar max-h-[420px]" id="gridWrap">
+            <table class="w-full text-xs grid-63 border-collapse"><thead id="gridHead"></thead><tbody id="gridBody"></tbody></table>
           </div>
-          <div>
-            <div id="homeGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
-            <div class="mt-3 rounded-xl border p-3 flex items-center gap-2 flex-wrap justify-between" style="background:var(--surface);border-color:var(--line)">
-              <div class="flex gap-2">
-                <button onclick="openMapping()" class="px-4 py-2.5 rounded-lg border text-sm font-semibold" style="background:var(--surface);border-color:var(--line)">👁 Xem trước mapping</button>
-                <button onclick="exportExcelMock()" class="px-4 py-2.5 rounded-lg border text-sm font-semibold" style="background:var(--surface);border-color:var(--line)">💾 Lưu template 63 cột</button>
+          <div class="mono text-[11px] px-3 py-2 flex justify-between" style="border-top:1px solid var(--line);color:var(--muted)"><span>sticky header · frozen 2 cols · filter từng cột</span><span id="gridCount"></span></div>
+        </div>
+        <!-- Terminal drawer collapsed default -->
+        <div class="mt-4 rounded-xl border overflow-hidden" style="background:var(--surface);border-color:var(--line)">
+          <button onclick="toggleTerminal()" id="termToggle" class="w-full flex items-center justify-between px-4 py-3 font-bold text-sm">
+            <span class="flex items-center gap-2">▸ Nhật ký đồng bộ — integration_logs <span id="termBadge" class="mono text-[11px] px-2 py-0.5 rounded-full border" style="border-color:var(--line);background:var(--surface-2)">88 dòng</span></span>
+            <span id="termChevron" class="text-xs">▼</span>
+          </button>
+          <div id="termPanel" class="hidden border-t" style="border-color:var(--line)">
+            <div class="flex items-center gap-1.5 px-3 py-2 flex-wrap" style="background:var(--surface-2)">
+              <div class="flex gap-1" role="group" aria-label="Lọc log">
+                <button onclick="setTermFilter('ALL')" data-term="ALL" class="term-filter mono text-[10px] px-2 py-1 rounded-full border font-bold" style="background:var(--ink);color:var(--bg);border-color:var(--line)">ALL</button>
+                <button onclick="setTermFilter('INFO')" data-term="INFO" class="term-filter mono text-[10px] px-2 py-1 rounded-full border" style="border-color:var(--line)">INFO</button>
+                <button onclick="setTermFilter('OK')" data-term="OK" class="term-filter mono text-[10px] px-2 py-1 rounded-full border" style="border-color:var(--line)">OK</button>
+                <button onclick="setTermFilter('WARN')" data-term="WARN" class="term-filter mono text-[10px] px-2 py-1 rounded-full border" style="border-color:var(--line)">WARN</button>
+                <button onclick="setTermFilter('RUN')" data-term="RUN" class="term-filter mono text-[10px] px-2 py-1 rounded-full border" style="border-color:var(--line)">RUN</button>
               </div>
-              <button onclick="setMU('dark');showView('dark')" class="px-6 py-3 rounded-lg text-white text-sm font-extrabold shadow" style="background:var(--cta)">▶ ĐỒNG BỘ NGAY — SANG COCKPIT</button>
+              <button onclick="copyTerminal()" class="ml-auto mono text-[10px] px-2 py-1 rounded-full border font-bold" style="border-color:var(--line)">⎙ Copy</button>
+              <label class="mono text-[10px] flex items-center gap-1 cursor-pointer"><input type="checkbox" id="autoScroll" checked> auto</label>
             </div>
-          </div>
-        </div>
-        <div class="mt-4 grid lg:grid-cols-3 gap-3">
-          <div class="rounded-xl border overflow-hidden" style="background:var(--surface);border-color:var(--line)">
-            <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color:var(--line)"><span class="text-sm font-extrabold">Đơn Sapo gần đây</span><a href="#" class="mono text-[11px]">Xem tất cả →</a></div>
-            <div class="overflow-auto scrollbar"><table class="w-full text-sm"><thead class="mono text-[11px] opacity-60"><tr><th class="text-left px-3 py-2">Mã</th><th class="text-left px-3 py-2">Khách</th><th class="text-right px-3 py-2">Tổng</th><th class="px-3 py-2">TT</th></tr></thead><tbody class="divide-y" id="tblOrders"></tbody></table></div>
-            <div class="mono text-[11px] px-3 py-2 opacity-60" style="border-top:1px solid var(--line)">last_synced_at: 08/10 08:14 · incremental pull</div>
-          </div>
-          <div class="rounded-xl border overflow-hidden" style="background:var(--surface);border-color:var(--line)">
-            <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color:var(--line)"><span class="text-sm font-extrabold">Công nợ & nhắc nợ</span><span class="mono text-[11px] px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">12 quá hạn</span></div>
-            <div class="p-3 space-y-2" id="debtList"></div>
-          </div>
-          <div class="rounded-xl border overflow-hidden" style="background:var(--surface);border-color:var(--line)">
-            <div class="px-4 py-3 border-b" style="border-color:var(--line)"><span class="text-sm font-extrabold">Kho đa điểm Q7/Q12</span></div>
-            <div class="p-3 space-y-2" id="stockList"></div>
+            <div id="terminal" class="mono text-[12px] leading-5 p-3 h-[260px] overflow-auto scrollbar" style="background:var(--surface)"></div>
+            <div class="mono text-[11px] px-3 py-1.5 flex justify-between" style="border-top:1px solid var(--line);color:var(--muted)"><span id="termCount">—</span><span id="copyToast" class="hidden" style="color:var(--success)">Đã copy ✓</span></div>
           </div>
         </div>
       </div>
 
-      <!-- DARK VIEW -->
-      <div id="viewDark" class="hidden">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <h2 class="text-[15px] font-extrabold flex items-center gap-2 text-white"><span class="w-7 h-7 rounded-lg border grid place-items-center text-white" style="background:var(--surface);border-color:var(--line)">⬢</span> Cockpit — Đồng bộ & Logs <span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:rgba(255,255,255,.08);border-color:var(--line);color:#a5f3fc">LIVE 88%</span></h2>
-          <span class="mono text-[11px] px-3 py-1 rounded-full border text-white" style="background:rgba(255,255,255,.06);border-color:var(--line)">4 bước · Đang chạy bước 3/4</span>
-        </div>
-        <div class="mt-4 grid gap-4" style="grid-template-columns: 300px 1fr" id="darkLayout">
-          <div class="rounded-xl border p-4" style="background:var(--surface);border-color:var(--line)">
-            <div class="mono text-[11px] tracking-widest font-bold opacity-60">PIPELINE — DATA HUB</div>
-            <div class="text-sm font-extrabold">Sapo ↔ Hub ↔ MISA</div>
-            <div class="relative mt-3">
-              <div class="absolute left-[15px] top-6 bottom-6 w-0.5" style="background:linear-gradient(to bottom,#10b981,rgba(16,185,129,.15))"></div>
-              <div id="stepperDark" class="space-y-4 relative"></div>
-            </div>
-            <div class="mt-4 rounded-xl p-3 border" style="background:rgba(255,255,255,.04);border-color:var(--line)">
-              <div class="text-xs font-bold">Workflow Engine</div>
-              <div class="text-[11px] opacity-60 mt-1">đơn mới / tồn thấp / nợ quá hạn → tạo Task/Note/Cảnh báo liên app</div>
-              <div class="mt-2 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,.08)"><div class="h-full rounded-full" style="width:88%; background:linear-gradient(90deg,#22d3ee,#3b82f6)"></div></div>
-            </div>
-          </div>
-          <div class="space-y-4">
-            <div class="rounded-xl border p-4" style="background:var(--surface);border-color:var(--line)">
-              <div class="flex items-center justify-between">
-                <div class="text-sm font-bold">Tiến trình tổng thể — CentralOrders → Excel 63 cột</div>
-                <span class="mono text-[11px] px-2 py-1 rounded-full border" style="background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.25);color:#6ee7b7">88% · còn 2m 14s</span>
-              </div>
-              <div class="mt-3 flex items-end gap-4">
-                <div class="flex-1">
-                  <div class="h-3 rounded-full border overflow-hidden p-1" style="background:var(--surface-2);border-color:var(--line)"><div class="h-full rounded-full" style="width:88%; background:linear-gradient(90deg,#06b6d4,#2563eb); box-shadow:0 0 16px rgba(6,182,214,.6)"></div></div>
-                  <div class="mt-2 flex gap-2 mono text-[11px] opacity-60"><span>441 / 502 chứng từ</span><span>·</span><span>external_id ✓</span><span>·</span><span>ledger chống trùng</span></div>
-                </div>
-                <div class="mono text-3xl font-extrabold leading-none">88<span class="text-lg align-super" style="color:#22d3ee">%</span></div>
-              </div>
-            </div>
-            <div class="rounded-xl overflow-hidden border" style="background:var(--surface-2);border-color:var(--line)">
-              <div class="h-9 flex items-center justify-between px-3 border-b gap-2 flex-wrap" style="border-color:var(--line);background:rgba(255,255,255,.03)">
-                <div class="flex items-center gap-2"><span class="flex gap-1.5"><i class="w-3 h-3 rounded-full bg-red-500 block"></i><i class="w-3 h-3 rounded-full bg-yellow-400 block"></i><i class="w-3 h-3 rounded-full bg-green-500 block"></i></span><span class="mono text-[11px] opacity-70">terminal — integration_logs</span></div>
-                <div class="flex items-center gap-1.5">
-                  <div class="flex gap-1" role="group" aria-label="Lọc log">
-                    <button onclick="setTermFilter('ALL')" data-term="ALL" class="term-filter mono text-[10px] px-2 py-1 rounded-full border font-bold bg-white text-slate-800">ALL</button>
-                    <button onclick="setTermFilter('INFO')" data-term="INFO" class="term-filter mono text-[10px] px-2 py-1 rounded-full border">INFO</button>
-                    <button onclick="setTermFilter('OK')" data-term="OK" class="term-filter mono text-[10px] px-2 py-1 rounded-full border">OK</button>
-                    <button onclick="setTermFilter('WARN')" data-term="WARN" class="term-filter mono text-[10px] px-2 py-1 rounded-full border">WARN</button>
-                    <button onclick="setTermFilter('RUN')" data-term="RUN" class="term-filter mono text-[10px] px-2 py-1 rounded-full border">RUN</button>
-                  </div>
-                  <button onclick="copyTerminal()" class="mono text-[10px] px-2 py-1 rounded-full border font-bold" style="border-color:var(--line)">⎙ Copy</button>
-                  <label class="mono text-[10px] flex items-center gap-1 cursor-pointer"><input type="checkbox" id="autoScroll" checked> auto</label>
-                </div>
-              </div>
-              <div id="terminal" class="mono text-[12px] leading-5 p-3 h-[280px] overflow-auto scrollbar"></div>
-              <div class="mono text-[11px] px-3 py-1.5 flex justify-between opacity-60" style="border-top:1px solid var(--line)"><span id="termCount">1,284 dòng · live</span><span id="copyToast" class="hidden text-emerald-400">Đã copy ✓</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="mt-4 rounded-xl border p-3 flex items-center justify-between flex-wrap gap-2" style="background:var(--surface);border-color:var(--line)">
-          <button onclick="showView('light')" class="px-4 py-2.5 rounded-lg border text-sm font-semibold" style="background:rgba(255,255,255,.06);border-color:var(--line)">← Quay lại Light — Bàn làm việc</button>
-          <div class="flex gap-2"><button class="px-4 py-2.5 rounded-lg border text-sm font-bold" style="background:var(--surface);border-color:var(--line)">Xuất Excel 63 cột</button><button class="px-4 py-2.5 rounded-lg text-white text-sm font-bold" style="background:#06b6d4">Xem chi tiết →</button></div>
+      <!-- GENERIC APP placeholder -->
+      <div id="viewApp" class="hidden">
+        <div class="rounded-xl border p-8 text-center" style="background:var(--surface);border-color:var(--line)">
+          <div id="appPlaceholder" class="text-sm font-bold"></div>
+          <p class="mono text-xs mt-2" style="color:var(--muted)">Module đang phát triển — DataStore + appId</p>
+          <a href="#home" class="mono text-xs underline mt-3 inline-block">← Về Bàn làm việc</a>
         </div>
       </div>
-    </div>
+    </main>
   </div>
-  <div id="foot" class="h-7 flex items-center justify-between px-4 mono text-[11px] border-t" style="border-color:var(--line)"></div>
+  <footer id="foot" class="h-7 flex items-center justify-between px-4 mono text-[11px] border-t shrink-0" style="border-color:var(--line);background:var(--surface);color:var(--muted)"></footer>
 </div>
-<div class="w-full max-w-[1360px] text-center mono text-[11px] opacity-60">Modern Utility · Light #EBF3FA / Card #FFFFFF / Border #D0E2F2 · Dark #0B1329 / Terminal #030712 · rounded-xl 16 / rounded-lg 10 · Duotone SVG</div>
+
+<!-- Mapping modal -->
+<div id="mappingModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4">
+  <div class="absolute inset-0 bg-black/50" onclick="closeMapping()"></div>
+  <div class="relative w-full max-w-[720px] rounded-2xl border shadow-2xl overflow-hidden max-h-[85vh] flex flex-col" style="background:var(--surface);border-color:var(--line)">
+    <div class="px-5 py-4 border-b flex items-center justify-between" style="border-color:var(--line)">
+      <div><div class="text-sm font-extrabold">Xem trước mapping — Sapo → MISA 63 cột</div><div class="mono text-[11px]" style="color:var(--muted)">Ledger external_id · last_synced_at · chống trùng</div></div>
+      <button onclick="closeMapping()" class="w-8 h-8 rounded-lg border grid place-items-center" style="border-color:var(--line)">✕</button>
+    </div>
+    <div class="overflow-auto p-4 space-y-3 scrollbar">
+      <table class="w-full text-xs border-collapse">
+        <thead><tr class="mono text-[11px]" style="color:var(--muted)"><th class="text-left px-2 py-2 border-b" style="border-color:var(--line)">Sapo field</th><th class="text-left px-2 py-2 border-b" style="border-color:var(--line)">MISA cột</th><th class="text-left px-2 py-2 border-b" style="border-color:var(--line)">Ghi chú</th></tr></thead>
+        <tbody>
+          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">order.code</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Số chứng từ</td><td class="px-2 py-2 border-b" style="border-color:var(--line);color:var(--muted)">external_id</td></tr>
+          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">customer.tax_code</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">MST</td><td class="px-2 py-2 border-b" style="border-color:var(--line);color:var(--muted)">gdt.gov.vn</td></tr>
+          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">order.total</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Tổng tiền</td><td class="px-2 py-2 border-b" style="border-color:var(--line);color:var(--muted)">VietQR</td></tr>
+          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">line_items[].sku</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Mã hàng</td><td class="px-2 py-2 border-b" style="border-color:var(--line);color:var(--muted)">SKU map</td></tr>
+          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">order.created_at</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Ngày HT</td><td class="px-2 py-2 border-b" style="border-color:var(--line);color:var(--muted)">last_synced_at</td></tr>
+          <tr><td colspan="3" class="px-2 py-2 mono text-[11px] text-center" style="color:var(--muted)">… 58 cột còn lại · bấm Sinh Excel để xem đủ 63</td></tr>
+        </tbody>
+      </table>
+      <div class="rounded-xl border p-3 mono text-[11px] leading-relaxed" style="background:var(--bg);border-color:var(--line)">Adapter <code>packages/integrations/misa</code> · sync/push/pull/webhook · integration_logs</div>
+    </div>
+    <div class="px-4 py-3 border-t flex justify-end gap-2" style="border-color:var(--line)"><button onclick="closeMapping()" class="px-4 py-2 rounded-full border text-sm font-bold" style="border-color:var(--line)">Đóng</button><button onclick="closeMapping();exportExcelMock()" class="px-4 py-2 rounded-full text-sm font-bold text-white" style="background:var(--success)">Sinh Excel 63 cột</button></div>
+  </div>
+</div>
+<div id="exportToast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-xl border shadow-xl mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)"></div>
 
 <script>
-// SVG duotone icons — stroke 1.6, currentColor
-const svgIcons = {
+const svgIcons={
   home:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   finance:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/><circle cx="12" cy="12" r="10" opacity=".15" fill="currentColor" stroke="none"/></svg>',
   sync:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v7h-7"/><path d="M3 12a9 9 0 1 0 2.6 6.4"/><path d="M3 21v-7h7"/></svg>',
@@ -286,8 +285,7 @@ const svgIcons = {
   task:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
   media:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
 };
-
-const navItems = [
+const navItems=[
   {id:'home', icon:svgIcons.home, label:'Bàn làm việc', group:'all', color:'text-sky-600 bg-sky-50 border-sky-200'},
   {id:'finance', icon:svgIcons.finance, label:'Tài chính-Kế toán', group:'finance', badge:'63 cột', color:'text-amber-700 bg-amber-50 border-amber-200'},
   {id:'sapo2misa', icon:svgIcons.sync, label:'Sapo2Misa', group:'finance', badge:'1/14', color:'text-emerald-700 bg-emerald-50 border-emerald-200'},
@@ -303,8 +301,7 @@ const navItems = [
   {id:'task', icon:svgIcons.task, label:'Quy trình/Lịch', group:'office', color:'text-emerald-700 bg-emerald-50 border-emerald-200'},
   {id:'media', icon:svgIcons.media, label:'Thư viện', group:'office', color:'text-purple-700 bg-purple-50 border-purple-200'},
 ];
-
-const apps = [
+const apps=[
   {name:'Tài chính-Kế toán', desc:'Sapo2Misa 63 cột · 1/14', group:'finance', color:'amber', icon:svgIcons.finance},
   {name:'Sapo2Payroll', desc:'Lương & KPI', group:'finance', color:'amber', icon:svgIcons.finance},
   {name:'Sapo2Payment', desc:'Phiếu thu MISA', group:'finance', color:'amber', icon:svgIcons.finance},
@@ -320,14 +317,7 @@ const apps = [
   {name:'Văn thư', desc:'SKContract · HĐTM', group:'office', color:'red', icon:svgIcons.contract},
   {name:'Quy trình/Lịch', desc:'SKTask · SKCalendar', group:'office', color:'emerald', icon:svgIcons.task},
 ];
-
-const kpis = [
-  {label:'Doanh thu T10', value:'1.842.000.000 ₫', trend:'↗ +8,4% so T09 · Sapo sync', color:'sky'},
-  {label:'Công nợ phải thu', value:'642.300.000 ₫', trend:'12 khách quá hạn · nhắc nợ', color:'amber', alert:true},
-  {label:'Tồn kho', value:'1.204 SKU', trend:'18 SKU dưới định mức', color:'emerald', alert:true},
-  {label:'HĐ InBot mới', value:'4 hóa đơn', trend:'Đã tải PDF/XML → MinIO', color:'violet'},
-];
-const logs = [
+const logs=[
   "[08:14:02] [INFO] Sapo pull — 12 đơn mới · incremental last_synced_at",
   "[08:14:03] [OK] Chuẩn hóa CentralOrders — 502 chứng từ",
   "[08:14:05] [INFO] Map KH theo MST — gdt.gov.vn · 498/502 khớp",
@@ -341,285 +331,282 @@ const logs = [
   "[08:14:22] [INFO] Workflow: tồn thấp → tạo Task mua hàng",
   "[08:14:24] [OK] Sẵn sàng xuất MISA AMIS — còn 2m 14s",
 ];
-let currentView='light';
-function showView(v){
-  currentView=v;
-  document.getElementById('viewLogin').classList.toggle('hidden', v!=='login');
-  document.getElementById('viewLight').classList.toggle('hidden', v!=='light');
-  document.getElementById('viewDark').classList.toggle('hidden', v!=='dark');
-  // update topbar subtitle
-  luc();
-}
+// 63 cols mock
+const MISA_COLS=[
+  {key:'so_ct',label:'Số CT'},{key:'ngay_ht',label:'Ngày HT'},{key:'ngay_ct',label:'Ngày CT'},{key:'mst',label:'MST'},{key:'ten_kh',label:'Tên KH'},{key:'dia_chi',label:'Địa chỉ'},{key:'dien_giai',label:'Diễn giải'},{key:'ma_hang',label:'Mã hàng'},{key:'ten_hang',label:'Tên hàng'},{key:'dvt',label:'ĐVT'},{key:'so_luong',label:'SL'},{key:'don_gia',label:'Đơn giá'},{key:'thanh_tien',label:'Thành tiền'},{key:'thue_suat',label:'Thuế suất'},{key:'tien_thue',label:'Tiền thuế'},{key:'tk_no',label:'TK Nợ'},{key:'tk_co',label:'TK Có'},{key:'tong_hang',label:'Tổng hàng'},{key:'tong_thue',label:'Tổng thuế'},{key:'tong_tt',label:'Tổng TT'},{key:'hinh_thuc',label:'Hình thức TT'},{key:'han_tt',label:'Hạn TT'},{key:'chiet_khau',label:'Chiết khấu'},{key:'cp_vc',label:'CP vận chuyển'},{key:'lo_han',label:'Lô/hạn'},{key:'ghi_chu',label:'Ghi chú'},{key:'nv_ban',label:'NV bán'},{key:'kenh',label:'Kênh'},
+];
+while(MISA_COLS.length<63){ var i=MISA_COLS.length+1; MISA_COLS.push({key:'col_'+i,label:'Cột '+i}); }
+const VISIBLE_DEFAULT=['so_ct','ngay_ht','mst','ten_kh','ma_hang','so_luong','don_gia','thanh_tien','thue_suat','tien_thue','tk_no','tk_co'];
+let showAllCols=false;
+let activeFilter='all';
+let currentView='home';
+let termFilter='ALL';
+let termOpen=false;
+
+function hasAppAccess(appId){ return true; } // mock RBAC
+
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
-  const b=document.getElementById('backdrop');
+  var b=document.getElementById('backdrop');
   b.style.display=document.getElementById('sidebar').classList.contains('open')?'block':'none';
 }
 function setMU(m){
   document.documentElement.setAttribute('data-mu', m);
   try{ localStorage.setItem('sk-mu', m); }catch(e){}
   syncThemeMeta(m);
-  const isLight=m==='light';
-  document.getElementById('btnLight').setAttribute('aria-pressed', isLight?'true':'false');
-  document.getElementById('btnDark').setAttribute('aria-pressed', !isLight?'true':'false');
-  document.getElementById('btnLight').className=isLight?'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow':'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
-  document.getElementById('btnDark').className=!isLight?'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-slate-900 text-white border-slate-800 shadow':'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
-  document.getElementById('topbar').style.background='var(--surface)';
-  document.getElementById('topbar').style.borderColor='var(--line)';
-  document.getElementById('frame').style.background='var(--surface)';
-  document.getElementById('frame').style.borderColor='var(--line)';
-  document.getElementById('canvas').style.background='var(--bg)';
-  document.getElementById('foot').style.borderColor='var(--line)';
-  const isDark=!isLight;
-  // foot
-  document.getElementById('foot').innerHTML=isLight?'<span>SK Workspace · Modern Utility Light · #EBF3FA</span><span class="mono">14 app · Data Hub · v2.4</span>':'<span class="text-white/60">Dark Cockpit · Terminal live</span><span class="mono text-cyan-300">88% · 1,284 dòng · Data Hub</span>';
-  document.getElementById('foot').style.background='var(--surface)';
-  document.getElementById('foot').style.color=isLight?'#64748B':'rgba(255,255,255,.6)';
-  // topbar texts
-  if(isLight){
-    document.getElementById('topTitle').innerHTML='SK Workspace <span class="text-amber-500">⚡</span> <span class="mono text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Modern Utility</span>';
-    document.getElementById('topTitle').className='text-[13px] font-extrabold leading-none flex items-center gap-1.5';
-    document.getElementById('topTitle').style.color='var(--ink)';
-    document.getElementById('topSub').textContent='Bàn làm việc · 14 app · Hash router #home → #app/*';
-    document.getElementById('topSub').style.color='var(--muted)';
-    document.getElementById('pillArea').innerHTML='<span class="mono text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 font-bold">● Sapo sync</span><span class="mono text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold">Đã đồng bộ · 88%</span>';
-  } else {
-    document.getElementById('topTitle').innerHTML='SK Workspace — Cockpit <span class="text-cyan-400">⬢</span> <span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:rgba(255,255,255,.08);border-color:var(--line);color:#a5f3fc">DARK</span>';
-    document.getElementById('topTitle').className='text-[13px] font-extrabold leading-none flex items-center gap-1.5';
-    document.getElementById('topTitle').style.color='var(--ink)';
-    document.getElementById('topSub').textContent='Tiến trình đồng bộ · Sapo → Hub → MISA · Terminal';
-    document.getElementById('topSub').style.color='var(--muted)';
-    document.getElementById('pillArea').innerHTML='<span class="mono text-xs px-2.5 py-1 rounded-full font-bold" style="background:rgba(255,255,255,.08);border:1px solid var(--line);color:#a5f3fc">LIVE 88%</span><span class="mono text-xs px-2.5 py-1 rounded-full font-bold" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#6ee7b7">● 4 bước</span>';
-  }
-  document.getElementById('topLogo').style.borderColor='var(--line)';
-  renderNav(); renderKpis(); renderHomeGrid(); luc();
-  // responsive grid columns
-  const w=window.innerWidth;
-  document.getElementById('homeLayout').style.gridTemplateColumns=w<1024?'1fr':'300px 1fr';
-  document.getElementById('darkLayout').style.gridTemplateColumns=w<1024?'1fr':'300px 1fr';
+  renderAll();
 }
 function luc(){
-  const now=new Date(), days=['CN','T2','T3','T4','T5','T6','T7'];
-  const el=document.getElementById('clock');
-  if(el){
-    el.textContent=`${days[now.getDay()]} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} · ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}`;
-    el.style.background='var(--surface)';
-    el.style.borderColor='var(--line)';
-    el.style.color=currentView==='dark'?'#a5f3fc':'#334155';
-  }
+  var now=new Date(), days=['CN','T2','T3','T4','T5','T6','T7'];
+  var el=document.getElementById('clock');
+  if(el) el.textContent=days[now.getDay()]+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+' · '+String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0');
+  var foot=document.getElementById('foot');
+  if(foot) foot.innerHTML='<span>SK Workspace · Enterprise Clean · #F8FAFC · Inter + JetBrains Mono</span><span class="mono">14 app · Data Hub · v2.4</span>';
 }
 function renderNav(){
-  const q=(document.getElementById('sideSearch')?.value||'').toLowerCase();
-  const nav=document.getElementById('nav');
-  const isLight=document.documentElement.getAttribute('data-mu')==='light';
-  const filtered=navItems.filter(n=>!q||n.label.toLowerCase().includes(q));
-  nav.innerHTML=filtered.map(n=>{
-    const active=n.id==='home'&&currentView!=='login';
-    const base=isLight?(active?'bg-slate-900 text-white border-slate-900':'bg-transparent border-transparent hover:bg-slate-50 text-slate-700'):(active?'bg-white text-slate-900 border-white':'bg-transparent border-transparent hover:bg-white/10 text-white/80');
-    const iconBg=isLight?n.color:'bg-white/10 border-white/15 text-white';
-    return `<button onclick="handleNav('${n.id}')" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-sm font-semibold text-left ${base}">
-      <span class="w-8 h-8 rounded-lg grid place-items-center border text-sm shrink-0 ${iconBg}">${n.icon}</span>
-      <span class="flex-1 truncate">${n.label}</span>
-      ${n.badge?`<span class="mono text-[10px] px-1.5 py-0.5 rounded-full border ${isLight?'bg-white border-slate-200 text-slate-600':'bg-white/10 border-white/15 text-white/70'}">${n.badge}</span>`:''}
-      ${active?'<span class="w-2 h-2 rounded-full bg-emerald-400"></span>':''}
-    </button>`;
-  }).join('')||'<div class="mono text-xs text-center py-4 opacity-60">Không tìm thấy</div>';
+  var q=(document.getElementById('sideSearch')?.value||'').toLowerCase();
+  var nav=document.getElementById('nav');
+  var isDark=document.documentElement.getAttribute('data-mu')==='dark';
+  var filtered=navItems.filter(function(n){return !q||n.label.toLowerCase().includes(q);});
+  nav.innerHTML=filtered.map(function(n){
+    var active=(currentView==='home'&&n.id==='home')||(currentView==='sapo2misa'&&n.id==='sapo2misa');
+    var base= active ? 'background:var(--ink);color:var(--bg);border-color:var(--ink)' : 'background:transparent;border-color:transparent;color:var(--ink)';
+    var iconBg= active ? 'background:rgba(255,255,255,.15);border-color:transparent;color:var(--bg)' : 'background:var(--surface-2);border-color:var(--line);color:var(--muted)';
+    return '<button onclick="handleNav(\''+n.id+'\')" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-sm font-semibold text-left" style="'+base+'">'
+      +'<span class="w-8 h-8 rounded-lg grid place-items-center border text-sm shrink-0" style="'+iconBg+'">'+n.icon+'</span>'
+      +'<span class="flex-1 truncate">'+n.label+'</span>'
+      +(n.badge?'<span class="mono text-[10px] px-1.5 py-0.5 rounded-full border" style="background:var(--surface);border-color:var(--line);color:var(--muted)">'+n.badge+'</span>':'')
+      +(active?'<span class="w-2 h-2 rounded-full" style="background:var(--success)"></span>':'')+'</button>';
+  }).join('')||'<div class="mono text-xs text-center py-4" style="color:var(--muted)">Không tìm thấy</div>';
 }
 function handleNav(id){
-  if(id==='home') showView('light');
-  else if(window.innerWidth<1024) toggleSidebar();
+  if(id==='home') location.hash='#home';
+  else if(id==='sapo2misa') location.hash='#app/sapo2misa';
+  else location.hash='#app/'+id;
+  if(window.innerWidth<1024) toggleSidebar();
 }
-let activeFilter='all';
 function renderFilters(){
-  const cats=[['all','Tất cả'],['finance','Tài chính'],['sales','Kinh doanh'],['ops','Vận hành'],['office','Văn phòng số']];
-  document.getElementById('filterRow').innerHTML=cats.map(([k,l])=>{
-    const on=activeFilter===k;
-    const cls=on?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-700 border-slate-200';
-    // dark override inline after
-    return `<button role="tab" aria-selected="${on?'true':'false'}" onclick="activeFilter='${k}';renderFilters();renderHomeGrid()" class="mono text-xs px-3 py-1.5 rounded-full border font-bold ${cls}">${l}</button>`;
+  var cats=[['all','Tất cả'],['finance','Tài chính'],['sales','Kinh doanh'],['ops','Vận hành'],['office','Văn phòng số']];
+  var row=document.getElementById('filterRow');
+  if(!row) return;
+  row.innerHTML=cats.map(function(c){
+    var k=c[0],l=c[1],on=activeFilter===k;
+    var st=on?'background:var(--ink);color:var(--bg);border-color:var(--ink)':'background:var(--surface);color:var(--ink);border-color:var(--line)';
+    return '<button role="tab" aria-selected="'+(on?'true':'false')+'" onclick="activeFilter=\''+k+'\';renderFilters();renderHomeGrid()" class="mono text-xs px-3 py-1.5 rounded-full border font-bold" style="'+st+'">'+l+'</button>';
   }).join('');
-  // if dark, adjust
-  if(document.documentElement.getAttribute('data-mu')==='dark'){
-    document.querySelectorAll('#filterRow button').forEach(b=>{
-      const on=b.getAttribute('aria-selected')==='true';
-      b.style.background=on?'#fff':'rgba(255,255,255,.06)';
-      b.style.color=on?'#0B1329':'rgba(255,255,255,.7)';
-      b.style.borderColor=on?'#fff':'rgba(255,255,255,.12)';
-    });
-  }
 }
 function renderHomeGrid(){
-  const q=(document.getElementById('gridSearch')?.value||'').toLowerCase();
-  const grid=document.getElementById('homeGrid');
-  const isLight=document.documentElement.getAttribute('data-mu')==='light';
-  const map={amber:'bg-amber-50 border-amber-200 text-amber-800', sky:'bg-sky-50 border-sky-200 text-sky-800', violet:'bg-violet-50 border-violet-200 text-violet-800', orange:'bg-orange-50 border-orange-200 text-orange-800', emerald:'bg-emerald-50 border-emerald-200 text-emerald-800', slate:'bg-slate-50 border-slate-200 text-slate-700', red:'bg-red-50 border-red-200 text-red-700'};
-  const filtered=apps.filter(a=>{
-    const okCat=activeFilter==='all'||a.group===activeFilter;
-    const okQ=!q||a.name.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
+  var q=(document.getElementById('gridSearch')?.value||'').toLowerCase();
+  var grid=document.getElementById('homeGrid');
+  if(!grid) return;
+  var map={amber:'bg-amber-50 border-amber-200 text-amber-800', sky:'bg-sky-50 border-sky-200 text-sky-800', violet:'bg-violet-50 border-violet-200 text-violet-800', orange:'bg-orange-50 border-orange-200 text-orange-800', emerald:'bg-emerald-50 border-emerald-200 text-emerald-800', slate:'bg-slate-50 border-slate-200 text-slate-700', red:'bg-red-50 border-red-200 text-red-700'};
+  var filtered=apps.filter(function(a){
+    var okCat=activeFilter==='all'||a.group===activeFilter;
+    var okQ=!q||a.name.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
     return okCat&&okQ;
   });
-  grid.innerHTML=filtered.map(a=>`
-    <div class="rounded-xl border p-4 hover:shadow-md transition" style="background:var(--surface);border-color:var(--line)">
-      <div class="flex items-center justify-between"><span class="mono text-[11px] tracking-widest font-bold px-2 py-1 rounded-full border ${map[a.color]}">${a.group.toUpperCase()}</span><span class="w-7 h-7 rounded-lg grid place-items-center border" style="background:var(--bg);border-color:var(--line);color:var(--muted)">${a.icon}</span></div>
-      <div class="text-sm font-extrabold mt-3">${a.name}</div>
-      <div class="text-xs opacity-60 mt-1">${a.desc}</div>
-      <div class="mt-3 h-1.5 rounded-full overflow-hidden" style="background:var(--bg)"><div class="h-full rounded-full ${a.color==='amber'?'bg-amber-500':a.color==='sky'?'bg-sky-500':a.color==='violet'?'bg-violet-500':a.color==='orange'?'bg-orange-500':a.color==='emerald'?'bg-emerald-500':'bg-slate-400'}" style="width:${a.color==='amber'?'88':a.color==='sky'?'76':a.color==='emerald'?'92':'64'}%"></div></div>
-    </div>
-  `).join('')||'<div class="col-span-full mono text-xs text-center py-8 opacity-60">Không có app phù hợp — <button onclick="activeFilter=\'all\';document.getElementById(\'gridSearch\').value=\'\';renderFilters();renderHomeGrid()" class="underline">Xóa lọc</button></div>';
+  grid.innerHTML=filtered.map(function(a){
+    return '<div class="rounded-xl border p-4 hover:shadow-md transition" style="background:var(--surface);border-color:var(--line)">'
+      +'<div class="flex items-center justify-between"><span class="mono text-[11px] tracking-widest font-bold px-2 py-1 rounded-full border '+map[a.color]+'">'+a.group.toUpperCase()+'</span><span class="w-7 h-7 rounded-lg grid place-items-center border" style="background:var(--surface-2);border-color:var(--line);color:var(--muted)">'+a.icon+'</span></div>'
+      +'<div class="text-sm font-extrabold mt-3">'+a.name+'</div>'
+      +'<div class="text-xs mt-1" style="color:var(--muted)">'+a.desc+'</div>'
+      +'<div class="mt-3 h-1.5 rounded-full overflow-hidden" style="background:var(--surface-2)"><div class="h-full rounded-full '+(a.color==='amber'?'bg-amber-500':a.color==='sky'?'bg-sky-500':a.color==='violet'?'bg-violet-500':a.color==='orange'?'bg-orange-500':a.color==='emerald'?'bg-emerald-500':'bg-slate-400')+'" style="width:'+(a.color==='amber'?'88':a.color==='sky'?'76':a.color==='emerald'?'92':'64')+'%"></div></div></div>';
+  }).join('')||'<div class="col-span-full mono text-xs text-center py-8" style="color:var(--muted)">Không có app phù hợp — <button onclick="activeFilter=\'all\';document.getElementById(\'gridSearch\').value=\'\';renderFilters();renderHomeGrid()" class="underline">Xóa lọc</button></div>';
 }
 function renderKpis(){
-  const map={sky:'bg-sky-50 border-sky-200 text-sky-800', amber:'bg-amber-50 border-amber-200 text-amber-800', emerald:'bg-emerald-50 border-emerald-200 text-emerald-800', violet:'bg-violet-50 border-violet-200 text-violet-800'};
-  document.getElementById('kpis').innerHTML=kpis.map(k=>`
-    <div class="rounded-xl border p-4 relative overflow-hidden" style="background:var(--surface);border-color:var(--line)">
-      <div class="absolute top-0 left-0 right-0 h-1 ${k.color==='sky'?'bg-sky-500':k.color==='amber'?'bg-amber-500':k.color==='emerald'?'bg-emerald-500':'bg-violet-500'}"></div>
-      <div class="flex items-center justify-between"><span class="mono text-[11px] tracking-widest font-bold px-2 py-1 rounded-full border ${map[k.color]}">${k.label}</span><span class="w-2 h-2 rounded-full ${k.alert?'bg-red-500 animate-pulse':'bg-emerald-500'}"></span></div>
-      <div class="text-lg font-extrabold mt-3">${k.value}</div>
-      <div class="text-xs mt-1 ${k.alert?'text-red-700':'text-emerald-700'}">${k.trend}</div>
-    </div>
-  `).join('');
+  var el=document.getElementById('kpis');
+  if(!el) return;
+  var kpis=[
+    {label:'Doanh thu hôm nay',value:'128.400.000 ₫',sub:'+12% vs hôm qua',border:'var(--primary)',tone:'primary'},
+    {label:'Đơn cần soạn',value:'14 đơn',sub:'3 đơn gấp',border:'var(--warning)',tone:'warning'},
+    {label:'Cảnh báo tồn',value:'5 SKU',sub:'Heo xay thiếu',border:'var(--danger)',tone:'danger'},
+    {label:'Công nợ quá hạn',value:'84.200.000 ₫',sub:'An Thịnh Mart 12 ngày',border:'var(--danger)',tone:'danger'},
+  ];
+  el.innerHTML=kpis.map(function(k){
+    return '<div class="kpi-card" style="border-left:4px solid '+k.border+'">'
+      +'<div class="mono text-[11px] tracking-widest font-bold" style="color:var(--muted)">'+k.label.toUpperCase()+'</div>'
+      +'<div class="mono text-xl font-extrabold mt-2">'+k.value+'</div>'
+      +'<div class="text-xs mt-1" style="color:'+(k.tone==='danger'?'var(--danger)':k.tone==='warning'?'var(--warning)':'var(--success)')+'">'+k.sub+'</div></div>';
+  }).join('');
+}
+function renderBento(){
+  var a=document.getElementById('bentoOrders');
+  if(a) a.innerHTML='<div class="flex items-center justify-between"><span class="text-sm font-extrabold">Đơn cần soạn sáng nay</span><a href="#app/sales" class="mono text-[11px] underline" style="color:var(--primary)">Xem tất cả →</a></div>'
+    +'<div class="mt-3 space-y-2">'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line);background:var(--surface-2)"><div><div class="mono text-xs font-bold">SP-0841</div><div class="text-xs" style="color:var(--muted)">An Thịnh Mart · <span class="mono">42.800.000 ₫</span></div></div><span class="mono text-[11px] px-2 py-1 rounded-full border font-bold" style="background:var(--warning-soft);color:var(--warning);border-color:var(--warning-bd)">Chờ soạn</span></div>'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line)"><div><div class="mono text-xs font-bold">SP-0840</div><div class="text-xs" style="color:var(--muted)">Minh Khang Food · <span class="mono">18.300.000 ₫</span></div></div><span class="mono text-[11px] px-2 py-1 rounded-full border font-bold" style="background:var(--primary-soft);color:var(--primary);border-color:var(--primary-bd)">Đang soạn</span></div>'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line)"><div><div class="mono text-xs font-bold">SP-0839</div><div class="text-xs" style="color:var(--muted)">Hòa Bình · <span class="mono">67.200.000 ₫</span></div></div><span class="mono text-[11px] px-2 py-1 rounded-full border font-bold" style="background:var(--neutral-soft);color:var(--neutral);border-color:var(--neutral-bd)">Chờ duyệt</span></div>'
+    +'</div>';
+  var b=document.getElementById('bentoStock');
+  if(b) b.innerHTML='<div class="text-sm font-extrabold">Tồn kho lạnh Q7 / Q12</div>'
+    +'<div class="mt-2 flex gap-2 mono text-[11px]"><span class="px-2 py-1 rounded-full border font-bold" style="background:var(--surface-2);border-color:var(--line)">Q7 68%</span><span class="px-2 py-1 rounded-full border font-bold" style="background:var(--surface-2);border-color:var(--line)">Q12 42%</span></div>'
+    +'<div class="mt-3 space-y-2">'
+    +'<div class="flex items-center justify-between"><span class="text-sm">Thịt heo xay 500g</span><span class="flex items-center gap-2"><span class="mono text-xs font-bold">12</span><span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:var(--danger-soft);color:var(--danger);border-color:var(--danger-bd)">Thiếu</span></span></div>'
+    +'<div class="flex items-center justify-between"><span class="text-sm">Bò viên 1kg</span><span class="flex items-center gap-2"><span class="mono text-xs font-bold">60</span><span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:var(--warning-soft);color:var(--warning);border-color:var(--warning-bd)">Sắp thiếu</span></span></div>'
+    +'<div class="flex items-center justify-between"><span class="text-sm">Chả lụa 500g</span><span class="flex items-center gap-2"><span class="mono text-xs font-bold">200</span><span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:var(--success-soft);color:var(--success);border-color:var(--success-bd)">Đủ</span></span></div>'
+    +'</div>';
+  var c=document.getElementById('bentoDebt');
+  if(c) c.innerHTML='<div class="flex items-center justify-between"><span class="text-sm font-extrabold">Công nợ B2B quá hạn</span><span class="mono text-[11px] px-2 py-1 rounded-full border" style="background:var(--danger-soft);color:var(--danger);border-color:var(--danger-bd)">2 khách</span></div>'
+    +'<div class="mt-3 grid md:grid-cols-2 gap-3">'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line);background:var(--danger-soft)"><div><div class="text-sm font-bold">An Thịnh Mart — <span class="mono">84.200.000 ₫</span></div><div class="mono text-[11px]" style="color:var(--muted)">Quá hạn 12 ngày</div></div><button onclick="alert(\'Đã gửi nhắc nợ — An Thịnh Mart (mock)\')" class="mono text-xs px-3 py-1.5 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Nhắc</button></div>'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line)"><div><div class="text-sm font-bold">Minh Khang — <span class="mono">42.100.000 ₫</span></div><div class="mono text-[11px]" style="color:var(--muted)">Quá hạn 5 ngày</div></div><button onclick="alert(\'Đã gửi nhắc nợ — Minh Khang (mock)\')" class="mono text-xs px-3 py-1.5 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Nhắc</button></div>'
+    +'</div>';
 }
 function renderSteppers(){
-  // 4 bước đồng bộ — khớp cả Light và Dark
-  const steps=[
-    {title:'Sapo pull & incremental sync', desc:'Sapo API · last_synced_at · external_id', done:true},
-    {title:'Chuẩn hóa CentralOrders', desc:'Map MST (gdt.gov.vn) & SKU → MISA', current:true},
-    {title:'Sinh Excel 63 cột', desc:'Ledger chống trùng · kiểm tra 63 cột', done:false},
-    {title:'Đẩy MISA & phát hành', desc:'Import AMIS · meInvoice · đối soát', done:false},
+  var steps=[
+    {title:'Sapo pull & incremental sync',desc:'Sapo API · last_synced_at · external_id',done:true},
+    {title:'Chuẩn hóa CentralOrders',desc:'Map MST (gdt.gov.vn) & SKU → MISA',current:true},
+    {title:'Sinh Excel 63 cột',desc:'Ledger chống trùng · kiểm tra 63 cột',done:false},
+    {title:'Đẩy MISA & phát hành',desc:'Import AMIS · meInvoice · đối soát',done:false},
   ];
-  document.getElementById('stepperLight').innerHTML=steps.map((s,i)=>{
-    const n=i+1;
-    const icon=s.done?'<span class="w-8 h-8 rounded-full grid place-items-center bg-emerald-600 text-white">✓</span>':s.current?`<span class="w-8 h-8 rounded-full grid place-items-center bg-white border-2 border-sky-500 text-sky-700 font-bold">${n}</span>`:`<span class="w-8 h-8 rounded-full grid place-items-center bg-white border text-slate-400" style="border-color:var(--line)">${n}</span>`;
-    const card=s.current?'bg-sky-50 border-sky-200':s.done?'bg-emerald-50 border-emerald-200':'bg-white border-slate-200';
-    // use var for card bg/border via inline already ok for light
-    return `<div class="flex gap-3"><div class="shrink-0">${icon}</div><div class="flex-1 rounded-lg border p-3 ${card}"><div class="text-sm font-bold ${s.current?'text-slate-900':s.done?'text-emerald-800':'text-slate-500'}">${s.title}</div><div class="text-xs opacity-60">${s.desc}</div></div></div>`;
-  }).join('');
-  document.getElementById('stepperDark').innerHTML=steps.map((s,i)=>{
-    const n=i+1;
-    let icon=s.done?'<span class="w-8 h-8 rounded-full grid place-items-center bg-emerald-600 text-white">✓</span>':s.current?'<span class="w-8 h-8 rounded-full grid place-items-center bg-cyan-500 text-white animate-pulse" style="box-shadow:0 0 16px rgba(6,182,214,.8)">◍</span>':`<span class="w-8 h-8 rounded-full grid place-items-center border text-white/40" style="background:rgba(255,255,255,.06);border-color:var(--line)">○</span>`;
-    const style=s.current?'background:rgba(6,182,214,.12); border-color:rgba(6,182,214,.3)':s.done?'background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.25)':'background:rgba(255,255,255,.04); border-color:var(--line)';
-    return `<div class="flex gap-3"><div class="shrink-0">${icon}</div><div class="flex-1 rounded-lg border p-3" style="${style}"><div class="text-sm font-bold ${s.current?'text-cyan-200':s.done?'text-emerald-200':'text-white/70'}">${s.title}</div><div class="text-xs ${s.current?'text-white/60':'text-white/40'}">${s.done?'Hoàn tất':s.current?'Đang chạy…':'Chờ'}</div></div></div>`;
-  }).join('');
+  var el=document.getElementById('stepperSapo');
+  if(!el) return;
+  var isMobile=window.innerWidth<768;
+  if(isMobile){
+    el.innerHTML='<div class="relative pl-2"><div class="absolute left-[15px] top-2 bottom-2 w-0.5" style="background:var(--line)"></div><div class="space-y-3 relative">'+steps.map(function(s,i){
+      var n=i+1;
+      var icon=s.done?'<span class="w-8 h-8 rounded-full grid place-items-center text-white" style="background:var(--success)">✓</span>':s.current?'<span class="w-8 h-8 rounded-full grid place-items-center text-white" style="background:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)">'+n+'</span>':'<span class="w-8 h-8 rounded-full grid place-items-center border bg-white" style="border-color:var(--line);color:var(--muted)">'+n+'</span>';
+      var card=s.current?'background:var(--primary-soft);border-color:var(--primary-bd)':s.done?'background:var(--success-soft);border-color:var(--success-bd)':'background:var(--surface);border-color:var(--line)';
+      return '<div class="flex gap-3"><div class="shrink-0">'+icon+'</div><div class="flex-1 rounded-xl border p-3" style="'+card+'"><div class="text-sm font-bold">'+s.title+'</div><div class="text-xs" style="color:var(--muted)">'+s.desc+'</div></div></div>';
+    }).join('')+'</div></div>';
+  } else {
+    el.innerHTML='<div class="flex gap-2">'+steps.map(function(s,i){
+      var n=i+1;
+      var icon=s.done?'<span class="w-8 h-8 rounded-full grid place-items-center text-white" style="background:var(--success)">✓</span>':s.current?'<span class="w-8 h-8 rounded-full grid place-items-center text-white" style="background:var(--primary)">'+n+'</span>':'<span class="w-8 h-8 rounded-full grid place-items-center border" style="background:var(--surface);border-color:var(--line);color:var(--muted)">'+n+'</span>';
+      return '<div class="flex-1 rounded-xl border p-3 text-center" style="'+(s.current?'background:var(--primary-soft);border-color:var(--primary-bd)':s.done?'background:var(--success-soft);border-color:var(--success-bd)':'background:var(--surface);border-color:var(--line)')+'"><div class="flex justify-center">'+icon+'</div><div class="text-xs font-bold mt-2">'+s.title+'</div><div class="text-[11px] mt-1" style="color:var(--muted)">'+s.desc+'</div></div>';
+    }).join('<div class="w-6 self-center h-0.5" style="background:var(--line)"></div>')+'</div>';
+  }
 }
-let termFilter='ALL';
+function renderGrid(){
+  var cols= showAllCols ? MISA_COLS : MISA_COLS.filter(function(c){return VISIBLE_DEFAULT.includes(c.key);});
+  document.getElementById('colInfo').textContent= cols.length+'/'+MISA_COLS.length+' cột';
+  document.getElementById('btnToggleCols').textContent= showAllCols ? 'Thu gọn 12 cột' : 'Hiện đủ 63 cột';
+  document.getElementById('gridCount').textContent= '8 dòng mock · frozen 2 cột';
+  var head='<tr>'+cols.map(function(c,i){
+    var frozen=i<2?'position:sticky;left:'+(i===0?'0':'90px')+';z-index:2;':'';
+    return '<th class="text-left px-3 py-2 border-b mono text-[11px]" style="border-color:var(--line);background:var(--surface-2);'+frozen+'min-width:90px">'+c.label+' <span style="color:var(--muted)">⌄</span></th>';
+  }).join('')+'</tr>';
+  document.getElementById('gridHead').innerHTML=head;
+  var rows=[
+    ['CT-001','08/10','08/10','0312345678','An Thịnh Mart','12 Lê Lợi','Bán heo xay','HEO-XAY-500','Heo xay 500g','kg',10,'120000','1200000','8%','96000','131','511','1200000','96000','1296000','CK','30 ngày',0,0,'L1','—','NV01','Sapo'],
+    ['CT-002','08/10','08/10','0312345679','Minh Khang Food','8 Võ Văn Kiệt','Bò viên','BO-VIEN-1K','Bò viên 1kg','kg',20,'180000','3600000','8%','288000','131','511','3600000','288000','3888000','CK','15 ngày',0,0,'L2','—','NV02','Sapo'],
+  ];
+  // pad to 8 rows
+  while(rows.length<8){ rows.push(rows[0].slice()); rows[rows.length-1][0]='CT-00'+(rows.length+1); }
+  var body=rows.map(function(r){
+    return '<tr class="border-b hover:bg-slate-50" style="border-color:var(--line)">'+cols.map(function(c,i){
+      var idx=MISA_COLS.findIndex(function(x){return x.key===c.key});
+      var val=r[idx]!==undefined?r[idx]:'—';
+      var frozen=i<2?'position:sticky;left:'+(i===0?'0':'90px')+';background:var(--surface);z-index:1;':'';
+      var isMono=['so_ct','mst','so_luong','don_gia','thanh_tien','tien_thue'].includes(c.key);
+      return '<td class="px-3 py-2 '+(isMono?'mono':'')+'" style="border-color:var(--line);'+frozen+'">'+val+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  document.getElementById('gridBody').innerHTML=body;
+}
+function toggleCols(){ showAllCols=!showAllCols; renderGrid(); }
+function toggleTerminal(){
+  termOpen=!termOpen;
+  document.getElementById('termPanel').classList.toggle('hidden', !termOpen);
+  document.getElementById('termChevron').textContent= termOpen ? '▲' : '▼';
+  if(termOpen) renderTerminal();
+}
 function setTermFilter(tag){
   termFilter=tag;
-  document.querySelectorAll('.term-filter').forEach(b=>{
-    const on=b.dataset.term===tag;
+  document.querySelectorAll('.term-filter').forEach(function(b){
+    var on=b.dataset.term===tag;
     b.style.background=on?'var(--ink)':'transparent';
     b.style.color=on?'var(--bg)':'var(--ink)';
-    b.style.borderColor='var(--line)';
   });
   renderTerminal();
 }
 function renderTerminal(){
-  const el=document.getElementById('terminal');
-  const filtered=termFilter==='ALL' ? logs : logs.filter(l=>l.includes('['+termFilter+']'));
-  el.innerHTML=filtered.map(l=>{
-    const tag=l.match(/\[(INFO|OK|RUN|WARN)\]/)?.[1]||'INFO';
-    const color=tag==='OK'?'text-emerald-300':tag==='WARN'?'text-amber-300':tag==='RUN'?'text-cyan-300':'text-sky-300';
-    const time=l.match(/\[(.*?)\]/)?.[1]||'';
-    return `<div class="flex gap-2"><span class="text-cyan-400 shrink-0">[${time}]</span><span class="${color} font-bold shrink-0">[${tag}]</span><span class="flex-1">${l.split(']').slice(2).join(']').trim()}</span></div>`;
-  }).join('') || '<div class="opacity-50 text-center py-8">Không có log cho bộ lọc này</div>';
-  document.getElementById('termCount').textContent=filtered.length+' dòng'+(termFilter!=='ALL'?' · '+termFilter:' · live');
+  var el=document.getElementById('terminal');
+  if(!el) return;
+  var filtered=termFilter==='ALL' ? logs : logs.filter(function(l){return l.includes('['+termFilter+']');});
+  el.innerHTML=filtered.map(function(l){
+    var tag=(l.match(/\[(INFO|OK|RUN|WARN)\]/)||[])[1]||'INFO';
+    var color=tag==='OK'?'color:var(--success)':tag==='WARN'?'color:var(--warning)':tag==='RUN'?'color:var(--primary)':'color:var(--muted)';
+    var time=(l.match(/\[(.*?)\]/)||[])[1]||'';
+    return '<div class="flex gap-2"><span style="color:var(--primary)">['+time+']</span><span class="font-bold" style="'+color+'">['+tag+']</span><span class="flex-1">'+l.split(']').slice(2).join(']').trim()+'</span></div>';
+  }).join('') || '<div class="text-center py-8" style="color:var(--muted)">Không có log cho bộ lọc này</div>';
+  var c=document.getElementById('termCount'); if(c) c.textContent=filtered.length+' dòng'+(termFilter!=='ALL'?' · '+termFilter:' · live');
+  var b=document.getElementById('termBadge'); if(b) b.textContent=filtered.length+' dòng';
   if(document.getElementById('autoScroll')?.checked) el.scrollTop=el.scrollHeight;
 }
 function copyTerminal(){
-  const filtered=termFilter==='ALL' ? logs : logs.filter(l=>l.includes('['+termFilter+']'));
-  navigator.clipboard.writeText(filtered.join('\n')).then(()=>{
-    const t=document.getElementById('copyToast'); t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),1500);
+  var filtered=termFilter==='ALL' ? logs : logs.filter(function(l){return l.includes('['+termFilter+']');});
+  navigator.clipboard.writeText(filtered.join('\n')).then(function(){
+    var t=document.getElementById('copyToast'); t.classList.remove('hidden'); setTimeout(function(){t.classList.add('hidden');},1500);
   });
 }
-// Hash router — clickable
+function showView(v){
+  // compat alias for old calls
+  if(v==='light') location.hash='#home';
+  else if(v==='dark') location.hash='#app/sapo2misa';
+  else if(v==='login') location.hash='#login';
+  else location.hash='#'+v;
+}
 function handleHash(){
-  const h=location.hash||'#home';
-  if(h.startsWith('#app/')){
-    const appId=h.slice(5);
-    // highlight nav, filter grid
-    const item=navItems.find(n=>n.id===appId);
-    if(item && item.group!=='all'){ activeFilter=item.group; renderFilters(); renderHomeGrid(); }
-    showView('light');
-    document.getElementById('homeGrid')?.scrollIntoView({behavior:'smooth'});
-  } else if(h==='#settings') { showView('light'); alert('Settings — ADMIN only (RBAC hasAppAccess)'); }
-  else if(h==='#profile') { showView('login'); }
-  else showView('light');
+  var h=location.hash||'#home';
+  if(h==='#finance/sapo2misa') h='#app/sapo2misa';
+  var isLogin=h==='#login' || h==='#profile';
+  var isSapo=h==='#app/sapo2misa' || h==='#finance/sapo2misa';
+  var isHome=h==='#home' || h==='#' || h==='';
+  var isApp=h.startsWith('#app/');
+  document.getElementById('viewLogin').classList.toggle('hidden', !isLogin);
+  document.getElementById('viewHome').classList.toggle('hidden', !(isHome && !isLogin && !isSapo));
+  document.getElementById('viewSapo2Misa').classList.toggle('hidden', !isSapo);
+  document.getElementById('viewApp').classList.toggle('hidden', !(isApp && !isSapo && !isHome && !isLogin));
+  if(isApp && !isSapo && !isHome && !isLogin){
+    var appId=h.slice(5);
+    document.getElementById('appPlaceholder').textContent= appId + ' — module đang phát triển';
+    activeFilter= (navItems.find(function(n){return n.id===appId})||{}).group || 'all';
+    renderFilters(); renderHomeGrid();
+  }
+  if(isHome) currentView='home';
+  else if(isSapo) currentView='sapo2misa';
+  else if(isLogin) currentView='login';
+  else currentView='app';
+  renderNav();
+  if(isSapo) { renderSteppers(); renderGrid(); }
 }
-function openMapping(){
-  document.getElementById('mappingModal').classList.remove('hidden');
-}
+function openMapping(){ document.getElementById('mappingModal').classList.remove('hidden'); }
 function closeMapping(){ document.getElementById('mappingModal').classList.add('hidden'); }
 function exportExcelMock(){
-  const btn=document.getElementById('exportToast');
+  var btn=document.getElementById('exportToast');
   btn.textContent='Đang sinh Excel 63 cột (mock)…';
   btn.classList.remove('hidden');
-  setTimeout(()=>{ btn.textContent='Đã sinh xong — 502 dòng · ledger OK ✓'; setTimeout(()=>btn.classList.add('hidden'),2000); },1200);
-}
-function renderTables(){
-  document.getElementById('tblOrders').innerHTML=[
-    ['SP-0841','An Thịnh Mart','42.800.000 ₫','Đã giao'],
-    ['SP-0840','Minh Khang Food','18.300.000 ₫','Đang giao'],
-    ['SP-0839','Hòa Bình','67.200.000 ₫','Chờ duyệt'],
-  ].map(r=>`<tr><td class="px-3 py-2 mono text-xs">${r[0]}</td><td class="px-3 py-2">${r[1]}</td><td class="px-3 py-2 text-right font-semibold">${r[2]}</td><td class="px-3 py-2"><span class="mono text-[11px] px-2 py-1 rounded-full border ${r[3]==='Đã giao'?'bg-emerald-50 text-emerald-800 border-emerald-200':r[3]==='Đang giao'?'bg-amber-50 text-amber-800 border-amber-200':'bg-slate-50 text-slate-700 border-slate-200'}">${r[3]}</span></td></tr>`).join('');
-  document.getElementById('debtList').innerHTML=[
-    ['An Thịnh Mart','84.2T','12 ngày','Nhắc'],
-    ['Minh Khang','42.1T','5 ngày','Nhắc'],
-  ].map(r=>`<div class="flex items-center justify-between rounded-lg border p-2.5" style="background:var(--bg);border-color:var(--line)"><div><div class="text-sm font-bold">`+r[0]+` — `+r[1]+`</div><div class="mono text-[11px] opacity-60">Quá hạn `+r[2]+`</div></div><button onclick="alert('Đã gửi nhắc nợ (mock) — '+r[0])" class="mono text-xs px-3 py-1.5 rounded-full border" style="background:var(--surface);border-color:var(--line)">`+r[3]+`</button></div>`).join('');
-  document.getElementById('stockList').innerHTML=[
-    ['Heo xay 500g','12','Thiếu','red'],
-    ['Bò viên 1kg','60','Sắp thiếu','amber'],
-    ['Chả lụa 500g','200','Đủ','emerald'],
-  ].map(r=>`<div class="flex items-center justify-between rounded-lg border p-2.5" style="background:var(--surface);border-color:var(--line)"><span class="text-sm font-semibold">`+r[0]+`</span><span class="flex items-center gap-2"><span class="mono text-xs font-bold">`+r[1]+`</span><span class="mono text-[11px] px-2 py-1 rounded-full border `+(r[3]==='red'?'bg-red-50 text-red-700 border-red-200':r[3]==='amber'?'bg-amber-50 text-amber-800 border-amber-200':'bg-emerald-50 text-emerald-800 border-emerald-200')+`">`+r[2]+`</span></span></div>`).join('');
-  renderTerminal();
+  setTimeout(function(){ btn.textContent='Đã sinh xong — 502 dòng · ledger OK ✓'; setTimeout(function(){btn.classList.add('hidden');},2000); },1200);
 }
 function filterNav(){ renderNav(); }
+function onTopSearch(){
+  var v=document.getElementById('topSearch').value;
+  var gs=document.getElementById('gridSearch');
+  if(gs){ gs.value=v; renderHomeGrid(); }
+}
 function mockGoogle(){
-  const ok=document.getElementById('loginOk'), err=document.getElementById('loginErr');
+  var ok=document.getElementById('loginOk'), err=document.getElementById('loginErr');
   if(ok&&err){ ok.classList.remove('hidden'); err.classList.add('hidden'); ok.textContent='Đang chuyển tới Google (mock)…'; ok.style.background='var(--bg)'; ok.style.borderColor='var(--line)'; }
 }
 function mockLogin(e){
   e.preventDefault();
-  const em=document.getElementById('loginEmail'), pw=document.getElementById('loginPw');
-  const ok=document.getElementById('loginOk'), err=document.getElementById('loginErr');
+  var em=document.getElementById('loginEmail'), pw=document.getElementById('loginPw');
+  var ok=document.getElementById('loginOk'), err=document.getElementById('loginErr');
   ok.classList.add('hidden'); err.classList.add('hidden');
   ok.style.background='var(--bg)'; ok.style.borderColor='var(--line)';
   err.style.background='#fef2f2'; err.style.borderColor='#fecaca'; err.style.color='#991b1b';
   if(!em.value||em.value.indexOf('@')===-1||!pw.value){ err.textContent='Nhập email hợp lệ và mật khẩu/OTP.'; err.classList.remove('hidden'); return false; }
   if(em.value.indexOf('sonkhang.vn')===-1&&em.value.indexOf('sonkhang')===-1){ err.textContent='Email không trong allowlist sonkhang.vn — liên hệ Admin.'; err.classList.remove('hidden'); return false; }
-  ok.textContent='Đăng nhập thành công (mock) — vào Bàn làm việc.'; ok.classList.remove('hidden'); setTimeout(()=>showView('light'),600); return false;
+  ok.textContent='Đăng nhập thành công (mock) — vào Bàn làm việc.'; ok.classList.remove('hidden'); setTimeout(function(){location.hash='#home';},600); return false;
 }
-renderSteppers(); renderKpis(); renderFilters(); renderHomeGrid(); renderTables();
-setMU(document.documentElement.getAttribute('data-mu')||'light');
-showView('light');
+function renderAll(){ renderNav(); renderFilters(); renderHomeGrid(); renderKpis(); renderBento(); renderSteppers(); renderGrid(); renderTerminal(); luc(); }
+
+renderAll();
 handleHash();
 luc(); setInterval(luc,60000);
 window.addEventListener('hashchange', handleHash);
-window.addEventListener('resize', ()=>setMU(document.documentElement.getAttribute('data-mu')||'light'));
+window.addEventListener('resize', function(){ renderSteppers(); });
 </script>
-
-<div id="mappingModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4">
-  <div class="absolute inset-0 bg-black/50" onclick="closeMapping()"></div>
-  <div class="relative w-full max-w-[720px] rounded-2xl border shadow-2xl overflow-hidden max-h-[85vh] flex flex-col" style="background:var(--surface);border-color:var(--line)">
-    <div class="px-5 py-4 border-b flex items-center justify-between" style="border-color:var(--line)">
-      <div><div class="text-sm font-extrabold">Xem trước mapping — Sapo → MISA 63 cột</div><div class="mono text-[11px] opacity-60">Ledger external_id · last_synced_at · chống trùng</div></div>
-      <button onclick="closeMapping()" class="w-8 h-8 rounded-lg border grid place-items-center" style="border-color:var(--line)">✕</button>
-    </div>
-    <div class="overflow-auto p-4 space-y-3 scrollbar">
-      <table class="w-full text-xs border-collapse">
-        <thead><tr class="mono text-[11px] opacity-60"><th class="text-left px-2 py-2 border-b" style="border-color:var(--line)">Sapo field</th><th class="text-left px-2 py-2 border-b" style="border-color:var(--line)">MISA cột</th><th class="text-left px-2 py-2 border-b" style="border-color:var(--line)">Ghi chú</th></tr></thead>
-        <tbody>
-          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">order.code</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Số chứng từ</td><td class="px-2 py-2 opacity-60 border-b" style="border-color:var(--line)">external_id</td></tr>
-          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">customer.tax_code</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">MST</td><td class="px-2 py-2 opacity-60 border-b" style="border-color:var(--line)">gdt.gov.vn</td></tr>
-          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">order.total</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Tổng tiền</td><td class="px-2 py-2 opacity-60 border-b" style="border-color:var(--line)">VietQR</td></tr>
-          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">line_items[].sku</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Mã hàng</td><td class="px-2 py-2 opacity-60 border-b" style="border-color:var(--line)">SKU map</td></tr>
-          <tr><td class="px-2 py-2 mono border-b" style="border-color:var(--line)">order.created_at</td><td class="px-2 py-2 border-b" style="border-color:var(--line)">Ngày HT</td><td class="px-2 py-2 opacity-60 border-b" style="border-color:var(--line)">last_synced_at</td></tr>
-          <tr><td colspan="3" class="px-2 py-2 mono text-[11px] opacity-60 text-center">… 58 cột còn lại · bấm Sinh Excel để xem đủ 63</td></tr>
-        </tbody>
-      </table>
-      <div class="rounded-xl border p-3 mono text-[11px] leading-relaxed" style="background:var(--bg);border-color:var(--line)">Adapter <code>packages/integrations/misa</code> · sync/push/pull/webhook · integration_logs</div>
-    </div>
-    <div class="px-4 py-3 border-t flex justify-end gap-2" style="border-color:var(--line)"><button onclick="closeMapping()" class="px-4 py-2 rounded-full border text-sm font-bold" style="border-color:var(--line)">Đóng</button><button onclick="closeMapping();exportExcelMock()" class="px-4 py-2 rounded-full text-sm font-bold text-white" style="background:var(--cta)">Sinh Excel 63 cột</button></div>
-  </div>
-</div>
-<div id="exportToast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-xl border shadow-xl mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)"></div>
-
 </body>
 </html>

@@ -2,57 +2,89 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#EBF3FA">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F8FAFC">
 <link rel="manifest" href="manifest.json">
-<title>SK Workspace — PWA Modern Utility</title>
+<title>SK Workspace — PWA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>
 *{font-family:'Inter',system-ui,sans-serif}.mono{font-family:'JetBrains Mono',monospace}
 .scrollbar{scrollbar-width:thin}.scrollbar::-webkit-scrollbar{width:6px;height:6px}.scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:999px}
-html[data-mu="light"]{--bg:#EBF3FA;--bg-grid:rgba(14,165,233,.04);--surface:#FFFFFF;--surface-2:#F1F5F9;--line:#D0E2F2;--ink:#0F172A;--muted:#64748B}
-html[data-mu="dark"]{--bg:#0B1329;--bg-grid:rgba(6,182,214,.06);--surface:#0F1D3A;--surface-2:#030712;--line:rgba(255,255,255,.08);--ink:#F1F5F9;--muted:#94a3b8}
+:root{
+  --bg:#F8FAFC;--surface:#FFFFFF;--surface-2:#F1F5F9;--line:#E2E8F0;--ink:#0F172A;--muted:#64748B;--muted-2:#94A3B8;
+  --primary:#0EA5E9;--primary-soft:#F0F9FF;--primary-bd:#BAE6FD;
+  --success:#059669;--success-soft:#ECFDF5;--success-bd:#A7F3D0;
+  --warning:#D97706;--warning-soft:#FFFBEB;--warning-bd:#FDE68A;
+  --danger:#E11D48;--danger-soft:#FFF1F2;--danger-bd:#FECDD3;
+  --neutral:#475569;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
+}
+html[data-mu="dark"]{--bg:#0B1329;--surface:#111E3A;--surface-2:#0F172A;--line:rgba(255,255,255,.08);--ink:#F1F5F9;--muted:#94A3B8;--primary:#38BDF8;--success:#34D399;--warning:#FBBF24;--danger:#FB7185}
 body{background:var(--bg);color:var(--ink)}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(var(--bg-grid) 1px, transparent 1px),linear-gradient(90deg,var(--bg-grid) 1px, transparent 1px);background-size:32px 32px}
-*:focus-visible{outline:2px solid #0ea5e9;outline-offset:2px}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(14,165,233,.03) 1px, transparent 1px),linear-gradient(90deg,rgba(14,165,233,.03) 1px, transparent 1px);background-size:32px 32px}
+*:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 @media(max-width:1100px){#phoneGrid{grid-template-columns:repeat(2,1fr) !important}}
 @media(max-width:640px){
   #phoneGrid{display:flex !important; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; gap:16px; padding-bottom:8px}
   #phoneGrid > div{flex:0 0 88%; scroll-snap-align:center}
 }
+/* PWA phone shell */
+.pwa-phone{border-radius:28px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:0 16px 40px rgba(15,23,42,.12);display:flex;flex-direction:column}
+.pwa-topbar{height:56px;min-height:56px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.pwa-bottom{height:56px;min-height:56px;display:flex;justify-content:space-around;align-items:center;border-top:1px solid var(--line);background:var(--surface);padding-bottom:env(safe-area-inset-bottom)}
+.pwa-bottom a{min-width:44px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;padding:4px 8px;text-decoration:none}
+.pwa-bottom a.active{color:var(--primary)}
+.pwa-content{flex:1;overflow:auto;background:var(--bg);padding:10px;display:flex;flex-direction:column;gap:10px;min-height:520px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+/* QR scanner */
+.qr-viewport{position:relative;border-radius:14px;overflow:hidden;background:#0F172A;aspect-ratio:1;max-height:240px}
+.qr-viewport::before{content:"";position:absolute;inset:0;background:rgba(15,23,42,.45)}
+.qr-corner{position:absolute;width:28px;height:28px;border-color:#fff}
+.qr-corner.tl{top:12px;left:12px;border-top:3px solid #fff;border-left:3px solid #fff;border-radius:8px 0 0 0}
+.qr-corner.tr{top:12px;right:12px;border-top:3px solid #fff;border-right:3px solid #fff;border-radius:0 8px 0 0}
+.qr-corner.bl{bottom:12px;left:12px;border-bottom:3px solid #fff;border-left:3px solid #fff;border-radius:0 0 0 8px}
+.qr-corner.br{bottom:12px;right:12px;border-bottom:3px solid #fff;border-right:3px solid #fff;border-radius:0 0 8px 0}
+.qr-scanline{position:absolute;left:12px;right:12px;height:2px;background:var(--primary);top:50%;box-shadow:0 0 8px var(--primary);animation:scan 2s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:translateY(-40px)}50%{transform:translateY(40px)}}
+.tap-target{min-height:44px}
 </style>
 <script>
 (function(){
   try{
     var s=localStorage.getItem('sk-mu');
-    if(!s) s=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'light';
+    if(!s) s='light';
     document.documentElement.setAttribute('data-mu',s);
   }catch(e){document.documentElement.setAttribute('data-mu','light');}
 })();
 function syncThemeMeta(m){
   var meta=document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', m==='light' ? '#EBF3FA' : '#0B1329');
+  if(meta) meta.setAttribute('content', m==='light' ? '#F8FAFC' : '#0B1329');
 }
 </script>
 </head>
-<body class="min-h-screen flex flex-col items-center py-5 px-3 gap-4">
+<body class="min-h-screen flex flex-col items-center py-5 px-3 gap-4" style="padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)">
+<!-- Offline banner -->
+<div id="offlineBanner" class="hidden w-full max-w-[1360px] rounded-xl border px-4 py-2.5 flex items-center gap-2 text-sm font-medium" style="background:var(--warning-soft);border-color:var(--warning-bd);color:#92400e">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.85"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+  Bạn đang offline — dữ liệu sẽ đồng bộ khi có mạng
+</div>
+
 <!-- GLOBAL HEADER -->
 <div class="w-full max-w-[1360px] flex items-center justify-between gap-3 flex-wrap">
   <div class="flex items-center gap-3">
-    <div class="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow border border-slate-200">
+    <div class="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow border" style="border-color:var(--line)">
       <img src="assets/logo-sk-circle.png" alt="SK" class="w-6 h-6 rounded-full object-cover">
-      <span class="text-xs font-extrabold tracking-widest text-slate-800">SK WORKSPACE PWA</span>
-      <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-[#0B1329] text-white">MODERN UTILITY</span>
+      <span class="text-xs font-extrabold tracking-widest" style="color:var(--ink)">SK WORKSPACE PWA</span>
+      <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-slate-900 text-white">ENTERPRISE CLEAN</span>
     </div>
-    <span class="hidden md:inline text-xs opacity-60">1 codebase · next-pwa · offline cache · Hash router</span>
+    <span class="hidden md:inline text-xs" style="color:var(--muted)">4 tab · safe-area · QR VietQR · offline</span>
   </div>
   <div class="flex items-center gap-2">
-    <button id="btnLight" onclick="setMU('light')" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow" aria-pressed="false">☀ LIGHT</button>
-    <button id="btnDark" onclick="setMU('dark')" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15" aria-pressed="false">◐ DARK COCKPIT</button>
-    <div class="hidden lg:flex items-center gap-1.5 bg-white rounded-full p-1 border border-slate-200">
+    <button id="btnLight" onclick="setMU('light')" class="tap-target px-4 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow" aria-pressed="false">☀ LIGHT</button>
+    <button id="btnDark" onclick="setMU('dark')" class="tap-target px-4 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15" aria-pressed="false">◐ DARK</button>
+    <div class="hidden lg:flex items-center gap-1.5 bg-white rounded-full p-1 border" style="border-color:var(--line)">
       <a href="ui-web.html" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">Web →</a>
       <a href="mindmap.html" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">Mindmap</a>
     </div>
@@ -60,74 +92,86 @@ function syncThemeMeta(m){
 </div>
 
 <div class="w-full max-w-[1360px] text-center">
-  <h1 class="text-[22px] font-extrabold tracking-tight"><span id="heroTitle">PWA <span class="font-light" style="color:#0ea5e9">cài là chạy</span> — đăng nhập & bàn làm việc trên tay</span></h1>
-  <p class="text-sm max-w-3xl mx-auto mt-1 opacity-60">Cùng Design System Modern Utility Light/Dark với bản Web. Google 1 chạm, Home 14 app lưới, tabbar 5 mục. Thêm vào MH chính là thành app.</p>
+  <h1 class="text-[22px] font-extrabold tracking-tight">PWA <span class="font-light" style="color:var(--primary)">cầm tay</span> — kho · giao vận · VietQR</h1>
+  <p class="text-sm max-w-3xl mx-auto mt-1" style="color:var(--muted)">Cùng Design System #F8FAFC · 5 semantic · Bottom Nav 4 mục ≥44px · safe-area-inset · QR VietQR · offline banner</p>
   <div class="flex gap-2 justify-center flex-wrap mt-2 mono text-[11px]">
     <span class="px-3 py-1.5 rounded-full border" style="background:var(--surface);border-color:var(--line)">next-pwa · manifest + SW</span>
     <span class="px-3 py-1.5 rounded-full border" style="background:var(--surface);border-color:var(--line)">Google OAuth · allowlist sonkhang.vn</span>
-    <span class="px-3 py-1.5 rounded-full border" style="background:var(--surface);border-color:var(--line)">#home 5×3</span>
+    <span class="px-3 py-1.5 rounded-full border" style="background:var(--surface);border-color:var(--line)">Bottom 4 · 56px + safe-area</span>
   </div>
 </div>
 
-<!-- PHONE GRID -->
+<!-- PHONE GRID — 4 PWA screens -->
 <div id="phoneGrid" class="w-full max-w-[1360px] grid gap-4" style="grid-template-columns:repeat(4,1fr)"></div>
 
 <div id="banner" class="w-full max-w-[1360px] rounded-xl border p-3 flex items-center gap-3 flex-wrap justify-between mono text-xs" style="background:var(--surface);border-color:var(--line)"></div>
 
 <script>
-const tabSvgs = {
-  Home:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
-  'Đơn':'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2l12 5-12 5-4-2z"/><path d="M6 12l12 5-12 5-4-2z"/></svg>',
-  Mua:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
-  Kho:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
-  'Tôi':'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  'Bán':'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2l12 5-12 5-4-2z"/><path d="M6 12l12 5-12 5-4-2z"/></svg>',
-};
+const nav4 = [
+  {id:'home', label:'Tổng quan', icon:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>'},
+  {id:'warehouse', label:'Kho', icon:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>'},
+  {id:'logistics', label:'Giao vận', icon:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 6v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>'},
+  {id:'profile', label:'Tôi', icon:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+];
+
+function bottomBar(activeId){
+  return '<nav class="pwa-bottom" aria-label="Bottom navigation">' + nav4.map(n=>{
+    const active = n.id===activeId;
+    return '<a href="#'+n.id+'" class="'+(active?'active':'')+'" style="color:'+(active?'var(--primary)':'var(--muted)')+'" aria-current="'+(active?'page':'false')+'">'+n.icon+'<span class="mono text-[10px] '+(active?'font-bold':'')+'">'+n.label+'</span></a>';
+  }).join('') + '</nav>';
+}
 
 const phoneTpl = [
   {
-    title:'Đăng nhập', badge:'Google', tab:'Tôi', body:`
+    title:'Đăng nhập', tab:'profile', body:`
       <div class="text-center py-2">
         <img src="assets/logo-sk-circle.png" alt="SK" class="w-10 h-10 rounded-full mx-auto border" style="border-color:var(--line)">
         <div class="text-sm font-extrabold mt-2">SK Workspace</div>
-        <div class="mono text-[11px] opacity-60">Cty TNHH Thực Phẩm Sơn Khang</div>
+        <div class="mono text-[11px]" style="color:var(--muted)">Cty TNHH Thực Phẩm Sơn Khang</div>
       </div>
-      <button onclick="mockPwa('g')" class="w-full py-2.5 rounded-full border font-bold text-sm flex items-center justify-center gap-2" style="background:var(--surface);border-color:var(--line)"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.31v2.77h3.57a10.24 10.24 0 0 0 3.27-6.09z"/><path fill="#34A853" d="M12 23a10.9 10.9 0 0 0 7.56-2.75l-3.57-2.77A6.66 6.66 0 0 1 12 18.5c-2.96 0-5.47-2-6.37-4.68H1.9v2.94A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.63 13.82A6.6 6.6 0 0 1 5.28 12c0-.64.11-1.26.35-1.82V7.24H1.9A11 11 0 0 0 .8 12c0 1.78.42 3.46 1.1 4.94l3.73-3.12z"/><path fill="#EA4335" d="M12 5.5a6.04 6.04 0 0 1 4.27 1.67l3.2-3.2A10.88 10.88 0 0 0 12 1a11 11 0 0 0-10.1 6.24l3.73 2.94C6.53 7.5 9.04 5.5 12 5.5z"/></svg> Tiếp tục với Google</button>
-      <div class="mono text-[11px] text-center opacity-60">Allowlist sonkhang.vn · JWT</div>
+      <button onclick="mockPwa('g',0)" class="tap-target w-full rounded-full border font-bold text-sm flex items-center justify-center gap-2" style="background:var(--surface);border-color:var(--line)"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.31v2.77h3.57a10.24 10.24 0 0 0 3.27-6.09z"/><path fill="#34A853" d="M12 23a10.9 10.9 0 0 0 7.56-2.75l-3.57-2.77A6.66 6.66 0 0 1 12 18.5c-2.96 0-5.47-2-6.37-4.68H1.9v2.94A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.63 13.82A6.6 6.6 0 0 1 5.28 12c0-.64.11-1.26.35-1.82V7.24H1.9A11 11 0 0 0 .8 12c0 1.78.42 3.46 1.1 4.94l3.73-3.12z"/><path fill="#EA4335" d="M12 5.5a6.04 6.04 0 0 1 4.27 1.67l3.2-3.2A10.88 10.88 0 0 0 12 1a11 11 0 0 0-10.1 6.24l3.73 2.94C6.53 7.5 9.04 5.5 12 5.5z"/></svg> Tiếp tục với Google</button>
+      <div class="mono text-[11px] text-center" style="color:var(--muted)">Allowlist sonkhang.vn · JWT</div>
       <div id="pwa-ok-0" class="hidden text-xs p-2 rounded-lg border"></div>
       <div id="pwa-err-0" class="hidden text-xs p-2 rounded-lg border"></div>
-      <div class="flex items-center gap-2 mono text-[11px] opacity-50"><span class="flex-1 h-px" style="background:var(--line)"></span> hoặc <span class="flex-1 h-px" style="background:var(--line)"></span></div>
+      <div class="flex items-center gap-2 mono text-[11px]" style="color:var(--muted)"><span class="flex-1 h-px" style="background:var(--line)"></span> hoặc <span class="flex-1 h-px" style="background:var(--line)"></span></div>
       <form onsubmit="return mockPwaLogin(event,0)" novalidate class="space-y-2">
-        <label class="block"><span class="mono text-[10px] tracking-widest font-bold opacity-60">Email công ty</span><input id="pwa-email-0" type="email" placeholder="ten@sonkhang.vn" class="mt-1 w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style="background:var(--surface);border-color:var(--line)"></label>
-        <label class="block"><span class="mono text-[10px] tracking-widest font-bold opacity-60">Mật khẩu / OTP</span><input id="pwa-pw-0" type="password" placeholder="••••••••" class="mt-1 w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style="background:var(--surface);border-color:var(--line)"></label>
-        <div class="flex gap-2"><button type="submit" class="flex-1 py-2.5 rounded-full text-white mono text-xs font-bold" style="background:var(--ink);color:var(--bg)">Đăng nhập</button><button type="button" onclick="mockPwa('otp',0)" class="px-4 py-2.5 rounded-full border mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)">Gửi OTP</button></div>
+        <label class="block"><span class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">Email công ty</span><input id="pwa-email-0" type="email" placeholder="ten@sonkhang.vn" class="tap-target mt-1 w-full px-3 rounded-lg border text-sm outline-none" style="background:var(--surface);border-color:var(--line)"></label>
+        <label class="block"><span class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">Mật khẩu / OTP</span><input id="pwa-pw-0" type="password" placeholder="••••••••" class="tap-target mt-1 w-full px-3 rounded-lg border text-sm outline-none" style="background:var(--surface);border-color:var(--line)"></label>
+        <div class="flex gap-2"><button type="submit" class="tap-target flex-1 rounded-full text-white mono text-xs font-bold" style="background:var(--ink);color:var(--bg)">Đăng nhập</button><button type="button" onclick="mockPwa('otp',0)" class="tap-target px-4 rounded-full border mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)">Gửi OTP</button></div>
       </form>
     `
   },
   {
-    title:'Bàn làm việc', badge:'Home', tab:'Home', body:`
-      <div class="rounded-lg border p-2.5 flex items-center gap-2" style="background:var(--surface);border-color:var(--line)"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><div><div class="text-xs font-bold">Online</div><div class="mono text-[11px] opacity-60">Cache tới 08/10 08:00 · Sapo sync</div></div><span class="ml-auto mono text-[10px] px-2 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">● Live</span></div>
-      <div class="rounded-full border px-3 py-2 flex items-center gap-2 text-xs opacity-60" style="background:var(--surface);border-color:var(--line)">⌕ Tìm app, đơn, NCC…</div>
+    title:'Tổng quan', tab:'home', body:`
+      <div class="rounded-lg border p-2.5 flex items-center gap-2" style="background:var(--surface);border-color:var(--line)"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><div><div class="text-xs font-bold">Online</div><div class="mono text-[11px]" style="color:var(--muted)">Cache tới 08/10 08:00 · Sapo sync</div></div><span class="ml-auto mono text-[10px] px-2 py-1 rounded-full font-bold" style="background:var(--success-soft);color:var(--success);border:1px solid var(--success-bd)">● Live</span></div>
+      <div class="rounded-full border px-3 tap-target flex items-center gap-2 text-xs" style="background:var(--surface);border-color:var(--line);color:var(--muted)">⌕ Tìm đơn, KH, NCC…</div>
       <div class="grid grid-cols-2 gap-2">
-        <div class="rounded-lg border p-3 border-l-4 border-l-sky-500" style="background:var(--surface);border-color:var(--line)"><div class="mono text-[10px] tracking-widest font-bold opacity-60">Doanh thu T10</div><div class="text-sm font-extrabold">1.842T ₫</div><div class="mono text-[11px] text-emerald-700">↗ +8,4%</div></div>
-        <div class="rounded-lg border p-3 border-l-4 border-l-red-500" style="background:var(--surface);border-color:var(--line)"><div class="mono text-[10px] tracking-widest font-bold opacity-60">Công nợ</div><div class="text-sm font-extrabold">642T ₫</div><div class="mono text-[11px] text-red-700">12 quá hạn</div></div>
+        <div class="rounded-lg border p-3 border-l-4" style="background:var(--surface);border-color:var(--line);border-left-color:var(--primary)"><div class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">Doanh thu T10</div><div class="mono text-sm font-extrabold">1.842T ₫</div><div class="mono text-[11px]" style="color:var(--success)">↗ +8,4%</div></div>
+        <div class="rounded-lg border p-3 border-l-4" style="background:var(--surface);border-color:var(--line);border-left-color:var(--danger)"><div class="mono text-[10px] tracking-widest font-bold" style="color:var(--muted)">Công nợ</div><div class="mono text-sm font-extrabold">642T ₫</div><div class="mono text-[11px]" style="color:var(--danger)">12 quá hạn</div></div>
       </div>
-      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between items-center" style="border-color:var(--line)"><span class="text-xs font-bold">14 app</span><span class="mono text-[10px] px-2 py-1 rounded-full border" style="background:var(--bg);border-color:var(--line)">#home</span></div><div class="p-2 grid grid-cols-2 gap-2"><div class="rounded-lg border p-2 border-l-4 border-l-amber-500" style="background:var(--surface);border-color:var(--line)"><div class="text-xs font-bold">Tài chính</div><div class="mono text-[10px] opacity-60">Sapo2Misa 63 cột</div></div><div class="rounded-lg border p-2 border-l-4 border-l-sky-500" style="background:var(--surface);border-color:var(--line)"><div class="text-xs font-bold">Mua + QR</div><div class="mono text-[10px] opacity-60">VietQR</div></div><div class="rounded-lg border p-2 border-l-4 border-l-violet-500" style="background:var(--surface);border-color:var(--line)"><div class="text-xs font-bold">Bán & CRM</div><div class="mono text-[10px] opacity-60">Giá theo khách</div></div><div class="rounded-lg border p-2 border-l-4 border-l-emerald-500" style="background:var(--surface);border-color:var(--line)"><div class="text-xs font-bold">Kho</div><div class="mono text-[10px] opacity-60">Q7/Q12</div></div></div><div class="px-3 pb-2 mono text-[11px] opacity-60">+ Giao vận, Tài sản, Nhân sự, SKTask…</div></div>
-      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between" style="border-color:var(--line)"><span class="text-xs font-bold">Nhắc việc</span><span class="mono text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 font-bold">3</span></div><div class="p-2 space-y-2"><div class="rounded-lg border p-2.5 flex items-center gap-2" style="background:var(--bg);border-color:var(--line)">⚠️<div><div class="text-xs font-bold">18 SKU dưới mức</div><div class="mono text-[11px] opacity-60">Tạo đề nghị?</div></div><span class="ml-auto mono text-xs px-2 py-1 rounded-full border" style="background:var(--surface);border-color:var(--line)">Tạo</span></div><div class="rounded-lg border p-2.5 flex items-center gap-2" style="background:var(--bg);border-color:var(--line)">⏰<div><div class="text-xs font-bold">12 khách quá hạn</div><div class="mono text-[11px] opacity-60">Gửi nhắc</div></div></div></div></div>
+      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between items-center" style="border-color:var(--line)"><span class="text-xs font-bold">Kho lạnh Q7 / Q12</span><span class="mono text-[10px] px-2 py-1 rounded-full border" style="background:var(--bg);border-color:var(--line)">Sapo sync</span></div><div class="divide-y text-sm" style="border-color:var(--line)"><div class="flex justify-between px-3 py-2 tap-target items-center"><span>Heo xay 500g</span><span class="mono text-xs px-2 py-1 rounded-full font-bold" style="background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger-bd)">Thiếu · 12</span></div><div class="flex justify-between px-3 py-2 tap-target items-center"><span>Bò viên 1kg</span><span class="mono text-xs px-2 py-1 rounded-full font-bold" style="background:var(--warning-soft);color:var(--warning);border:1px solid var(--warning-bd)">Sắp thiếu · 60</span></div></div></div>
+      <button onclick="document.getElementById('qrSheet').classList.toggle('hidden')" class="tap-target w-full rounded-full text-white mono text-xs font-bold flex items-center justify-center gap-2" style="background:var(--primary)">◉ Quét QR VietQR</button>
     `
   },
   {
-    title:'Mua & VietQR', badge:'PR-0412', tab:'Mua', body:`
-      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between" style="border-color:var(--line)"><span class="text-xs font-bold">PR-0412 — An Thịnh Food</span><span class="mono text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Chờ duyệt</span></div><div class="p-3"><div class="mono text-xs">Tổng: <b>38.200.000 ₫</b></div><div class="mt-2 rounded-lg p-3 flex gap-3 items-center" style="background:var(--ink);color:var(--bg)"><div class="w-14 h-14 rounded-lg grid place-items-center mono text-[9px] text-center leading-tight" style="background:var(--surface);color:var(--ink)">QR<br>VietQR</div><div><div class="text-xs font-bold">QR linh hoạt</div><div class="mono text-[11px] opacity-60">Theo đơn / NCC / tùy chỉnh</div></div></div><button class="w-full mt-2 py-2 rounded-full mono text-xs font-bold" style="background:var(--ink);color:var(--bg)">Chia sẻ QR / Tải ảnh</button></div></div>
-      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between" style="border-color:var(--line)"><span class="text-xs font-bold">Kho Q7/Q12</span><span class="mono text-[11px] opacity-60">Sapo sync</span></div><div class="divide-y text-sm" style="border-color:var(--line)"><div class="flex justify-between px-3 py-2"><span>Heo xay 500g</span><span class="mono text-xs px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">Thiếu · 12</span></div><div class="flex justify-between px-3 py-2"><span>Bò viên 1kg</span><span class="mono text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">Sắp thiếu · 60</span></div></div></div>
-      <div class="rounded-lg border p-2.5 flex gap-2 items-center" style="background:#fefce8;border-color:#fde68a"><span>◍</span><div><div class="text-xs font-bold">Offline cache</div><div class="mono text-[11px] opacity-60">Tạo QR offline — sẽ đồng bộ khi có mạng</div></div></div>
+    title:'Kho & VietQR', tab:'warehouse', body:`
+      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between" style="border-color:var(--line)"><span class="text-xs font-bold">PR-0412 — An Thịnh Food</span><span class="mono text-[10px] px-2 py-1 rounded-full font-bold" style="background:var(--warning-soft);color:var(--warning);border:1px solid var(--warning-bd)">Chờ duyệt</span></div><div class="p-3"><div class="mono text-xs">Tổng: <b>38.200.000 ₫</b></div>
+      <div class="qr-viewport mt-2 grid place-items-center">
+        <div class="qr-corner tl"></div><div class="qr-corner tr"></div><div class="qr-corner bl"></div><div class="qr-corner br"></div>
+        <div class="qr-scanline"></div>
+        <div class="relative z-10 w-20 h-20 rounded-lg bg-white grid place-items-center mono text-[9px] text-center leading-tight text-slate-800">QR<br>VietQR</div>
+        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 mono text-[10px] text-white/80 z-10">Đưa mã vào khung</div>
+      </div>
+      <div class="flex gap-2 mt-2"><button class="tap-target flex-1 rounded-full text-white mono text-xs font-bold" style="background:var(--ink);color:var(--bg)">Bật camera</button><button class="tap-target flex-1 rounded-full border mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)">Tải ảnh QR</button></div>
+      </div></div>
+      <div class="rounded-lg border p-2.5 flex gap-2 items-center" style="background:var(--warning-soft);border-color:var(--warning-bd)"><span>◍</span><div><div class="text-xs font-bold">Offline cache</div><div class="mono text-[11px]" style="color:var(--muted)">Tạo QR offline — sẽ đồng bộ khi có mạng</div></div></div>
     `
   },
   {
-    title:'Bán & Chấm công', badge:'', tab:'Bán', body:`
-      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between" style="border-color:var(--line)"><span class="text-xs font-bold">SO-1021 — An Thịnh Mart</span><span class="mono text-[10px] px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Chờ giao</span></div><div class="p-3"><div class="flex justify-between mono text-[11px] opacity-60"><span>SKU</span><span>SL · Tiền</span></div><div class="flex justify-between text-sm py-1.5 border-t mt-1" style="border-color:var(--line)"><span>Bò viên 1kg</span><span class="mono font-bold">20 · 1.760.000</span></div><div class="flex gap-2 mt-2"><button class="flex-1 py-2 rounded-full border mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)">Báo giá</button><button class="flex-1 py-2 rounded-full text-white mono text-xs font-bold" style="background:#059669">Giao</button></div></div></div>
-      <div class="rounded-lg border p-4 text-center" style="background:var(--surface);border-color:var(--line)"><div class="mono text-2xl font-bold">08:04</div><div class="mono text-[11px] opacity-60">07/10/2026 — Ca sáng · Vào 07:58 — Đúng giờ</div><button class="w-full mt-2 py-2.5 rounded-full text-white mono text-xs font-bold" style="background:#059669">✓ Check-in GPS</button></div>
-      <div class="rounded-lg border p-2.5 flex gap-2 items-center" style="background:#ecfdf5;border-color:#a7f3d0"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><div><div class="text-xs font-bold">Online</div><div class="mono text-[11px] opacity-60">GPS · last_synced 08:14</div></div></div>
+    title:'Giao vận', tab:'logistics', body:`
+      <div class="rounded-lg border overflow-hidden" style="background:var(--surface);border-color:var(--line)"><div class="px-3 py-2 border-b flex justify-between" style="border-color:var(--line)"><span class="text-xs font-bold">SO-1021 — An Thịnh Mart</span><span class="mono text-[10px] px-2 py-1 rounded-full font-bold" style="background:var(--warning-soft);color:var(--warning);border:1px solid var(--warning-bd)">Chờ giao</span></div><div class="p-3"><div class="flex justify-between mono text-[11px]" style="color:var(--muted)"><span>SKU</span><span>SL · Tiền</span></div><div class="flex justify-between text-sm py-2 border-t mt-1 tap-target items-center" style="border-color:var(--line)"><span>Bò viên 1kg</span><span class="mono font-bold">20 · 1.760.000</span></div><div class="flex gap-2 mt-2"><button class="tap-target flex-1 rounded-full border mono text-xs font-bold" style="background:var(--surface);border-color:var(--line)">Báo giá</button><button class="tap-target flex-1 rounded-full text-white mono text-xs font-bold" style="background:var(--success)">Giao</button></div></div></div>
+      <div class="rounded-lg border p-4 text-center" style="background:var(--surface);border-color:var(--line)"><div class="mono text-2xl font-bold">08:04</div><div class="mono text-[11px]" style="color:var(--muted)">07/10/2026 — Ca sáng · Vào 07:58 — Đúng giờ</div><button class="tap-target w-full mt-2 rounded-full text-white mono text-xs font-bold" style="background:var(--success)">✓ Check-in GPS</button></div>
+      <div class="rounded-lg border p-2.5 flex gap-2 items-center" style="background:var(--success-soft);border-color:var(--success-bd)"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><div><div class="text-xs font-bold">Online</div><div class="mono text-[11px]" style="color:var(--muted)">GPS · last_synced 08:14</div></div></div>
     `
   },
 ];
@@ -139,32 +183,27 @@ function setMU(m){
   const isLight=m==='light';
   document.getElementById('btnLight').setAttribute('aria-pressed', isLight?'true':'false');
   document.getElementById('btnDark').setAttribute('aria-pressed', !isLight?'true':'false');
-  document.getElementById('btnLight').className=isLight?'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow':'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
-  document.getElementById('btnDark').className=!isLight?'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-slate-900 text-white border-slate-800 shadow':'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
+  document.getElementById('btnLight').className=isLight?'tap-target px-4 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow':'tap-target px-4 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
+  document.getElementById('btnDark').className=!isLight?'tap-target px-4 rounded-full text-xs font-extrabold tracking-wide border bg-slate-900 text-white border-slate-800 shadow':'tap-target px-4 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
   render(isLight);
 }
 function render(isLight){
   const grid=document.getElementById('phoneGrid');
   grid.innerHTML = phoneTpl.map(p=>`
-    <div class="rounded-[26px] overflow-hidden border flex flex-col" style="background:var(--surface);border-color:var(--line);box-shadow:0 16px 40px rgba(0,0,0,.12)">
-      <div class="h-[42px] flex items-center gap-2 px-3 border-b shrink-0" style="background:var(--surface);border-color:var(--line)">
-        <img src="assets/logo-sk-circle.png" alt="SK" class="w-6 h-6 rounded-full object-cover border" style="border-color:var(--line)">
+    <div class="pwa-phone">
+      <div class="pwa-topbar">
+        <img src="assets/logo-sk-circle.png" alt="SK" class="w-6 h-6 rounded-full object-cover border shrink-0" style="border-color:var(--line)">
         <span class="mono text-[11px] font-bold" style="color:var(--muted)">${p.title}</span>
         ${p.badge?`<span class="ml-auto mono text-[10px] px-2 py-1 rounded-full font-bold" style="background:var(--ink);color:var(--bg)">${p.badge}</span>`:''}
       </div>
-      <div class="flex-1 p-2.5 space-y-2.5 overflow-auto scrollbar" style="background:var(--bg);min-height:520px">
-        <div>${p.body}</div>
+      <div class="pwa-content scrollbar">
+        ${p.body}
       </div>
-      <div class="h-12 flex justify-around items-center border-t shrink-0" style="background:var(--surface);border-color:var(--line)">
-        ${['Home','Đơn','Mua','Kho','Tôi'].map(t=>{
-          const active=t===p.tab;
-          return `<span class="mono text-[10px] flex flex-col items-center gap-0.5 ${active?'font-bold':''}" style="color:${active?'var(--ink)':'var(--muted)'}">${tabSvgs[t]||''}${t}</span>`;
-        }).join('')}
-      </div>
+      ${bottomBar(p.tab)}
     </div>
   `).join('');
   const banner=document.getElementById('banner');
-  banner.innerHTML=`<span class="flex items-center gap-2"><span class="mono px-2 py-1 rounded-full font-bold" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a">PWA</span><span class="text-sm">Safari/Chrome → <b>Chia sẻ → Thêm vào MH chính</b> → mở như app · <code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">next-pwa</code> · Hash <code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">#app/*</code></span></span><span class="mono text-[11px] opacity-60">Light #EBF3FA ↔ Dark #0B1329 · scroll-snap on mobile</span>`;
+  banner.innerHTML=`<span class="flex items-center gap-2"><span class="mono px-2 py-1 rounded-full font-bold" style="background:var(--warning-soft);color:var(--warning);border:1px solid var(--warning-bd)">PWA</span><span class="text-sm">Safari/Chrome → <b>Chia sẻ → Thêm vào MH chính</b> → mở như app · <code class="px-1.5 py-0.5 rounded border mono text-[11px]" style="background:var(--bg);border-color:var(--line)">next-pwa</code> · Hash <code class="px-1.5 py-0.5 rounded border mono text-[11px]" style="background:var(--bg);border-color:var(--line)">#home</code></span></span><span class="mono text-[11px]" style="color:var(--muted)">Light #F8FAFC ↔ Dark #0B1329 · Bottom 4×44px · safe-area</span>`;
 }
 function mockPwa(t,idx){
   const ok=document.getElementById('pwa-ok-'+idx), err=document.getElementById('pwa-err-'+idx);
@@ -172,7 +211,7 @@ function mockPwa(t,idx){
   ok.classList.add('hidden'); err.classList.add('hidden');
   ok.classList.remove('hidden');
   ok.textContent = t==='g' ? 'Đang chuyển tới Google (mock)…' : 'Đã gửi OTP (mock) — 5 phút hết hạn.';
-  ok.style.background='#ecfdf5'; ok.style.borderColor='#a7f3d0'; ok.style.color='#065f46';
+  ok.style.background='var(--success-soft)'; ok.style.borderColor='var(--success-bd)'; ok.style.color='var(--success)';
 }
 function mockPwaLogin(e,idx){
   e.preventDefault();
@@ -180,15 +219,22 @@ function mockPwaLogin(e,idx){
   const ok=document.getElementById('pwa-ok-'+idx), err=document.getElementById('pwa-err-'+idx);
   if(!ok||!err) return false;
   ok.classList.add('hidden'); err.classList.add('hidden');
-  err.style.background='#fef2f2'; err.style.borderColor='#fecaca'; err.style.color='#991b1b';
-  ok.style.background='#ecfdf5'; ok.style.borderColor='#a7f3d0'; ok.style.color='#065f46';
+  err.style.background='var(--danger-soft)'; err.style.borderColor='var(--danger-bd)'; err.style.color='var(--danger)';
+  ok.style.background='var(--success-soft)'; ok.style.borderColor='var(--success-bd)'; ok.style.color='var(--success)';
   if(!em.value || em.value.indexOf('@')===-1 || !pw.value){ err.textContent='Nhập email hợp lệ và mật khẩu/OTP.'; err.classList.remove('hidden'); return false; }
   if(em.value.indexOf('sonkhang.vn')===-1 && em.value.indexOf('sonkhang')===-1){ err.textContent='Email không trong allowlist sonkhang.vn — liên hệ Admin.'; err.classList.remove('hidden'); return false; }
   ok.textContent='Đăng nhập thành công (mock).'; ok.classList.remove('hidden'); return false;
 }
+function updateOffline(){
+  const b=document.getElementById('offlineBanner');
+  if(!navigator.onLine) b.classList.remove('hidden'); else b.classList.add('hidden');
+}
+window.addEventListener('online',updateOffline);
+window.addEventListener('offline',updateOffline);
 var initMu=document.documentElement.getAttribute('data-mu')||'light';
 syncThemeMeta(initMu);
 render(initMu==='light');
+updateOffline();
 </script>
 </body>
 </html>
