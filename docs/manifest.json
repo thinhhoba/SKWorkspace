@@ -1,0 +1,13 @@
+{
+  "name": "SK Workspace",
+  "short_name": "SK WS",
+  "description": "Không gian làm việc nội bộ — 14 app · Sapo ↔ Data Hub ↔ MISA 63 cột",
+  "start_url": "ui-web.html#home",
+  "display": "standalone",
+  "background_color": "#EBF3FA",
+  "theme_color": "#0B1329",
+  "icons": [
+    { "src": "assets/logo-sk-circle.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/logo-sk-circle.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

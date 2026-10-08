@@ -3,158 +3,229 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SK Workspace — Sơ đồ tư duy cấu trúc hệ thống</title>
+<meta name="theme-color" content="#EBF3FA">
+<link rel="manifest" href="manifest.json">
+<title>SK Workspace — Sơ đồ tư duy Modern Utility</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#F2F0EB;--surface:#fff;--line:#E8E6E0;--ink:#11110F;--muted:#8A8682;--gold:#C8B98A;--blue:#2563EB;--green:#0E7A4A;--amber:#8D6E00;--purple:#7C3AED;--red:#C0392B}
-*{font-family:'Instrument Sans',sans-serif}
+*{font-family:'Inter',system-ui,sans-serif}.mono{font-family:'JetBrains Mono',monospace}
+html[data-mu="light"]{--bg:#EBF3FA;--bg-grid:rgba(14,165,233,.04);--surface:#FFFFFF;--surface-2:#F1F5F9;--line:#D0E2F2;--ink:#0F172A;--muted:#64748B}
+html[data-mu="dark"]{--bg:#0B1329;--bg-grid:rgba(6,182,214,.06);--surface:#0F1D3A;--surface-2:#030712;--line:rgba(255,255,255,.08);--ink:#F1F5F9;--muted:#94a3b8}
 body{background:var(--bg);color:var(--ink)}
-a{color:inherit;text-decoration:none}
-.mono{font-family:'JetBrains Mono',monospace}
-.page{max-width:1360px;margin:0 auto;padding:22px 18px 36px}
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.eyebrow b{border:1px solid var(--line);background:#fff;padding:3px 8px;border-radius:999px;font-size:10px;color:var(--ink)}
-h1{font-size:28px;letter-spacing:-.04em;margin-top:8px;line-height:1.1}
-.sub{font-size:13px;color:var(--muted);margin-top:6px;max-width:900px;line-height:1.55}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted)}
-.chip.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
-.mindmap{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 16px 50px rgba(0,0,0,.07)}
-.mind-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.mark{width:28px;height:28px;border-radius:9px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700}
-.legend{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
-.dot{width:8px;height:8px;border-radius:999px;display:inline-block;vertical-align:middle;margin-right:4px}
-.flow{display:grid;grid-template-columns:1fr 1fr 1.7fr 1fr;gap:0;min-height:520px}
-.col{padding:12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
-.col:last-child{border-right:none}
-.col h3{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
-.col h3 i{width:22px;height:22px;border-radius:999px;display:grid;place-items:center;font-size:11px;border:1px solid var(--line);background:#F6F5F1;font-style:normal}
-.node{border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff}
-.node b{font-size:12px;display:block}
-.node p{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
-.node.src{border-left:3px solid var(--blue);background:#F8FAFF}
-.node.core{border-left:3px solid var(--purple);background:#F5F3FF}
-.node.app{border-left:3px solid var(--amber);background:#FFF8E1}
-.node.out{border-left:3px solid var(--green);background:#E8F5E9}
-.arrow-col{display:grid;place-items:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
-.apps{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.app{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
-.app b{font-size:11px}
-.app span{font-size:10px;color:var(--muted);display:block;margin-top:2px}
-.app.finance{border-left:3px solid var(--gold)}
-.app.sales{border-left:3px solid var(--blue)}
-.app.ops{border-left:3px solid var(--green)}
-.app.office{border-left:3px solid var(--red)}
-.note{font-size:11px;color:var(--muted);background:#F6F5F1;border:1px dashed var(--line);border-radius:10px;padding:10px;line-height:1.5}
-.center{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
-.box h4{font-size:12px;margin-bottom:6px}
-.box ul{font-size:11px;color:var(--muted);line-height:1.6;padding-left:16px}
-.box code{background:#F6F5F1;border:1px solid var(--line);padding:1px 5px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px}
-@media(max-width:1100px){.flow{grid-template-columns:1fr 1fr}.arrow-col{display:none}}
-@media(max-width:620px){.flow{grid-template-columns:1fr}.center{grid-template-columns:1fr}}
-@media print{body{background:#fff} .page{padding:10px} .mindmap{box-shadow:none} @page{size:A3 landscape;margin:10mm}}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(var(--bg-grid) 1px, transparent 1px),linear-gradient(90deg,var(--bg-grid) 1px, transparent 1px);background-size:32px 32px}
+*:focus-visible{outline:2px solid #0ea5e9;outline-offset:2px}
+@media(max-width:1100px){#flow{grid-template-columns:1fr 1fr !important}}
+@media(max-width:640px){#flow{grid-template-columns:1fr !important}}
+@media print{
+  body{background:#fff !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  body::before{display:none !important}
+  #frame{box-shadow:none !important}
+  @page{size:A3 landscape;margin:10mm}
+}
 </style>
+<script>
+(function(){
+  try{
+    var s=localStorage.getItem('sk-mu');
+    if(!s) s=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'light';
+    document.documentElement.setAttribute('data-mu',s);
+  }catch(e){document.documentElement.setAttribute('data-mu','light');}
+})();
+function syncThemeMeta(m){
+  var meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', m==='light' ? '#EBF3FA' : '#0B1329');
+}
+</script>
 </head>
-<body>
-<div class="page">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><img src="assets/logo-sk-workspace.png" alt="SK Workspace" style="height:42px;width:auto;border-radius:10px"><img src="assets/logo-sapo2misa-by-sk.png" alt="Sapo2Misa by SK" style="height:26px;width:auto;border-radius:8px"><span style="margin-left:auto;font-family:JetBrains Mono,monospace;font-size:10px;color:var(--muted)">blueprint · whiteprint</span></div>
-  <div class="eyebrow">SK Workspace · Sơ đồ tư duy cấu trúc hệ thống <b>5 cột · Nguồn → Core Shell → 14 app → Đích</b> <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><a class="chip" href="sk-workspace-platform-architecture.html">Blueprint tối</a><a class="chip" href="sk-workspace-enterprise-clean.html">Clean sáng</a><a class="chip" href="ui-web.html">UI Web →</a><a class="chip" href="ui-pwa.html">UI PWA →</a></span></div>
-  <h1>Nguồn dữ liệu → Shell → App nghiệp vụ → Đích & liên kết ngoài</h1>
-  <p class="sub">Một hình duy nhất để hiểu toàn hệ thống: <b>SK Workspace là Data Hub</b> (Sapo API + nhập tay → DataStore truth → MISA 63 cột / HĐĐT / Thuế). Sapo2Misa chỉ là <b>1 trong 14</b> ô trong nhóm Tài chính. Shell duy nhất (WorkspaceRoot + HomePage + appRegistry + RBAC + Workflow Engine) điều hướng bằng <code style="background:#fff;border:1px solid #E8E6E0;padding:1px 6px;border-radius:6px">#home → #app/* → #settings</code>.</p>
-  <div class="chips"><span class="chip dark">Modular Monolith — 1 VPS · 1 Codebase</span><span class="chip">Google OAuth + hasAppAccess(appId)</span><span class="chip">external_id + last_synced_at + integration_logs</span><span class="chip">Next.js 15 + Prisma + MinIO</span></div>
-
-  <div class="mindmap">
-    <div class="mind-head">
-      <span class="mark">SK</span> <strong style="font-size:13px">SK Workspace — Mindmap kiến trúc</strong> <span class="mono" style="font-size:10px;color:var(--muted)">#home 5×3 · hash router · PWA = Web gọn</span>
-      <div class="legend mono" style="font-size:10px;color:var(--muted)">
-        <span><i class="dot" style="background:var(--blue)"></i> Nguồn</span>
-        <span><i class="dot" style="background:var(--purple)"></i> Core Shell</span>
-        <span><i class="dot" style="background:var(--amber)"></i> App</span>
-        <span><i class="dot" style="background:var(--green)"></i> Đích/Liên kết</span>
-      </div>
-      <button onclick="window.print()" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer">🖨 In A3 / PDF</button>
+<body class="min-h-screen flex flex-col items-center py-5 px-3 gap-4">
+<!-- GLOBAL HEADER -->
+<div class="w-full max-w-[1360px] flex items-center justify-between gap-3 flex-wrap">
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow border border-slate-200">
+      <img src="assets/logo-sk-circle.png" alt="SK" class="w-6 h-6 rounded-full object-cover">
+      <span class="text-xs font-extrabold tracking-widest text-slate-800">SK WORKSPACE</span>
+      <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-[#0B1329] text-white">MINDMAP</span>
     </div>
-
-    <div class="flow">
-      <div class="col">
-        <h3><i>⬢</i> 1 · Nguồn vào</h3>
-        <div class="node src"><b>🛒 Sapo Omnichannel API</b><p>Đơn/KH/SP/tồn — pull & push 2 chiều</p></div>
-        <div class="node src"><b>📑 MISA AMIS</b><p>Excel 63 cột hiện tại → sau API trực tiếp</p></div>
-        <div class="node src"><b>🤖 InBot — HĐ đầu vào</b><p>Tự hút PDF/XML HĐĐT về MinIO</p></div>
-        <div class="node src"><b>🏛️ Tổng cục Thuế</b><p>Tra cứu HĐĐT, đối soát CQT</p></div>
-        <div class="node src"><b>🔍 Tra cứu MST</b><p>gdt.gov.vn — map KH theo MST</p></div>
-        <div class="node src"><b>💳 VietQR / Sepay / Casso</b><p>QR linh hoạt theo đơn/NCC</p></div>
-        <div class="node src"><b>👥 Vận hành & Nhân sự</b><p>Nhập tay, chấm công GPS, xe</p></div>
-        <div class="node src"><b>📅 Google Workspace</b><p>Drive/Calendar/Gmail 2 chiều</p></div>
-        <div class="note">Tất cả qua <b>adapter</b> <code>packages/integrations/&lt;provider&gt;</code> — sync/push/pull/webhook + <b>external_id</b></div>
-      </div>
-
-      <div class="col">
-        <h3><i>⬣</i> 2 · Core Shell</h3>
-        <div class="node core"><b>WorkspaceRoot + HomePage</b><p>Grid 5×3 · filter · tìm kiếm · wallpaper · Drawer · <code>#app/*</code></p></div>
-        <div class="node core"><b>🔐 Auth & RBAC</b><p>Auth.js Google OAuth + allowlist <b>sonkhang.vn</b> → <code>hasAppAccess(appId)</code> → JWT/OTP fallback · Audit log</p></div>
-        <div class="node core"><b>🗄️ Data & Storage Layer</b><p>Postgres 16 + Prisma + RLS Tenant · Redis + BullMQ · MinIO (PDF/XML/media) · DataStore truth</p></div>
-        <div class="node core"><b>🔄 SK Workflow Engine</b><p>If-This-Then-That: đơn mới / tồn thấp / nợ quá hạn → tạo Task/Note/cảnh báo liên app</p></div>
-        <div class="node core"><b>🌐 Deploy 1 VPS</b><p><code>docker compose up -d</code> · Nginx + Let's Encrypt · next-pwa · Web đủ / PWA gọn</p></div>
-        <div class="note"><b>Nguyên tắc:</b> mỗi app có owner riêng; server.ts hotspot tuần tự hóa; dữ liệu chung (SapoOrder/KH/NCC/tồn) qua DataStore + appId.</div>
-      </div>
-
-      <div class="col">
-        <h3><i>▦</i> 3 · 14 app nội bộ (5 nhóm)</h3>
-        <div class="apps">
-          <div class="app finance"><b>📊 Bàn làm việc</b><span>Dashboard KPI</span></div>
-          <div class="app finance"><b>💰 Tài chính</b><span>Sapo2Misa 63 cột — 1/14</span></div>
-          <div class="app sales"><b>🛒 Mua hàng</b><span>So giá + VietQR</span></div>
-          <div class="app sales"><b>📦 Bán hàng</b><span>Giá theo khách</span></div>
-          <div class="app sales"><b>🤝 CRM</b><span>KH/NCC · RFM</span></div>
-          <div class="app ops"><b>🏬 Kho</b><span>Q7/Q12 · Nhập/Xuất</span></div>
-          <div class="app ops"><b>🚚 Giao vận</b><span>Xe & tuyến</span></div>
-          <div class="app ops"><b>🏷️ Tài sản</b><span>Phương tiện</span></div>
-          <div class="app office"><b>👥 Nhân sự-Lương</b><span>Chấm công GPS</span></div>
-          <div class="app office"><b>💬 Hỗ trợ/CSKH</b><span>Ticket</span></div>
-          <div class="app sales"><b>🛍️ POS</b><span>Bán lẻ quầy</span></div>
-          <div class="app office"><b>✅ Quy trình/Lịch</b><span>SKTask · SKCalendar</span></div>
-          <div class="app office"><b>📁 Văn thư</b><span>SKContract</span></div>
-          <div class="app office"><b>🖼️ Thư viện</b><span>Ảnh/video/content</span></div>
-        </div>
-        <div class="note"><b>Ranh giới Sapo2Misa:</b> chỉ là 1 app Tài chính (stepper 4 bước, ledger chống trùng) — không đồng nhất với toàn Workspace. Các app khác tự trị.</div>
-        <div class="note"><b>Dữ liệu chung:</b> SapoOrder trung tâm + KH/NCC/Công nợ/Tồn kho — mọi app đọc qua DataStore + appId.</div>
-      </div>
-
-      <div class="col">
-        <h3><i>⬔</i> 4 · Đích & Liên kết ngoài</h3>
-        <div class="node out"><b>📤 MISA AMIS / Hóa đơn</b><p>Excel 63 cột / API · meInvoice phát hành</p></div>
-        <div class="node out"><b>📊 Báo cáo & Đối soát</b><p>Dòng tiền · công nợ · tồn · đối soát bank (Casso/Sepay)</p></div>
-        <div class="node out"><b>☁️ Google & Ngoài hệ</b><p>Drive/Calendar sync · Gmail · file share</p></div>
-        <div class="node out"><b>⚙️ Hệ thống</b><p>Backup Postgres hàng ngày · integration_logs · audit log · phân quyền</p></div>
-        <div class="note"><b>Cách đọc:</b> trái → phải là dòng dữ liệu; Shell ở giữa điều phối; 14 app là nơi làm việc; Đích là nơi xuất/đối soát.</div>
-        <div class="note">Nguồn: <code>appRegistry.ts</code> · <code>WorkspaceRoot.tsx</code> · <code>HomePage.tsx</code> · <code>sapo2misa/*</code> — 08/10/2026</div>
-      </div>
+    <span class="hidden md:inline text-xs opacity-60">5 cột · Nguồn → Core Shell → 14 app → Đích</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <button id="btnLight" onclick="setMU('light')" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow" aria-pressed="false">☀ LIGHT</button>
+    <button id="btnDark" onclick="setMU('dark')" class="px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15" aria-pressed="false">◐ DARK COCKPIT</button>
+    <div class="hidden lg:flex items-center gap-1.5 bg-white rounded-full p-1 border border-slate-200">
+      <a href="ui-web.html" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">Web →</a>
+      <a href="ui-pwa.html" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">PWA →</a>
+      <button onclick="window.print()" class="mono text-[11px] px-3 py-1.5 rounded-full hover:bg-slate-100">⎙ In A3</button>
     </div>
   </div>
-
-  <div class="center">
-    <div class="box">
-      <h4>🧭 Luồng điều hướng (Hash Router)</h4>
-      <ul>
-        <li><code>#home</code> (5×3) → <code>#app/sapo2misa</code> · <code>#app/skdebt</code> · <code>#app/sktask</code> … → <code>#settings</code> (ADMIN) / <code>#profile</code></li>
-        <li>HomePage: filter Tất cả / Tài chính / Kinh doanh / Nhân sự / Vận hành — tìm kiếm — đổi hình nền.</li>
-        <li>Mỗi app mount riêng trong WorkspaceRoot; RBAC chặn app chưa cấp quyền.</li>
-      </ul>
-    </div>
-    <div class="box">
-      <h4>🔐 Đăng nhập nhanh Google</h4>
-      <ul>
-        <li>Auth.js provider Google — Client ID/Secret (Google Cloud Console) → redirect <code>/api/auth/callback/google</code>.</li>
-        <li>Email → map <code>users</code> (allowlist <b>sonkhang.vn</b> hoặc invite) → cấp RBAC → JWT session. Fallback OTP.</li>
-        <li>Xem <a href="sapo2misa-notes.md" style="color:var(--blue);text-decoration:underline">sapo2misa-notes.md</a> & CLAUDE.md.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center">In A3 ngang (Landscape) hoặc xuất PDF trực tiếp từ trình duyệt · Chuyển theme: <a href="sk-workspace-platform-architecture.html" style="color:var(--blue);text-decoration:underline">Blueprint tối</a> · <a href="sk-workspace-enterprise-clean.html" style="color:var(--blue);text-decoration:underline">Clean sáng</a></div>
 </div>
+
+<!-- WINDOW -->
+<div id="frame" class="w-full max-w-[1360px] rounded-[20px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,.25)] border" style="background:var(--surface);border-color:var(--line)">
+  <div id="topbar" class="h-[56px] flex items-center gap-3 px-4 border-b" style="background:var(--surface);border-color:var(--line)">
+    <img src="assets/logo-sk-circle.png" alt="SK" id="topLogo" class="w-9 h-9 rounded-xl object-cover border" style="border-color:var(--line)">
+    <div>
+      <div id="topTitle" class="text-[13px] font-extrabold leading-none"></div>
+      <div id="topSub" class="text-[11px]"></div>
+    </div>
+    <div class="flex-1"></div>
+    <div id="pillArea" class="hidden sm:flex items-center gap-2"></div>
+  </div>
+
+  <div id="canvas" class="p-4 md:p-5" style="background:var(--bg)">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <h2 id="h2" class="text-[15px] font-extrabold flex items-center gap-2"></h2>
+      <div id="legend" class="flex gap-2 flex-wrap mono text-[11px]"></div>
+    </div>
+    <p id="desc" class="text-sm mt-2 leading-relaxed opacity-70 max-w-4xl"></p>
+
+    <!-- FLOW 4 COLS -->
+    <div id="flow" class="mt-4 grid gap-3" style="grid-template-columns:1fr 1fr 1.7fr 1fr"></div>
+
+    <!-- FOOT NOTES -->
+    <div id="footGrid" class="mt-4 grid md:grid-cols-2 gap-3"></div>
+  </div>
+  <div id="foot" class="h-7 flex items-center justify-between px-4 mono text-[11px] border-t" style="border-color:var(--line)"></div>
+</div>
+
+<div class="w-full max-w-[1360px] text-center mono text-[11px] opacity-60">Modern Utility · In A3 Landscape — Ctrl/Cmd + P · print-color-adjust: exact</div>
+
+<script>
+const cols = [
+  {k:'src', title:'1 · Nguồn vào', icon:'⬢', accent:'border-l-sky-500', nodes:[
+    ['🛒 Sapo Omnichannel API','Đơn/KH/SP/tồn — pull & push 2 chiều'],
+    ['📑 MISA AMIS','Excel 63 cột hiện tại → sau API trực tiếp'],
+    ['🤖 InBot — HĐ đầu vào','Tự hút PDF/XML HĐĐT về MinIO'],
+    ['🏛️ Tổng cục Thuế','Tra cứu HĐĐT, đối soát CQT'],
+    ['🔍 Tra cứu MST','gdt.gov.vn — map KH theo MST'],
+    ['💳 VietQR / Sepay / Casso','QR linh hoạt theo đơn/NCC'],
+    ['👥 Vận hành & Nhân sự','Nhập tay, chấm công GPS, xe'],
+    ['📅 Google Workspace','Drive/Calendar/Gmail 2 chiều'],
+  ], note:'Tất cả qua adapter <code>packages/integrations/&lt;provider&gt;</code> — sync/push/pull/webhook + <b>external_id</b>'},
+  {k:'core', title:'2 · Core Shell', icon:'⬣', accent:'border-l-violet-500', nodes:[
+    ['WorkspaceRoot + HomePage','Grid 5×3 · filter · tìm kiếm · <code>#app/*</code>'],
+    ['🔐 Auth & RBAC','Auth.js Google OAuth + allowlist <b>sonkhang.vn</b> → <code>hasAppAccess(appId)</code>'],
+    ['🗄️ Data & Storage Layer','Postgres + Prisma + RLS · Redis + BullMQ · MinIO · DataStore truth'],
+    ['🔄 SK Workflow Engine','If-This-Then-That: đơn mới / tồn thấp / nợ quá hạn → Task/Note'],
+    ['🌐 Deploy 1 VPS','<code>docker compose up -d</code> · Nginx + Let\'s Encrypt · next-pwa'],
+  ], note:'<b>Nguyên tắc:</b> mỗi app có owner riêng; dữ liệu chung qua DataStore + appId.'},
+  {k:'apps', title:'3 · 14 app (5 nhóm)', icon:'▦', isApps:true, apps:[
+    ['📊 Bàn làm việc','Dashboard KPI','finance'],['💰 Tài chính','Sapo2Misa 63 cột — 1/14','finance'],
+    ['🛒 Mua hàng','So giá + VietQR','sales'],['📦 Bán hàng','Giá theo khách','sales'],
+    ['🤝 CRM','KH/NCC · RFM','sales'],['🏬 Kho','Q7/Q12 · Nhập/Xuất','ops'],
+    ['🚚 Giao vận','Xe & tuyến','ops'],['🏷️ Tài sản','Phương tiện','ops'],
+    ['👥 Nhân sự-Lương','Chấm công GPS','office'],['💬 Hỗ trợ/CSKH','Ticket','office'],
+    ['🛍️ POS','Bán lẻ quầy','sales'],['✅ Quy trình/Lịch','SKTask · SKCalendar','office'],
+    ['📁 Văn thư','SKContract','office'],['🖼️ Thư viện','Ảnh/video/content','office'],
+  ], note:'<b>Ranh giới Sapo2Misa:</b> chỉ là 1 app Tài chính (stepper 4 bước, ledger chống trùng).'},
+  {k:'out', title:'4 · Đích & Liên kết ngoài', icon:'⬔', accent:'border-l-emerald-500', nodes:[
+    ['📤 MISA AMIS / Hóa đơn','Excel 63 cột / API · meInvoice phát hành'],
+    ['📊 Báo cáo & Đối soát','Dòng tiền · công nợ · tồn · đối soát bank'],
+    ['☁️ Google & Ngoài hệ','Drive/Calendar sync · Gmail · file share'],
+    ['⚙️ Hệ thống','Backup Postgres · integration_logs · audit log'],
+  ], note:'<b>Cách đọc:</b> trái → phải là dòng dữ liệu; Shell ở giữa điều phối.'},
+];
+
+function setMU(m){
+  document.documentElement.setAttribute('data-mu',m);
+  try{localStorage.setItem('sk-mu',m);}catch(e){}
+  syncThemeMeta(m);
+  const isLight=m==='light';
+  document.getElementById('btnLight').setAttribute('aria-pressed', isLight?'true':'false');
+  document.getElementById('btnDark').setAttribute('aria-pressed', !isLight?'true':'false');
+  document.getElementById('btnLight').className=isLight?'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white text-slate-900 border-slate-200 shadow':'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
+  document.getElementById('btnDark').className=!isLight?'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-slate-900 text-white border-slate-800 shadow':'px-4 py-2 rounded-full text-xs font-extrabold tracking-wide border bg-white/10 text-white border-white/15';
+  document.getElementById('frame').style.background='var(--surface)';
+  document.getElementById('frame').style.borderColor='var(--line)';
+  document.getElementById('topbar').style.background='var(--surface)';
+  document.getElementById('topbar').style.borderColor='var(--line)';
+  document.getElementById('canvas').style.background='var(--bg)';
+  document.getElementById('foot').style.background='var(--surface)';
+  document.getElementById('foot').style.borderColor='var(--line)';
+  document.getElementById('topLogo').style.borderColor='var(--line)';
+  if(isLight){
+    document.getElementById('topTitle').innerHTML='SK Workspace — Sơ đồ tư duy <span class="mono text-[11px] px-2 py-0.5 rounded-full bg-[#0B1329] text-white">MODERN UTILITY</span>';
+    document.getElementById('topTitle').style.color='var(--ink)';
+    document.getElementById('topSub').textContent='Nguồn → Core Shell → 14 app → Đích · 1 hình duy nhất để hiểu toàn hệ thống';
+    document.getElementById('topSub').style.color='var(--muted)';
+    document.getElementById('pillArea').innerHTML='<span class="mono text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 font-bold">Data Hub</span><span class="mono text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold">14 app</span>';
+    document.getElementById('h2').innerHTML='<span class="w-7 h-7 rounded-lg border inline-grid place-items-center" style="background:var(--surface);border-color:var(--line)">▦</span> Nguồn dữ liệu → Shell → App nghiệp vụ → Đích & liên kết ngoài';
+    document.getElementById('h2').style.color='var(--ink)';
+    document.getElementById('desc').innerHTML='Một hình duy nhất để hiểu toàn hệ thống: <b>SK Workspace là Data Hub</b> (Sapo API + nhập tay → DataStore truth → MISA 63 cột / HĐĐT / Thuế). Sapo2Misa chỉ là <b>1 trong 14</b> ô trong nhóm Tài chính. Shell duy nhất (WorkspaceRoot + HomePage + appRegistry + RBAC + Workflow Engine) điều hướng bằng <code style="background:var(--surface);border:1px solid var(--line);padding:1px 6px;border-radius:6px">#home → #app/* → #settings</code>.';
+    document.getElementById('foot').innerHTML='<span>SK Workspace · Modern Utility Light · #EBF3FA</span><span class="mono">5 cột · Sapo ↔ Hub ↔ MISA · In A3</span>';
+    document.getElementById('foot').style.color='#64748B';
+  } else {
+    document.getElementById('topTitle').innerHTML='SK Workspace — Mindmap Cockpit <span class="mono text-[11px] px-2 py-0.5 rounded-full border" style="background:rgba(255,255,255,.08);border-color:var(--line);color:#a5f3fc">DARK</span>';
+    document.getElementById('topTitle').style.color='var(--ink)';
+    document.getElementById('topSub').textContent='Dòng dữ liệu trái → phải · Shell điều phối · 14 app là nơi làm việc';
+    document.getElementById('topSub').style.color='var(--muted)';
+    document.getElementById('pillArea').innerHTML='<span class="mono text-xs px-2.5 py-1 rounded-full font-bold" style="background:rgba(255,255,255,.08);border:1px solid var(--line);color:#a5f3fc">LIVE</span><span class="mono text-xs px-2.5 py-1 rounded-full font-bold" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#6ee7b7">Cockpit</span>';
+    document.getElementById('h2').innerHTML='<span class="w-7 h-7 rounded-lg border inline-grid place-items-center" style="background:rgba(255,255,255,.06);border-color:var(--line)">⬢</span> Nguồn dữ liệu → Shell → App nghiệp vụ → Đích';
+    document.getElementById('h2').style.color='var(--ink)';
+    document.getElementById('desc').innerHTML='<span style="color:var(--muted)">Một hình duy nhất để hiểu toàn hệ thống: <b style="color:var(--ink)">SK Workspace là Data Hub</b> — Sapo API + nhập tay → DataStore truth → MISA 63 cột / HĐĐT / Thuế. Sapo2Misa chỉ là <b style="color:var(--ink)">1 trong 14</b> trong nhóm Tài chính.</span>';
+    document.getElementById('foot').innerHTML='<span class="text-white/60">Dark Cockpit · Flow 5 cột</span><span class="mono text-cyan-300">Sapo → Hub → MISA 63 cột</span>';
+    document.getElementById('foot').style.color='rgba(255,255,255,.6)';
+  }
+  render();
+}
+function render(){
+  const flow=document.getElementById('flow');
+  flow.innerHTML = cols.map(c=>{
+    let body='';
+    if(c.isApps){
+      const map={finance:'border-l-amber-500', sales:'border-l-sky-500', ops:'border-l-emerald-500', office:'border-l-red-500'};
+      body=`<div class="grid grid-cols-2 gap-2">${c.apps.map(a=>`
+        <div class="rounded-lg border p-2.5 border-l-4 ${map[a[2]]}" style="background:var(--surface);border-color:var(--line)">
+          <div class="text-xs font-bold">${a[0]}</div>
+          <div class="mono text-[11px] opacity-60">${a[1]}</div>
+        </div>
+      `).join('')}</div>`;
+    } else {
+      body=c.nodes.map(n=>`
+        <div class="rounded-lg border p-2.5 border-l-4 ${c.accent}" style="background:var(--surface);border-color:var(--line)">
+          <div class="text-xs font-bold">${n[0]}</div>
+          <div class="mono text-[11px] opacity-60">${n[1]}</div>
+        </div>
+      `).join('');
+    }
+    return `<div class="rounded-xl border p-3 flex flex-col gap-2" style="background:var(--surface);border-color:var(--line)">
+      <div class="mono text-[11px] tracking-widest font-extrabold flex items-center gap-2 opacity-60">
+        <span class="w-6 h-6 rounded-full grid place-items-center border text-[11px]" style="background:var(--bg);border-color:var(--line)">${c.icon}</span> ${c.title}
+      </div>
+      ${body}
+      <div class="rounded-lg border p-2.5 mono text-[11px] leading-relaxed opacity-70" style="background:var(--bg);border-color:var(--line);border-style:dashed">${c.note}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('legend').innerHTML=`
+    <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-sky-500 inline-block"></i> Nguồn</span>
+    <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-violet-500 inline-block"></i> Core Shell</span>
+    <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-amber-500 inline-block"></i> App</span>
+    <span class="flex items-center gap-1.5"><i class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></i> Đích</span>
+  `;
+  document.getElementById('legend').style.color='var(--muted)';
+  document.getElementById('footGrid').innerHTML=`
+    <div class="rounded-xl border p-3" style="background:var(--surface);border-color:var(--line)">
+      <div class="text-xs font-extrabold">🧭 Luồng điều hướng (Hash Router)</div>
+      <ul class="mono text-[11px] mt-2 space-y-1 list-disc pl-4 opacity-70">
+        <li><code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">#home</code> (5×3) → <code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">#app/sapo2misa</code> → <code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">#settings</code></li>
+        <li>RBAC <code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">hasAppAccess(appId)</code> chặn app chưa cấp quyền.</li>
+      </ul>
+    </div>
+    <div class="rounded-xl border p-3" style="background:var(--surface);border-color:var(--line)">
+      <div class="text-xs font-extrabold">🔐 Đăng nhập nhanh Google</div>
+      <ul class="mono text-[11px] mt-2 space-y-1 list-disc pl-4 opacity-70">
+        <li>Auth.js provider Google → <code class="px-1.5 py-0.5 rounded border" style="background:var(--bg);border-color:var(--line)">/api/auth/callback/google</code></li>
+        <li>Allowlist <b>sonkhang.vn</b> hoặc invite → JWT session · OTP fallback</li>
+      </ul>
+    </div>
+  `;
+}
+var initMu=document.documentElement.getAttribute('data-mu')||'light';
+syncThemeMeta(initMu);
+setMU(initMu);
+</script>
 </body>
 </html>

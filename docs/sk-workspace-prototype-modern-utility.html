@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Utility — Light Config & Dark Cockpit Prototype</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Inter',system-ui,sans-serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.scrollbar{scrollbar-width:thin}
+.scrollbar::-webkit-scrollbar{width:6px;height:6px}
+.scrollbar::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:999px}
+</style>
+</head>
+<body class="min-h-screen bg-[#0B1329] flex flex-col items-center py-6 px-4 gap-4">
+<style id="theme"></style>
+
+<div class="w-full max-w-[1280px] flex items-center justify-between gap-3 flex-wrap">
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow border border-slate-200">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span class="text-xs font-bold tracking-widest text-slate-700">MODERN UTILITY</span>
+      <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 text-white font-semibold">PROTOTYPE</span>
+    </div>
+    <span class="text-xs text-slate-400 hidden sm:inline">Light Config ↔ Dark Cockpit · Rounded-xl · Fluent Duotone</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <button id="btnLight" onclick="setMode('light')" class="px-4 py-2 rounded-full text-xs font-bold tracking-wide border transition bg-white text-slate-900 border-slate-200 shadow">☀ LIGHT — CẤU HÌNH</button>
+    <button id="btnDark" onclick="setMode('dark')" class="px-4 py-2 rounded-full text-xs font-bold tracking-wide border transition bg-slate-900 text-white border-slate-800">◐ DARK — TIẾN TRÌNH</button>
+    <span class="text-[10px] text-slate-500 hidden md:inline">Tip: bấm “BẮT ĐẦU NGAY” / “Quay lại” để chuyển</span>
+  </div>
+</div>
+
+<!-- WINDOW FRAME -->
+<div id="frame" class="w-full max-w-[1280px] rounded-[20px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,.35)] border transition-colors duration-300">
+  <!-- TOPBAR -->
+  <div id="topbar" class="h-[56px] flex items-center gap-3 px-4 border-b">
+    <div class="flex items-center gap-3">
+      <div id="appMark" class="w-9 h-9 rounded-xl grid place-items-center font-extrabold text-white text-sm">◈</div>
+      <div>
+        <div id="topTitle" class="text-[13px] font-extrabold leading-none flex items-center gap-1.5"></div>
+        <div id="topSub" class="text-[11px]"></div>
+      </div>
+    </div>
+    <div class="flex-1"></div>
+    <div id="pillArea" class="hidden sm:flex items-center gap-2"></div>
+    <div id="clock" class="hidden md:flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border"></div>
+    <div class="flex items-center gap-1.5">
+      <button class="w-8 h-8 rounded-lg grid place-items-center border text-xs">—</button>
+      <button class="w-8 h-8 rounded-lg grid place-items-center border text-xs">☐</button>
+      <button class="w-8 h-8 rounded-lg grid place-items-center border text-xs">✕</button>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:240px 1fr; min-height:640px">
+    <!-- SIDEBAR -->
+    <div id="sidebar" class="border-r p-3 flex flex-col gap-3">
+      <div id="sideHeader" class="px-2 py-2 rounded-xl border">
+        <div class="text-[10px] tracking-widest font-bold opacity-60">WORKSPACE</div>
+        <div class="text-sm font-extrabold">SK Utility Toolkit</div>
+        <div class="text-[11px] opacity-60">Modern Utility · Fluent</div>
+      </div>
+      <nav id="nav" class="space-y-1"></nav>
+      <div id="sideCard" class="mt-auto rounded-xl p-3 border">
+        <div class="text-xs font-bold flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Hệ thống sẵn sàng</div>
+        <div class="text-[11px] opacity-70 mt-1">Phiên bản Toolkit v2.4 · Cập nhật 08/10/2026</div>
+        <div class="mt-2 flex gap-2">
+          <span class="text-[10px] px-2 py-1 rounded-full border font-semibold">Docs</span>
+          <span class="text-[10px] px-2 py-1 rounded-full border font-semibold">Support</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CANVAS -->
+    <div id="canvas" class="p-4 md:p-5">
+      <!-- LIGHT -->
+      <div id="viewLight">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-[15px] font-extrabold flex items-center gap-2"><span class="w-7 h-7 rounded-lg bg-white border grid place-items-center text-sm">⚙</span> Cấu hình triển khai</h2>
+          <span class="text-xs px-3 py-1 rounded-full border bg-white font-semibold">3 bước · Hoàn tất bước 1</span>
+        </div>
+        <div class="mt-4 grid gap-4" style="grid-template-columns: 300px 1fr">
+          <!-- Stepper -->
+          <div class="rounded-2xl border bg-white p-4">
+            <div class="text-xs font-extrabold tracking-widest opacity-60">QUY TRÌNH</div>
+            <div class="mt-3 space-y-0 relative">
+              <div class="absolute left-[15px] top-6 bottom-6 w-0.5 bg-slate-200"></div>
+              <div id="stepperLight" class="space-y-4 relative"></div>
+            </div>
+            <div class="mt-4 rounded-xl border p-3 bg-[#F8FAFF]">
+              <div class="text-xs font-bold">Mẹo nhanh</div>
+              <div class="text-[11px] leading-relaxed opacity-70 mt-1">Bạn có thể “Xem trước” để kiểm tra tham số trước khi bấm BẮT ĐẦU NGAY. Cấu hình sẽ được lưu thành kịch bản để chạy lại.</div>
+            </div>
+          </div>
+          <!-- Grid -->
+          <div class="space-y-4">
+            <div class="grid md:grid-cols-2 gap-3" id="gridLight"></div>
+            <div class="rounded-2xl border bg-white p-4">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-extrabold">Thông số hệ thống</div>
+                <span class="text-[11px] px-2 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-bold">Xác thực cần thiết</span>
+              </div>
+              <div class="mt-3 grid sm:grid-cols-3 gap-3 text-sm">
+                <div class="rounded-xl border p-3 bg-[#F8FAFF]"><div class="text-[11px] font-bold tracking-widest opacity-60">Ổ ĐĨA</div><div class="font-bold mt-1">NVMe 512GB · 68% trống</div><div class="text-xs opacity-60">GPT · NTFS · BitLocker off</div></div>
+                <div class="rounded-xl border p-3 bg-[#F8FAFF]"><div class="text-[11px] font-bold tracking-widest opacity-60">HỆ ĐIỀU HÀNH</div><div class="font-bold mt-1">Windows 11 Pro 24H2</div><div class="text-xs opacity-60">Build 26100 · UEFI Secure Boot</div></div>
+                <div class="rounded-xl border p-3 bg-[#F8FAFF]"><div class="text-[11px] font-bold tracking-widest opacity-60">MẠNG</div><div class="font-bold mt-1">Online · Proxy off</div><div class="text-xs opacity-60">Ping 18ms · DNS 1.1.1.1</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 rounded-2xl border bg-white p-3 flex items-center gap-2 flex-wrap justify-between">
+          <div class="flex gap-2">
+            <button class="px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold">👁 Xem trước</button>
+            <button class="px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold">💾 Lưu kịch bản</button>
+          </div>
+          <button onclick="setMode('dark')" class="px-6 py-3 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-sm font-extrabold tracking-wide shadow">▶ BẮT ĐẦU NGAY</button>
+        </div>
+      </div>
+
+      <!-- DARK -->
+      <div id="viewDark" class="hidden">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h2 class="text-[15px] font-extrabold flex items-center gap-2 text-white"><span class="w-7 h-7 rounded-lg bg-[#0B1329] border border-white/10 grid place-items-center">⬢</span> Tiến trình thực thi</h2>
+          <span class="text-xs px-3 py-1 rounded-full bg-white/10 text-white border border-white/15">5 bước · Đang chạy bước 3/5</span>
+        </div>
+        <div class="mt-4 grid gap-4" style="grid-template-columns: 300px 1fr">
+          <div class="rounded-2xl border p-4" style="background:#0F1D3A; border-color:rgba(255,255,255,.08)">
+            <div class="text-xs font-bold tracking-widest text-white/60">PIPELINE</div>
+            <div class="mt-3 relative">
+              <div class="absolute left-[15px] top-6 bottom-6 w-0.5" style="background:linear-gradient(to bottom, #10b981, rgba(16,185,129,.15))"></div>
+              <div id="stepperDark" class="space-y-4 relative"></div>
+            </div>
+            <div class="mt-4 rounded-xl p-3 border" style="background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08)">
+              <div class="text-xs font-bold text-white">Trạng thái</div>
+              <div class="text-[11px] text-white/60 mt-1">Đang ghi image · Tốc độ 128 MB/s · Ước tính còn 2m 14s</div>
+              <div class="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full rounded-full" style="width:88%; background:linear-gradient(90deg,#22d3ee,#3b82f6)"></div></div>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div class="rounded-2xl border p-4" style="background:#0F1D3A; border-color:rgba(255,255,255,.08)">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-bold text-white">Tiến trình tổng thể</div>
+                <span class="mono text-[11px] px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">88% · 2m 14s còn lại</span>
+              </div>
+              <div class="mt-3 flex items-end gap-4">
+                <div class="flex-1">
+                  <div class="h-3 rounded-full bg-[#030712] border border-white/10 overflow-hidden p-1">
+                    <div class="h-full rounded-full" style="width:88%; background:linear-gradient(90deg,#06b6d4,#2563eb); box-shadow:0 0 16px rgba(6,182,214,.6)"></div>
+                  </div>
+                  <div class="mt-2 flex gap-2 text-[11px] text-white/60"><span>Đã xử lý 441 / 502 gói</span><span>·</span><span>Tốc độ 128 MB/s</span></div>
+                </div>
+                <div class="mono text-3xl font-extrabold text-white leading-none">88<span class="text-lg align-super text-cyan-300">%</span></div>
+              </div>
+            </div>
+            <div class="rounded-2xl overflow-hidden border" style="background:#030712; border-color:rgba(255,255,255,.08)">
+              <div class="h-9 flex items-center justify-between px-3 border-b border-white/10 bg-white/[.03]">
+                <div class="flex items-center gap-2">
+                  <span class="flex gap-1.5"><i class="w-3 h-3 rounded-full bg-red-500 block"></i><i class="w-3 h-3 rounded-full bg-yellow-400 block"></i><i class="w-3 h-3 rounded-full bg-green-500 block"></i></span>
+                  <span class="mono text-[11px] text-white/70">terminal — sk-utility.log</span>
+                </div>
+                <span class="mono text-[11px] text-white/50">1,284 dòng · live</span>
+              </div>
+              <div id="terminal" class="mono text-[12px] leading-5 p-3 h-[260px] overflow-auto scrollbar text-slate-200"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 rounded-2xl border p-3 flex items-center justify-between flex-wrap gap-2" style="background:#0F1D3A; border-color:rgba(255,255,255,.08)">
+          <button onclick="setMode('light')" class="px-4 py-2.5 rounded-xl border text-sm font-semibold text-white" style="background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.12)">← Quay lại cấu hình</button>
+          <button class="px-5 py-2.5 rounded-xl bg-white text-slate-900 text-sm font-bold">Xem chi tiết →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="foot" class="h-7 flex items-center justify-between px-4 text-[11px] border-t"></div>
+</div>
+
+<div class="w-full max-w-[1280px] text-center text-[11px] text-slate-400">Single HTML + Tailwind CDN · Icon duotone theo nhóm (xanh dương / xanh lá / vàng-cam-đỏ / tím) · Bo góc rounded-xl 12-16px · Viền 1px subtle</div>
+
+<script>
+const navItems = [
+  {icon:'◈', label:'Tổng quan', color:'text-sky-600 bg-sky-50 border-sky-200'},
+  {icon:'⚙', label:'Cấu hình', active:true, color:'text-violet-600 bg-violet-50 border-violet-200'},
+  {icon:'⬢', label:'Tiến trình', color:'text-emerald-600 bg-emerald-50 border-emerald-200'},
+  {icon:'▦', label:'Logs', color:'text-amber-600 bg-amber-50 border-amber-200'},
+  {icon:'👤', label:'Người dùng', color:'text-purple-600 bg-purple-50 border-purple-200'},
+];
+
+function renderNav(mode){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = navItems.map(n=>{
+    const base = mode==='light'
+      ? `flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-semibold ${n.active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`
+      : `flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-semibold ${n.active ? 'bg-white text-slate-900 border-white' : 'bg-white/[.04] text-white/80 border-white/10 hover:bg-white/10'}`;
+    const badge = n.active ? '<span class="ml-auto w-2 h-2 rounded-full bg-emerald-400"></span>' : '';
+    return `<div class="${base}"><span class="w-8 h-8 rounded-lg grid place-items-center border text-sm ${mode==='light' ? n.color : 'bg-white/10 border-white/15 text-white'}">${n.icon}</span>${n.label}${badge}</div>`;
+  }).join('');
+}
+
+function setMode(m){
+  const isLight = m==='light';
+  document.getElementById('viewLight').classList.toggle('hidden', !isLight);
+  document.getElementById('viewDark').classList.toggle('hidden', isLight);
+  document.getElementById('btnLight').className = isLight ? 'px-4 py-2 rounded-full text-xs font-bold tracking-wide border bg-white text-slate-900 border-slate-200 shadow' : 'px-4 py-2 rounded-full text-xs font-bold tracking-wide border bg-white/10 text-white border-white/15';
+  document.getElementById('btnDark').className = !isLight ? 'px-4 py-2 rounded-full text-xs font-bold tracking-wide border bg-slate-900 text-white border-slate-800 shadow' : 'px-4 py-2 rounded-full text-xs font-bold tracking-wide border bg-white/10 text-white border-white/15';
+
+  const frame = document.getElementById('frame');
+  const topbar = document.getElementById('topbar');
+  const sidebar = document.getElementById('sidebar');
+  const canvas = document.getElementById('canvas');
+  const foot = document.getElementById('foot');
+  const appMark = document.getElementById('appMark');
+  const topTitle = document.getElementById('topTitle');
+  const topSub = document.getElementById('topSub');
+  const pillArea = document.getElementById('pillArea');
+  const clock = document.getElementById('clock');
+
+  if(isLight){
+    frame.style.background = '#EBF3FA';
+    frame.style.borderColor = '#D0E2F2';
+    topbar.style.background = '#FFFFFF';
+    topbar.style.borderColor = '#D0E2F2';
+    sidebar.style.background = '#FFFFFF';
+    sidebar.style.borderColor = '#D0E2F2';
+    canvas.style.background = '#EBF3FA';
+    foot.style.background = '#FFFFFF';
+    foot.style.borderColor = '#D0E2F2';
+    foot.style.color = '#64748B';
+    foot.innerHTML = '<span>v2.4 · Modern Utility Toolkit · Light Mode</span><span class="mono">● Sẵn sàng · Auto-save bật</span>';
+    appMark.style.background = '#0ea5e9';
+    topTitle.innerHTML = 'Cấu hình hệ thống <span class="text-amber-500">⚡</span>';
+    topTitle.className = 'text-[13px] font-extrabold leading-none flex items-center gap-1.5 text-slate-900';
+    topSub.textContent = 'SK Utility · Chuẩn bị triển khai';
+    topSub.className = 'text-[11px] text-slate-500';
+    pillArea.innerHTML = '<span class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 font-bold">Ưu tiên: Cao</span><span class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold">● Đã đồng bộ</span>';
+    clock.className = 'hidden md:flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white text-slate-700 border-slate-200';
+  } else {
+    frame.style.background = '#0B1329';
+    frame.style.borderColor = 'rgba(255,255,255,.08)';
+    topbar.style.background = '#0F1D3A';
+    topbar.style.borderColor = 'rgba(255,255,255,.08)';
+    sidebar.style.background = '#0F1D3A';
+    sidebar.style.borderColor = 'rgba(255,255,255,.08)';
+    canvas.style.background = '#0B1329';
+    foot.style.background = '#0F1D3A';
+    foot.style.borderColor = 'rgba(255,255,255,.08)';
+    foot.style.color = 'rgba(255,255,255,.6)';
+    foot.innerHTML = '<span class="text-white/60">Cockpit Mode · Terminal live</span><span class="mono text-cyan-300">88% · 1,284 dòng log</span>';
+    appMark.style.background = '#06b6d4';
+    topTitle.innerHTML = 'Tiến trình & Logs <span class="text-cyan-400">⬢</span>';
+    topTitle.className = 'text-[13px] font-extrabold leading-none flex items-center gap-1.5 text-white';
+    topSub.textContent = 'Dark Cockpit · Theo dõi trực tiếp';
+    topSub.className = 'text-[11px] text-white/60';
+    pillArea.innerHTML = '<span class="text-xs px-2.5 py-1 rounded-full bg-white/10 text-cyan-200 border border-white/15 font-bold">LIVE</span><span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">● 88%</span>';
+    clock.className = 'hidden md:flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/5 text-cyan-200 border-white/10';
+  }
+  document.getElementById('sideHeader').style.background = isLight ? '#FFFFFF' : 'rgba(255,255,255,.04)';
+  document.getElementById('sideHeader').style.borderColor = isLight ? '#D0E2F2' : 'rgba(255,255,255,.08)';
+  document.getElementById('sideHeader').style.color = isLight ? '#0F172A' : '#FFFFFF';
+  document.getElementById('sideCard').style.background = isLight ? '#FFFFFF' : 'rgba(255,255,255,.04)';
+  document.getElementById('sideCard').style.borderColor = isLight ? '#D0E2F2' : 'rgba(255,255,255,.08)';
+  document.getElementById('sideCard').style.color = isLight ? '#0F172A' : '#FFFFFF';
+
+  renderNav(isLight ? 'light' : 'dark');
+  luc();
+}
+
+function luc(){
+  const now = new Date();
+  const days = ['CN','T2','T3','T4','T5','T6','T7'];
+  const el = document.getElementById('clock');
+  if(el) el.textContent = `${days[now.getDay()]} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} · ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}`;
+}
+
+const stepsLight = [
+  {title:'Thông tin hệ thống', desc:'CPU · RAM · Ổ đĩa · OS', done:true},
+  {title:'Cấu hình chi tiết', desc:'Mã hóa · Driver · Phân vùng', current:true},
+  {title:'Rà soát & Xác nhận', desc:'Xem trước · Lưu kịch bản', done:false},
+];
+const stepsDark = [
+  {title:'Khởi tạo môi trường', done:true},
+  {title:'Sao lưu & Kiểm tra', done:true},
+  {title:'Ghi image hệ thống', current:true, progress:'88%'},
+  {title:'Cài driver & Mã hóa', done:false},
+  {title:'Hoàn tất & Khởi động lại', done:false},
+];
+
+function renderSteppers(){
+  document.getElementById('stepperLight').innerHTML = stepsLight.map(s=>{
+    const icon = s.done ? '<span class="w-8 h-8 rounded-full grid place-items-center bg-emerald-500 text-white text-sm">✓</span>' : s.current ? '<span class="w-8 h-8 rounded-full grid place-items-center bg-white border-2 border-sky-500 text-sky-600 font-bold">2</span>' : '<span class="w-8 h-8 rounded-full grid place-items-center bg-white border border-slate-200 text-slate-400">3</span>';
+    const titleCls = s.current ? 'font-extrabold text-slate-900' : s.done ? 'font-bold text-slate-700' : 'font-semibold text-slate-500';
+    return `<div class="flex gap-3"><div class="shrink-0">${icon}</div><div class="flex-1 rounded-xl border p-3 ${s.current ? 'bg-sky-50 border-sky-200' : s.done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'}"><div class="text-sm ${titleCls}">${s.title}</div><div class="text-xs opacity-60">${s.desc}</div></div></div>`;
+  }).join('');
+  document.getElementById('stepperDark').innerHTML = stepsDark.map(s=>{
+    let icon='';
+    if(s.done) icon='<span class="w-8 h-8 rounded-full grid place-items-center bg-emerald-500 text-white">✓</span>';
+    else if(s.current) icon='<span class="w-8 h-8 rounded-full grid place-items-center bg-cyan-500 text-white animate-pulse" style="box-shadow:0 0 16px rgba(6,182,214,.8)">◍</span>';
+    else icon='<span class="w-8 h-8 rounded-full grid place-items-center bg-white/10 border border-white/15 text-white/40">○</span>';
+    const cardBg = s.current ? 'background:rgba(6,182,214,.12); border-color:rgba(6,182,214,.3)' : s.done ? 'background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.25)' : 'background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08)';
+    return `<div class="flex gap-3"><div class="shrink-0">${icon}</div><div class="flex-1 rounded-xl border p-3" style="${cardBg}"><div class="text-sm font-bold ${s.current ? 'text-cyan-200' : s.done ? 'text-emerald-200' : 'text-white/70'}">${s.title} ${s.progress ? `<span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-cyan-500 text-white">${s.progress}</span>` : ''}</div><div class="text-xs ${s.current ? 'text-white/60' : 'text-white/40'}">${s.done ? 'Hoàn tất' : s.current ? 'Đang chạy…' : 'Chờ'}</div></div></div>`;
+  }).join('');
+}
+
+const gridData = [
+  {k:'CPU', v:'Intel i7-12700 · 12C/20T', sub:'Turbo 4.9GHz · VT-x bật', color:'sky'},
+  {k:'MÃ HÓA', v:'AES-256 · TPM 2.0', sub:'Khóa 256-bit · Xác thực TPM', color:'emerald'},
+  {k:'DRIVER', v:'Tự động · WHQL', sub:'Đã tải 18/18 gói driver', color:'amber'},
+  {k:'LƯU TRỮ', v:'NVMe 512GB · GPT', sub:'Phân vùng 1: 180GB · Hệ thống', color:'violet'},
+];
+function renderGrid(){
+  const map = {sky:'bg-sky-50 border-sky-200 text-sky-700', emerald:'bg-emerald-50 border-emerald-200 text-emerald-700', amber:'bg-amber-50 border-amber-200 text-amber-700', violet:'bg-violet-50 border-violet-200 text-violet-700'};
+  document.getElementById('gridLight').innerHTML = gridData.map(g=>`
+    <div class="rounded-2xl border bg-white p-4">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-extrabold tracking-widest px-2 py-1 rounded-full border ${map[g.color]}">${g.k}</span>
+        <span class="w-2 h-2 rounded-full ${g.color==='sky'?'bg-sky-500':g.color==='emerald'?'bg-emerald-500':g.color==='amber'?'bg-amber-500':'bg-violet-500'}"></span>
+      </div>
+      <div class="text-sm font-bold mt-3 text-slate-900">${g.v}</div>
+      <div class="text-xs text-slate-500 mt-1">${g.sub}</div>
+      <div class="mt-3 h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full ${g.color==='sky'?'bg-sky-500':g.color==='emerald'?'bg-emerald-500':g.color==='amber'?'bg-amber-500':'bg-violet-500'}" style="width:${g.color==='emerald'?'92':g.color==='sky'?'88':g.color==='amber'?'76':'64'}%"></div></div>
+    </div>
+  `).join('');
+}
+
+const logs = [
+  "[08:14:02] [INFO] Khởi tạo pipeline v2.4 — Modern Utility",
+  "[08:14:03] [OK] Kiểm tra chữ ký image — SHA256 hợp lệ",
+  "[08:14:05] [INFO] Mount NVMe0n1 · GPT · NTFS · 68% trống",
+  "[08:14:07] [INFO] Sao lưu phân vùng EFI (100MB) → /backup/efi.img",
+  "[08:14:12] [OK] Sao lưu hoàn tất — checksum a3f9…c21e",
+  "[08:14:14] [RUN] Ghi image — block 441/502 (88%) · 128 MB/s",
+  "[08:14:15] [INFO] Áp dụng driver WHQL — 18 gói",
+  "[08:14:16] [WARN] Driver âm thanh cần khởi động lại sau khi ghi",
+  "[08:14:18] [RUN] Mã hóa BitLocker — TPM 2.0 · AES-256",
+  "[08:14:20] [INFO] Ghi log chi tiết → MinIO /logs/sk-utility-20261008.log",
+  "[08:14:22] [OK] Chuẩn bị khởi động lại — nhấn Xem chi tiết để duyệt",
+];
+function renderLogs(){
+  const el = document.getElementById('terminal');
+  el.innerHTML = logs.map(l=>{
+    const time = l.match(/\[(.*?)\]/)?.[1] || '';
+    const tag = l.match(/\[(INFO|OK|RUN|WARN)\]/)?.[1] || 'INFO';
+    const color = tag==='OK'?'text-emerald-300':tag==='WARN'?'text-amber-300':tag==='RUN'?'text-cyan-300':'text-sky-300';
+    return `<div class="flex gap-2"><span class="text-cyan-400 shrink-0">[${time}]</span><span class="${color} font-semibold shrink-0">[${tag}]</span><span class="flex-1">${l.split(']').slice(2).join(']').trim()}</span></div>`;
+  }).join('');
+}
+
+renderSteppers(); renderGrid(); renderLogs(); setMode('light'); luc(); setInterval(luc, 30000);
+</script>
+</body>
+</html>
