@@ -36,12 +36,12 @@ export function Sidebar({
 
   const nav = (
     <div className="flex h-full flex-col">
-      <div className={cn("flex items-center gap-2 px-3 py-3 border-b", collapsed && "justify-center px-2")}>
+      <div className={cn("flex items-center gap-2 px-3 py-3 border-b border-white/60 dark:border-white/10", collapsed && "justify-center px-2")}>
         {!collapsed && (
           <div className="flex-1 min-w-0">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Lọc app…" className="h-8 pl-7 text-sm" aria-label="Lọc app" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Lọc app…" className="h-8 pl-7 text-sm rounded-full bg-white/90 border-white/80 shadow-sm backdrop-blur-sm focus-visible:ring-primary/30 dark:bg-white/10 dark:border-white/10" aria-label="Lọc app" />
             </div>
           </div>
         )}
@@ -74,8 +74,10 @@ export function Sidebar({
                         aria-current={active ? "page" : undefined}
                         onClick={onMobileClose}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                          active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          "flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                          active
+                            ? "bg-primary text-primary-foreground shadow-[0_6px_16px_-4px_rgba(14,165,233,0.45),0_1px_4px_rgba(15,23,42,0.08)] ring-1 ring-white/40"
+                            : "text-muted-foreground hover:bg-white/70 hover:text-foreground hover:shadow-sm border border-transparent hover:border-white/60 dark:hover:bg-white/10 dark:hover:border-white/10",
                           collapsed && "justify-center px-2"
                         )}
                         title={collapsed ? a.label : undefined}
@@ -112,7 +114,10 @@ export function Sidebar({
       <aside
         id="sidebar"
         aria-label="Sidebar"
-        className={cn("hidden lg:flex shrink-0 flex-col border-r bg-card transition-all duration-200", collapsed ? "w-16" : "w-60")}
+        className={cn(
+          "glossy-glass hidden lg:flex shrink-0 flex-col border-r transition-all duration-200",
+          collapsed ? "w-16" : "w-60"
+        )}
       >
         {nav}
       </aside>
@@ -120,7 +125,7 @@ export function Sidebar({
       {/* Mobile drawer */}
       <div className={cn("lg:hidden", mobileOpen ? "fixed inset-0 z-40 flex" : "hidden")} aria-hidden={!mobileOpen}>
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[1px]" onClick={onMobileClose} aria-hidden="true" />
-        <aside className="relative flex w-[280px] max-w-[85vw] flex-col border-r bg-card shadow-xl animate-in slide-in-from-left duration-200">{nav}</aside>
+        <aside className="relative flex w-[280px] max-w-[85vw] flex-col border-r border-white/60 bg-white/85 backdrop-blur-md shadow-xl animate-in slide-in-from-left duration-200 dark:bg-slate-900/80 dark:border-white/10">{nav}</aside>
       </div>
     </>
   );

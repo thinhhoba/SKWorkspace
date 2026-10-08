@@ -37,7 +37,10 @@ export function Topbar({
   React.useEffect(() => setMounted(true), []);
 
   return (
-    <header id="topbar" className="flex h-14 shrink-0 items-center gap-2 border-b bg-card px-3 md:px-4 sticky top-0 z-20">
+    <header
+      id="topbar"
+      className="glossy-glass flex h-14 shrink-0 items-center gap-2 border-b border-white/80 bg-white/75 px-3 backdrop-blur-md md:px-4 sticky top-0 z-20 supports-[backdrop-filter]:bg-white/75 dark:bg-slate-900/60 dark:border-white/10"
+    >
       <Button variant="ghost" size="icon" className="lg:hidden shrink-0" aria-label="Mở menu" onClick={onMenuClick}>
         <Menu className="h-5 w-5" />
       </Button>
@@ -57,14 +60,14 @@ export function Topbar({
       <div className="flex-1 flex justify-center px-2 md:px-6 max-w-[560px] mx-auto">
         <button
           onClick={onOpenPalette}
-          className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-left"
+          className="glossy-pill flex w-full items-center gap-2 rounded-full border-white/80 bg-white/90 px-4 py-2 text-sm text-muted-foreground shadow-sm backdrop-blur-sm hover:bg-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-left dark:bg-white/10 dark:border-white/10 dark:hover:bg-white/15"
           aria-label="Mở tìm kiếm nhanh Cmd K"
         >
           <Search className="h-4 w-4 shrink-0" />
           <span className="hidden sm:inline truncate">Tìm app, đơn hàng, KH, NCC…</span>
           <span className="sm:hidden truncate">Tìm kiếm…</span>
           <span className="ml-auto hidden md:inline-flex items-center gap-1">
-            <kbd className="rounded border bg-muted px-1.5 py-0.5 text-[11px] font-mono">⌘K</kbd>
+            <kbd className="rounded-full border border-white/80 bg-white px-1.5 py-0.5 text-[11px] font-mono shadow-sm dark:bg-white/10 dark:border-white/10">⌘K</kbd>
           </span>
         </button>
       </div>

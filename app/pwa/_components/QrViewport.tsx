@@ -5,22 +5,27 @@ export function QrViewport() {
   const [openCam, setOpenCam] = useState(false);
   return (
     <div className="space-y-2">
-      <div className="qr-viewport relative grid aspect-square max-h-[240px] place-items-center overflow-hidden rounded-[14px] bg-slate-900">
-        {/* overlay */}
-        <div className="pointer-events-none absolute inset-0 bg-slate-900/45" />
-        {/* corners */}
-        <span className="qr-corner pointer-events-none absolute left-3 top-3 h-7 w-7 rounded-tl-lg border-l-[3px] border-t-[3px] border-white" />
-        <span className="qr-corner pointer-events-none absolute right-3 top-3 h-7 w-7 rounded-tr-lg border-r-[3px] border-t-[3px] border-white" />
-        <span className="qr-corner pointer-events-none absolute bottom-3 left-3 h-7 w-7 rounded-bl-lg border-b-[3px] border-l-[3px] border-white" />
-        <span className="qr-corner pointer-events-none absolute bottom-3 right-3 h-7 w-7 rounded-br-lg border-b-[3px] border-r-[3px] border-white" />
-        {/* scanline */}
-        <span className="qr-scanline pointer-events-none absolute inset-x-3 h-0.5 bg-sky-400 shadow-[0_0_8px_#0EA5E9]" style={{ top: "50%", animation: "qrScan 2s ease-in-out infinite" }} />
-        <div className="relative z-10 grid h-20 w-20 place-items-center rounded-lg bg-white text-center font-mono text-[9px] leading-tight text-slate-800">
-          QR
-          <br />
-          VietQR
+      <div className="qr-viewport clay-card relative grid aspect-square max-h-[260px] place-items-center overflow-hidden rounded-3xl border border-white/85 p-1.5">
+        <div className="relative grid h-full w-full place-items-center overflow-hidden rounded-[1.1rem] bg-slate-900">
+          {/* overlay */}
+          <div className="pointer-events-none absolute inset-0 bg-slate-900/45" />
+          {/* corners — keep white */}
+          <span className="qr-corner pointer-events-none absolute left-3 top-3 h-7 w-7 rounded-tl-lg border-l-[3px] border-t-[3px] border-white" />
+          <span className="qr-corner pointer-events-none absolute right-3 top-3 h-7 w-7 rounded-tr-lg border-r-[3px] border-t-[3px] border-white" />
+          <span className="qr-corner pointer-events-none absolute bottom-3 left-3 h-7 w-7 rounded-bl-lg border-b-[3px] border-l-[3px] border-white" />
+          <span className="qr-corner pointer-events-none absolute bottom-3 right-3 h-7 w-7 rounded-br-lg border-b-[3px] border-r-[3px] border-white" />
+          {/* scanline */}
+          <span
+            className="qr-scanline pointer-events-none absolute inset-x-3 h-0.5 bg-sky-400 shadow-[0_0_8px_#0EA5E9]"
+            style={{ top: "50%", animation: "qrScan 2s ease-in-out infinite" }}
+          />
+          <div className="relative z-10 grid h-20 w-20 place-items-center rounded-xl bg-white text-center font-mono text-[9px] leading-tight text-slate-800 shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+            QR
+            <br />
+            VietQR
+          </div>
+          <span className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] text-white/80">Đưa mã vào khung</span>
         </div>
-        <span className="absolute bottom-2 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] text-white/80">Đưa mã vào khung</span>
       </div>
       <style>{`@keyframes qrScan{0%,100%{transform:translateY(-40px)}50%{transform:translateY(40px)}}`}</style>
       <div className="flex gap-2">
