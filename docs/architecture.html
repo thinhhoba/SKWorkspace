@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK Workspace — Sơ đồ Kiến trúc</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:wght@500;600;700&family=Newsreader:opsz,ital,wght@6..72,0,400;6..72,1,400&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0A0A0B;color:#E8E6E0;font-family:'Instrument Sans',sans-serif;min-height:100vh}
+  .wrap{max-width:1280px;margin:0 auto;padding:48px 32px 64px}
+  /* header */
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#9A9590;margin-bottom:14px}
+  h1{font-size:42px;font-weight:700;letter-spacing:-.03em;line-height:1.05;color:#FFF}
+  h1 em{font-family:'Newsreader',serif;font-weight:400;font-style:italic;color:#C8B98A}
+  .subtitle{font-size:14px;color:#9A9590;margin-top:12px;max-width:560px;line-height:1.6}
+  .meta-row{display:flex;gap:16px;margin-top:20px;flex-wrap:wrap}
+  .meta-pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#C8B98A;border:1px solid #2A2A2E;border-radius:999px;padding:6px 12px;background:#141416}
+  /* diagram */
+  .diagram{margin-top:40px;background:#111113;border:1px solid #232326;border-radius:20px;padding:28px;overflow-x:auto}
+  .diagram-inner{min-width:860px}
+  svg{width:100%;height:auto;display:block}
+  /* legend */
+  .legend{display:flex;gap:18px;margin-top:18px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#9A9590}
+  .legend-dot{width:10px;height:10px;border-radius:3px;border:1px solid rgba(255,255,255,.12)}
+  /* notes */
+  .notes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px}
+  .note{background:#141416;border:1px solid #232326;border-radius:14px;padding:16px}
+  .note h3{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#C8B98A;margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+  .note p{font-size:12.5px;color:#9A9590;line-height:1.6}
+  .note strong{color:#E8E6E0}
+  @media(max-width:900px){.notes{grid-template-columns:1fr} h1{font-size:32px} .wrap{padding:28px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">SK Workspace &mdash; Cty TNHH Thực Phẩm Sơn Khang &middot; Platform Architecture</div>
+  <h1>Modular Monolith <em>Mini-App Shell</em></h1>
+  <p class="subtitle">Một VPS &bull; Một deploy &bull; Nhiều mini-app. Chạy song song Sapo qua adapter, thay thế dần. Web + PWA chung một codebase Next.js.</p>
+  <div class="meta-row">
+    <span class="meta-pill">Next.js 15 + Prisma + Postgres</span>
+    <span class="meta-pill">BullMQ + Redis + MinIO</span>
+    <span class="meta-pill">Auth.js + RBAC + Audit Log</span>
+    <span class="meta-pill">Docker Compose &middot; Nginx &middot; Let's Encrypt</span>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-inner">
+      <!-- Architecture SVG -->
+      <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SK Workspace architecture">
+        <defs>
+          <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#C8B98A"/><stop offset="100%" stop-color="#E8D9B0"/></linearGradient>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.25"/></filter>
+        </defs>
+
+        <!-- VPS container -->
+        <rect x="8" y="8" width="944" height="544" rx="16" fill="none" stroke="#2A2A2E" stroke-width="1.2" stroke-dasharray="8 6"/>
+        <text x="22" y="30" font-family="JetBrains Mono, monospace" font-size="9" letter-spacing="1.2" fill="#6B6763">VPS &mdash; Docker Compose &mdash; Nginx :443 &rarr; Next.js :3000</text>
+
+        <!-- Top: Client -->
+        <g>
+          <rect x="300" y="42" width="360" height="56" rx="12" fill="#1A1A1E" stroke="#2A2A2E"/>
+          <text x="480" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" letter-spacing="1" fill="#9A9590">CLIENT</text>
+          <text x="480" y="78" text-anchor="middle" font-size="12" font-weight="600" fill="#FFF">Web &nbsp;&middot;&nbsp; PWA &nbsp;(next-pwa)</text>
+          <text x="480" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#6B6763">Tailwind + shadcn/ui &middot; Auth.js session</text>
+        </g>
+        <!-- arrow down -->
+        <path d="M480 98 L480 122" stroke="#3A3632" stroke-width="1.2" marker-end="url(#arr)"/>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3A3632"/></marker></defs>
+
+        <!-- Shell -->
+        <g>
+          <rect x="120" y="126" width="720" height="72" rx="14" fill="#C8B98A" />
+          <text x="480" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5" letter-spacing="1.2" fill="#2A2418">SHELL &mdash; PLATFORM CORE</text>
+          <text x="480" y="170" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1A150F">Layout &middot; Navigation &middot; RBAC &middot; Notification &middot; Search &middot; Audit Log</text>
+          <text x="480" y="186" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#5A4E3A">admin / manager / accountant / sales / warehouse / hr / viewer</text>
+        </g>
+
+        <!-- Modules row -->
+        <g>
+          <!-- 6 modules -->
+          <rect x="28" y="220" width="142" height="86" rx="12" fill="#1E1E22" stroke="#2E2A24"/>
+          <text x="99" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing=".8" fill="#C8B98A">01 &mdash; NHÂN SỰ</text>
+          <text x="99" y="256" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">HR &bull; Chấm công</text>
+          <text x="99" y="270" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Tính lương</text>
+          <text x="99" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6B6763">hồ sơ &middot; GPS &middot; OT</text>
+
+          <rect x="182" y="220" width="142" height="86" rx="12" fill="#1E1E22" stroke="#2E2A24"/>
+          <text x="253" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing=".8" fill="#C8B98A">02 &mdash; MUA HÀNG</text>
+          <text x="253" y="256" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">NCC &bull; So sánh giá</text>
+          <text x="253" y="270" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">HĐ VAT &bull; VietQR</text>
+          <text x="253" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6B6763">duyệt &middot; công nợ &middot; nhắc mua</text>
+
+          <rect x="336" y="220" width="142" height="86" rx="12" fill="#1E1E22" stroke="#C8B98A" stroke-width="1.2"/>
+          <text x="407" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing=".8" fill="#C8B98A">03 &mdash; BÁN HÀNG ★</text>
+          <text x="407" y="256" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Khách &bull; Giá theo khách</text>
+          <text x="407" y="270" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Đơn &bull; HĐ &bull; Nhắc nợ</text>
+          <text x="407" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6B6763">song song Sapo 2 chiều</text>
+
+          <rect x="490" y="220" width="142" height="86" rx="12" fill="#1E1E22" stroke="#2E2A24"/>
+          <text x="561" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing=".8" fill="#9AC8A8">04 &mdash; DÒNG TIỀN</text>
+          <text x="561" y="256" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Thu / Chi &bull; Đối soát</text>
+          <text x="561" y="270" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Ngân hàng</text>
+          <text x="561" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6B6763">Casso / Sepay &middot; sao kê</text>
+
+          <rect x="644" y="220" width="142" height="86" rx="12" fill="#1E1E22" stroke="#2E2A24"/>
+          <text x="715" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing=".8" fill="#8AB8D6">05 &mdash; KHO &amp; VẬN</text>
+          <text x="715" y="256" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Tồn kho &bull; Nhập/Xuất</text>
+          <text x="715" y="270" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Giao vận &bull; Xe</text>
+          <text x="715" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6B6763">vị trí &middot; kiểm kê</text>
+
+          <rect x="798" y="220" width="142" height="86" rx="12" fill="#1E1E22" stroke="#2E2A24"/>
+          <text x="869" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" letter-spacing=".8" fill="#C9A8D6">06 &mdash; VĂN THƯ</text>
+          <text x="869" y="256" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Chứng từ &bull; Hợp đồng</text>
+          <text x="869" y="270" text-anchor="middle" font-size="10" font-weight="600" fill="#FFF">Duyệt &bull; Nhắc hạn</text>
+          <text x="869" y="286" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#6B6763">số hóa &middot; ký số</text>
+        </g>
+
+        <!-- Integrations -->
+        <g>
+          <rect x="28" y="328" width="912" height="92" rx="14" fill="#141416" stroke="#2A2A2E"/>
+          <text x="42" y="348" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="1" fill="#9A9590">INTEGRATIONS &mdash; packages/integrations/&lt;provider&gt; &mdash; adapter: sync / push / pull / webhook</text>
+          <!-- 7 adapters -->
+          <g font-family="JetBrains Mono, monospace" font-size="7.5">
+            <rect x="42" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#3A3632"/><text x="101" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">SAPO</text><text x="101" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">đơn &middot; SP &middot; tồn &middot; khách</text><text x="101" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">2 chiều &middot; REST</text>
+            <rect x="170" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#3A3632"/><text x="229" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">MISA / AMIS</text><text x="229" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">bút toán &middot; công nợ</text><text x="229" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">Open API</text>
+            <rect x="298" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#3A3632"/><text x="357" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">meINVOICE</text><text x="357" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">phát hành HĐĐT ra</text><text x="357" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">ký số &middot; gửi CQT</text>
+            <rect x="426" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#3A3632"/><text x="485" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">InBOT</text><text x="485" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">HĐĐT đầu vào</text><text x="485" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">auto fetch PDF/XML</text>
+            <rect x="554" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#3A3632"/><text x="613" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">HĐĐT TCT</text><text x="613" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">hoadondientu.gdt.gov.vn</text><text x="613" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">đối chiếu CQT</text>
+            <rect x="682" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#3A3632"/><text x="741" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">TRA CỨU MST</text><text x="741" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">gdt.gov.vn</text><text x="741" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">NCC / khách</text>
+            <rect x="810" y="358" width="118" height="48" rx="10" fill="#1E1E22" stroke="#C8B98A" stroke-width="1"/><text x="869" y="376" text-anchor="middle" fill="#E8E6E0" font-weight="600">VietQR</text><text x="869" y="388" text-anchor="middle" fill="#6B6763" font-size="6.5">QR linh hoạt</text><text x="869" y="398" text-anchor="middle" fill="#C8B98A" font-size="6">theo đơn / NCC</text>
+          </g>
+        </g>
+
+        <!-- Data layer -->
+        <g>
+          <rect x="28" y="438" width="912" height="72" rx="14" fill="#0F0F11" stroke="#232326"/>
+          <text x="42" y="456" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="1" fill="#9A9590">DATA &amp; INFRA</text>
+          <g font-family="JetBrains Mono, monospace" font-size="7">
+            <rect x="42" y="464" width="170" height="36" rx="8" fill="#1A1A1E" stroke="#2A2A2E"/><text x="127" y="478" text-anchor="middle" fill="#E8E6E0" font-size="8" font-weight="600">PostgreSQL + Prisma</text><text x="127" y="490" text-anchor="middle" fill="#6B6763" font-size="6.5">migrate &middot; seed &middot; backup cron</text>
+            <rect x="224" y="464" width="140" height="36" rx="8" fill="#1A1A1E" stroke="#2A2A2E"/><text x="294" y="478" text-anchor="middle" fill="#E8E6E0" font-size="8" font-weight="600">Redis + BullMQ</text><text x="294" y="490" text-anchor="middle" fill="#6B6763" font-size="6.5">queue &middot; cron &middot; nhắc việc</text>
+            <rect x="376" y="464" width="130" height="36" rx="8" fill="#1A1A1E" stroke="#2A2A2E"/><text x="441" y="478" text-anchor="middle" fill="#E8E6E0" font-size="8" font-weight="600">MinIO / S3</text><text x="441" y="490" text-anchor="middle" fill="#6B6763" font-size="6.5">chứng từ &middot; HĐ PDF</text>
+            <rect x="518" y="464" width="190" height="36" rx="8" fill="#1A1A1E" stroke="#2A2A2E"/><text x="613" y="478" text-anchor="middle" fill="#E8E6E0" font-size="8" font-weight="600">external_mappings</text><text x="613" y="490" text-anchor="middle" fill="#6B6763" font-size="6.5">external_id &middot; last_synced_at &middot; logs</text>
+            <rect x="720" y="464" width="208" height="36" rx="8" fill="#1A1A1E" stroke="#2A2A2E"/><text x="824" y="478" text-anchor="middle" fill="#E8E6E0" font-size="8" font-weight="600">RBAC &middot; Audit Log</text><text x="824" y="490" text-anchor="middle" fill="#6B6763" font-size="6.5">roles &middot; approvals &middot; notifications</text>
+          </g>
+        </g>
+
+        <!-- side annotations -->
+        <text x="958" y="175" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#5A5754">route guard</text>
+        <text x="958" y="268" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#5A5754">mỗi ô = 1 mini-app</text>
+        <text x="958" y="378" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#5A5754">webhook + cron fallback</text>
+        <text x="958" y="480" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="6.5" fill="#5A5754">1 VPS &middot; 1 compose</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:#C8B98A"></span> Shell / Core</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#1E1E22"></span> Mini-app module</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#141416;border-color:#3A3632"></span> Adapter (sync/push/pull/webhook)</span>
+    <span class="legend-item"><span class="legend-dot" style="background:#0F0F11"></span> Data & Infra</span>
+    <span class="legend-item" style="color:#C8B98A">★ Trọng tâm GĐ1: Sapo + InBot + MST</span>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3>01 — Chạy song song Sapo</h3>
+      <p>Adapter Sapo đồng bộ <strong>2 chiều</strong>: pull đơn/SP/khách/tồn về SK Workspace; push đơn mới sang Sapo. Lưu <code style="background:#1E1E22;padding:1px 6px;border-radius:6px;color:#C8B98A">external_id</code> để đối chiếu, <code style="background:#1E1E22;padding:1px 6px;border-radius:6px;color:#C8B98A">last_synced_at</code> để incremental sync.</p>
+    </div>
+    <div class="note">
+      <h3>02 — Tích hợp hóa đơn</h3>
+      <p>meInvoice phát hành HĐ ra, <strong>InBot</strong> tự động hút HĐ vào, <strong>HĐĐT TCT</strong> đối chiếu với CQT. Tất cả lưu PDF/XML trên MinIO, log đầy đủ trong <code style="background:#1E1E22;padding:1px 6px;border-radius:6px;color:#C8B98A">integration_logs</code>.</p>
+    </div>
+    <div class="note">
+      <h3>03 — Deploy 1 VPS</h3>
+      <p><code style="background:#1E1E22;padding:1px 6px;border-radius:6px;color:#C8B98A">docker compose up -d</code> dựng Postgres + Redis + MinIO + Next.js. Nginx reverse proxy + Let's Encrypt. Backup DB cron hàng ngày. PWA qua <code style="background:#1E1E22;padding:1px 6px;border-radius:6px;color:#C8B98A">next-pwa</code> — không cần app native.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

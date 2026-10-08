@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK Workspace — UI Web (Desktop)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,ital,wght@6..72,0,400&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#F6F5F1;--surface:#FFFFFF;--line:#E8E6E0;--ink:#11110F;--muted:#8A8682;--gold:#C8B98A;--gold2:#E8D9B0;--green:#1A7A4C;--red:#C0392B;--blue:#2E5AAC}
+body{background:var(--bg);color:var(--ink);font-family:'Instrument Sans',sans-serif}
+a{color:inherit}
+/* page header */
+.page-head{max-width:1280px;margin:0 auto;padding:28px 24px 0}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:28px;letter-spacing:-.03em;margin-top:6px} h1 em{font-family:'Newsreader',serif;font-style:italic;font-weight:400;color:#8A7A5A}
+.tabs{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.tab{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hint{font-size:12px;color:var(--muted);margin-top:10px}
+/* shell */
+.shell{max-width:1280px;margin:18px auto 40px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.06)}
+.topbar{height:56px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:2}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px}
+.search{flex:1;max-width:420px;display:flex;align-items:center;gap:8px;background:#F6F5F1;border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:13px}
+.search span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.top-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+.badge{width:28px;height:28px;border-radius:999px;background:#F6F5F1;border:1px solid var(--line);display:grid;place-items:center;font-size:12px}
+.avatar{width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#C8B98A,#E8D9B0);display:grid;place-items:center;font-size:11px;font-weight:700}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:680px}
+.sidenav{border-right:1px solid var(--line);padding:14px 12px;background:#FCFCFA}
+.nav-group{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;padding:0 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:13px;color:#2A2A28;cursor:pointer}
+.nav-item.active{background:var(--ink);color:#fff}
+.nav-item .dot{width:6px;height:6px;border-radius:999px;background:var(--gold)}
+.nav-item.active .dot{background:var(--gold2)}
+.nav-item small{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:2px 6px;border-radius:999px}
+.nav-item.active small{background:rgba(255,255,255,.12);color:#E8E6E0;border-color:rgba(255,255,255,.14)}
+.main{padding:18px;background:var(--bg)}
+.view{display:none} .view.active{display:block}
+/* components */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.kpi label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.kpi strong{font-size:20px;display:block;margin-top:6px;letter-spacing:-.02em}
+.kpi span{font-size:11px;color:var(--muted)}
+.kpi .trend{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:6px}
+.trend.up{color:var(--green)} .trend.down{color:var(--red)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.card-head h3{font-size:13px}
+.card-head a{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:12px}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:#FCFCFA}
+.table td{padding:11px 14px;border-bottom:1px solid #F0EFEB}
+.pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#F6F5F1}
+.pill.green{background:#E8F5E9;color:#1A7A4C;border-color:#C8E6C9} .pill.amber{background:#FFF8E1;color:#8D6E00;border-color:#FFE082} .pill.red{background:#FBE9E7;color:#C0392B;border-color:#FFCCBC}
+.btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input{border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:13px;background:#fff;min-width:180px}
+.mini{font-size:11px;color:var(--muted)}
+@media(max-width:980px){.layout{grid-template-columns:1fr} .sidenav{display:none} .kpis{grid-template-columns:1fr 1fr} .grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page-head">
+  <div class="eyebrow">SK Workspace &mdash; UI Preview &middot; Desktop Web</div>
+  <h1>Không gian làm việc <em>tập trung</em> &mdash; 6 phân hệ, 1 shell</h1>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-view="dashboard">Dashboard</button>
+    <button class="tab" data-view="procurement">Mua hàng</button>
+    <button class="tab" data-view="sales">Bán hàng</button>
+    <button class="tab" data-view="cashflow">Dòng tiền</button>
+    <button class="tab" data-view="warehouse">Kho & Giao vận</button>
+    <button class="tab" data-view="hr">Nhân sự</button>
+    <button class="tab" data-view="docs">Văn thư</button>
+    <button class="tab" data-view="integrations">Tích hợp</button>
+  </div>
+  <div class="hint">Bấm tab để xem từng phân hệ &middot; Đây là mockup tĩnh để chốt UX trước khi code &middot; <a href="./architecture.html">Xem sơ đồ kiến trúc &rarr;</a> &nbsp;|&nbsp; <a href="./ui-pwa.html">Xem bản PWA (mobile) &rarr;</a></div>
+</div>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="logo"><span class="logo-mark">SK</span> SK Workspace</div>
+    <div class="search"><span>⌕ Tìm</span> đơn hàng, NCC, khách, chứng từ… <span style="margin-left:auto;background:#fff;border:1px solid var(--line);padding:2px 6px;border-radius:6px">⌘ K</span></div>
+    <div class="top-actions">
+      <div class="badge">🔔<span style="position:absolute;margin:-6px 0 0 10px;background:#C0392B;color:#fff;font-size:9px;padding:1px 5px;border-radius:999px">3</span></div>
+      <div class="badge">⚙</div>
+      <div class="avatar">TH</div>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidenav">
+      <div class="nav-group">Tổng quan</div>
+      <div class="nav-item active" data-view="dashboard"><span class="dot"></span> Dashboard</div>
+      <div class="nav-group">Vận hành</div>
+      <div class="nav-item" data-view="procurement"><span class="dot"></span> Mua hàng <small>QR</small></div>
+      <div class="nav-item" data-view="sales"><span class="dot"></span> Bán hàng <small>Sapo</small></div>
+      <div class="nav-item" data-view="warehouse"><span class="dot"></span> Kho & Giao vận</div>
+      <div class="nav-item" data-view="cashflow"><span class="dot"></span> Dòng tiền</div>
+      <div class="nav-group">Quản trị</div>
+      <div class="nav-item" data-view="hr"><span class="dot"></span> Nhân sự</div>
+      <div class="nav-item" data-view="docs"><span class="dot"></span> Văn thư</div>
+      <div class="nav-item" data-view="integrations"><span class="dot"></span> Tích hợp</div>
+    </div>
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="kpis">
+          <div class="kpi"><label>Doanh thu tháng</label><strong>1.842.000.000 ₫</strong><span>so với tháng trước</span><div class="trend up">↗ +8,4%</div></div>
+          <div class="kpi"><label>Công nợ phải thu</label><strong>642.300.000 ₫</strong><span>12 khách quá hạn</span><div class="trend down">↘ cần nhắc nợ</div></div>
+          <div class="kpi"><label>Công nợ phải trả</label><strong>318.500.000 ₫</strong><span>5 NCC đến hạn tuần này</span><div class="trend up">↗ +3,1%</div></div>
+          <div class="kpi"><label>Tồn kho</label><strong>1.204 SKU</strong><span>18 SKU dưới định mức</span><div class="trend down">⚠ nhắc mua hàng</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-head"><h3>Đơn bán gần đây (đồng bộ Sapo)</h3><a href="#">Xem tất cả</a></div>
+            <table class="table">
+              <tr><th>Mã đơn</th><th>Khách</th><th>Tổng</th><th>Trạng thái</th></tr>
+              <tr><td>SP-2026-0841</td><td>An Thịnh Mart</td><td>42.800.000 ₫</td><td><span class="pill green">Đã giao</span></td></tr>
+              <tr><td>SP-2026-0840</td><td>Minh Khang Food</td><td>18.300.000 ₫</td><td><span class="pill amber">Đang giao</span></td></tr>
+              <tr><td>SP-2026-0839</td><td>Siêu thị Hòa Bình</td><td>67.200.000 ₫</td><td><span class="pill">Chờ duyệt</span></td></tr>
+              <tr><td>SP-2026-0838</td><td>Bếp Nhà Xanh</td><td>9.600.000 ₫</td><td><span class="pill green">Đã thanh toán</span></td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Nhắc việc</h3><a href="#">3 việc</a></div>
+            <div style="padding:12px;display:grid;gap:10px">
+              <div style="display:flex;gap:10px;align-items:center;background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:10px"><span>⚠</span><div><div style="font-size:13px;font-weight:600">18 SKU dưới định mức</div><div class="mini">Kho Q7 & Q12 — tạo đề nghị mua?</div></div><button class="btn" style="margin-left:auto">Tạo</button></div>
+              <div style="display:flex;gap:10px;align-items:center;background:#FBE9E7;border:1px solid #FFCCBC;border-radius:12px;padding:10px"><span>⏰</span><div><div style="font-size:13px;font-weight:600">12 khách quá hạn thanh toán</div><div class="mini">Gửi nhắc nợ tự động</div></div><button class="btn ghost" style="margin-left:auto">Gửi</button></div>
+              <div style="display:flex;gap:10px;align-items:center;background:#E8F5E9;border:1px solid #C8E6C9;border-radius:12px;padding:10px"><span>✓</span><div><div style="font-size:13px;font-weight:600">HĐ InBot mới: 4 hóa đơn đầu vào</div><div class="mini">Đã tải PDF/XML về MinIO</div></div><button class="btn ghost" style="margin-left:auto">Xem</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Dòng tiền 30 ngày</h3><span class="mini">Thu — Chi — Tồn (mock chart)</span></div>
+          <div style="padding:14px">
+            <div style="height:96px;display:flex;align-items:end;gap:6px">
+              <div style="flex:1;background:#E8F5E9;height:42%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#1A7A4C;height:68%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#E8F5E9;height:54%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#1A7A4C;height:82%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#FFCCBC;height:36%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#1A7A4C;height:74%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#E8F5E9;height:48%;border-radius:8px 8px 0 0"></div>
+              <div style="flex:1;background:#1A7A4C;height:90%;border-radius:8px 8px 0 0"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px" class="mini"><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#1A7A4C;border-radius:3px"></span> Thu</span><span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#C0392B;border-radius:3px"></span> Chi</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROCUREMENT -->
+      <div class="view" id="view-procurement">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Mua hàng</h3><span class="pill">Quy trình: Đề nghị → Duyệt → Đơn → Nhập kho</span><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm NCC, SKU..."><button class="btn ghost">So sánh giá</button><button class="btn">+ Đề nghị mua</button></span></div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>So sánh giá theo SKU</h3><a href="#">Lưu giá NCC</a></div>
+          <table class="table">
+            <tr><th>SKU</th><th>NCC A</th><th>NCC B</th><th>NCC C</th><th>Rẻ nhất</th><th></th></tr>
+            <tr><td>Thịt heo xay 500g</td><td>42.000 ₫</td><td><strong>39.500 ₫</strong></td><td>41.000 ₫</td><td><span class="pill green">NCC B</span></td><td><button class="btn ghost">Chọn</button></td></tr>
+            <tr><td>Bò viên 1kg</td><td><strong>88.000 ₫</strong></td><td>92.000 ₫</td><td>90.000 ₫</td><td><span class="pill green">NCC A</span></td><td><button class="btn ghost">Chọn</button></td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Đề nghị mua chờ duyệt</h3><span class="mini">Tự động nhắc mua khi tồn &lt; định mức</span></div>
+          <table class="table">
+            <tr><th>Mã</th><th>NCC đề xuất</th><th>Tổng</th><th>Người tạo</th><th>Trạng thái</th><th>QR</th></tr>
+            <tr><td>PR-0412</td><td>An Thịnh Food</td><td>38.200.000 ₫</td><td>Hương — Kho</td><td><span class="pill amber">Chờ duyệt</span></td><td><button class="btn">Tạo VietQR</button></td></tr>
+            <tr><td>PR-0411</td><td>Minh Khang</td><td>12.400.000 ₫</td><td>Thịnh</td><td><span class="pill green">Đã duyệt</span></td><td><span class="mini">Đã tạo QR theo đơn</span></td></tr>
+          </table>
+          <div style="padding:12px;background:#FCFCFA;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center" class="mini">QR linh hoạt: theo đơn / theo NCC / tùy chỉnh số tiền & nội dung — API VietQR / Sepay</div>
+        </div>
+      </div>
+
+      <!-- SALES -->
+      <div class="view" id="view-sales">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Bán hàng</h3><span class="pill">Báo giá → Đơn → Giao → HĐ VAT</span><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm khách, đơn..."><button class="btn ghost">Giá theo khách</button><button class="btn">+ Đơn hàng</button></span></div>
+        <div class="grid2" style="margin-top:12px">
+          <div class="card">
+            <div class="card-head"><h3>Đơn hàng</h3><a href="#">Đồng bộ Sapo</a></div>
+            <table class="table">
+              <tr><th>Mã</th><th>Khách</th><th>Tổng</th><th>Trạng thái</th></tr>
+              <tr><td>SO-1021</td><td>An Thịnh Mart</td><td>42.800.000 ₫</td><td><span class="pill amber">Chờ giao</span></td></tr>
+              <tr><td>SO-1020</td><td>Minh Khang Food</td><td>18.300.000 ₫</td><td><span class="pill green">Đã giao</span></td></tr>
+              <tr><td>SO-1019</td><td>Hòa Bình</td><td>67.200.000 ₫</td><td><span class="pill">Nháp</span></td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Công nợ phải thu & Nhắc nợ</h3><a href="#">Gửi nhắc</a></div>
+            <table class="table">
+              <tr><th>Khách</th><th>Dư nợ</th><th>Quá hạn</th><th></th></tr>
+              <tr><td>An Thịnh Mart</td><td>84.200.000 ₫</td><td>12 ngày</td><td><button class="btn ghost">Nhắc</button></td></tr>
+              <tr><td>Bếp Nhà Xanh</td><td>22.400.000 ₫</td><td>3 ngày</td><td><button class="btn ghost">Nhắc</button></td></tr>
+            </table>
+            <div style="padding:10px" class="mini">Tự động nhắc theo hạn thanh toán — BullMQ cron hàng ngày</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Giá riêng từng khách</h3><span class="mini">Lưu bảng giá theo khách — ưu tiên khi tạo đơn</span></div>
+          <table class="table">
+            <tr><th>Khách</th><th>SKU</th><th>Giá niêm yết</th><th>Giá riêng</th></tr>
+            <tr><td>An Thịnh Mart</td><td>Bò viên 1kg</td><td>92.000 ₫</td><td><strong>88.000 ₫</strong></td></tr>
+            <tr><td>Minh Khang Food</td><td>Thịt heo xay 500g</td><td>42.000 ₫</td><td><strong>39.500 ₫</strong></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- CASHFLOW -->
+      <div class="view" id="view-cashflow">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Dòng tiền & Đối soát ngân hàng</h3><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm thu/chi..."><button class="btn ghost">Import sao kê</button><button class="btn">+ Thu / Chi</button></span></div>
+        <div class="kpis" style="margin-top:12px">
+          <div class="kpi"><label>Thu tháng</label><strong>1.842T ₫</strong><span>124 giao dịch</span></div>
+          <div class="kpi"><label>Chi tháng</label><strong>1.128T ₫</strong><span>86 giao dịch</span></div>
+          <div class="kpi"><label>Dòng tiền ròng</label><strong style="color:var(--green)">+714T ₫</strong><span>dương</span></div>
+          <div class="kpi"><label>Đối soát</label><strong>96,2%</strong><span>khớp sao kê</span></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Sổ thu / chi</h3><span class="mini">Duyệt chi — phân loại dòng tiền — đối soát Casso/Sepay hoặc import Excel</span></div>
+          <table class="table">
+            <tr><th>Ngày</th><th>Diễn giải</th><th>Loại</th><th>Số tiền</th><th>Trạng thái</th></tr>
+            <tr><td>07/10</td><td>Thu An Thịnh Mart — SO-1021</td><td><span class="pill green">Thu</span></td><td>+42.800.000 ₫</td><td><span class="pill green">Đã đối soát</span></td></tr>
+            <tr><td>06/10</td><td>Chi NCC An Thịnh Food — PR-0412</td><td><span class="pill red">Chi</span></td><td>-38.200.000 ₫</td><td><span class="pill amber">Chờ duyệt</span></td></tr>
+            <tr><td>05/10</td><td>Chi vận chuyển — xe 51C</td><td><span class="pill red">Chi</span></td><td>-2.400.000 ₫</td><td><span class="pill green">Đã duyệt</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- WAREHOUSE -->
+      <div class="view" id="view-warehouse">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Kho — Giao vận — Phương tiện</h3><span style="margin-left:auto" class="toolbar"><button class="btn ghost">Kiểm kê</button><button class="btn ghost">Chuyển kho</button><button class="btn">+ Nhập / Xuất</button></span></div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Tồn kho theo kho / vị trí</h3><a href="#">Đồng bộ Sapo</a></div>
+          <table class="table">
+            <tr><th>SKU</th><th>Kho Q7</th><th>Kho Q12</th><th>Tổng</th><th>Định mức</th></tr>
+            <tr><td>Bò viên 1kg</td><td>42</td><td>18</td><td>60</td><td><span class="pill amber">Sắp thiếu</span></td></tr>
+            <tr><td>Thịt heo xay 500g</td><td>8</td><td>4</td><td>12</td><td><span class="pill red">Dưới mức</span></td></tr>
+            <tr><td>Chả lụa 500g</td><td>120</td><td>80</td><td>200</td><td><span class="pill green">Đủ</span></td></tr>
+          </table>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-head"><h3>Giao vận</h3><a href="#">Tạo đơn giao</a></div>
+            <table class="table">
+              <tr><th>Mã giao</th><th>Tuyến</th><th>Xe</th><th>Trạng thái</th></tr>
+              <tr><td>DL-0311</td><td>Q7 → Q1 → Q3</td><td>51C-123.45</td><td><span class="pill amber">Đang giao</span></td></tr>
+              <tr><td>DL-0310</td><td>Q12 → Hóc Môn</td><td>51C-678.90</td><td><span class="pill green">Đã giao</span></td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Phương tiện</h3><a href="#">Bảo dưỡng</a></div>
+            <table class="table">
+              <tr><th>Xe</th><th>Bảo dưỡng tới hạn</th><th>Chi phí tháng</th></tr>
+              <tr><td>51C-123.45 — Tải 1.5T</td><td>15/10</td><td>4.200.000 ₫</td></tr>
+              <tr><td>51C-678.90 — Tải 800kg</td><td>02/11</td><td>2.800.000 ₫</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- HR -->
+      <div class="view" id="view-hr">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Nhân sự — Chấm công — Lương</h3><span style="margin-left:auto" class="toolbar"><button class="btn ghost">Duyệt công</button><button class="btn">+ Nhân sự</button></span></div>
+        <div class="grid2" style="margin-top:12px">
+          <div class="card">
+            <div class="card-head"><h3>Chấm công hôm nay</h3><span class="mini">Check-in/out trên web/PWA — GPS optional</span></div>
+            <table class="table">
+              <tr><th>Nhân sự</th><th>Vào</th><th>Ra</th><th>Trạng thái</th></tr>
+              <tr><td>Nguyễn Văn A — Kho</td><td>07:58</td><td>—</td><td><span class="pill green">Đúng giờ</span></td></tr>
+              <tr><td>Trần Thị B — Sales</td><td>08:12</td><td>—</td><td><span class="pill amber">Trễ 12’</span></td></tr>
+              <tr><td>Lê Văn C — Giao vận</td><td>07:45</td><td>—</td><td><span class="pill green">Đúng giờ</span></td></tr>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Bảng lương tháng 10</h3><a href="#">Xuất Excel</a></div>
+            <table class="table">
+              <tr><th>Nhân sự</th><th>Công</th><th>Lương</th><th></th></tr>
+              <tr><td>Nguyễn Văn A</td><td>22</td><td>18.400.000 ₫</td><td><span class="pill">Nháp</span></td></tr>
+              <tr><td>Trần Thị B</td><td>21.5</td><td>15.200.000 ₫</td><td><span class="pill green">Đã duyệt</span></td></tr>
+            </table>
+            <div style="padding:10px" class="mini">Công thức: lương CB + phụ cấp + OT − BHXH − tạm ứng</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCS -->
+      <div class="view" id="view-docs">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Văn thư — Chứng từ — Hợp đồng</h3><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm số văn bản, hợp đồng..."><button class="btn">+ Văn bản / Hợp đồng</button></span></div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Văn bản đến / đi</h3><span class="mini">Đánh số — luồng duyệt — nhắc hết hạn</span></div>
+          <table class="table">
+            <tr><th>Số</th><th>Tiêu đề</th><th>Loại</th><th>Hạn</th><th>Trạng thái</th></tr>
+            <tr><td>VB-2026-041</td><td>Hợp đồng nguyên tắc — An Thịnh Food</td><td>Hợp đồng NCC</td><td>30/10</td><td><span class="pill amber">Chờ ký</span></td></tr>
+            <tr><td>VB-2026-040</td><td>Báo giá Q4 — Minh Khang</td><td>Báo giá</td><td>—</td><td><span class="pill green">Đã duyệt</span></td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Lưu trữ tập trung</h3><span class="mini">MinIO — phân quyền xem — tìm kiếm</span></div>
+          <div style="padding:14px;display:flex;gap:10px;flex-wrap:wrap">
+            <div style="border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px"><div style="font-size:13px;font-weight:600">📄 HĐ VAT 0001234.pdf</div><div class="mini">InBot — 07/10 — 42.8T</div></div>
+            <div style="border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px"><div style="font-size:13px;font-weight:600">📄 Hợp đồng LĐ — NV A</div><div class="mini">HR — hết hạn 31/12</div></div>
+            <div style="border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px"><div style="font-size:13px;font-weight:600">📄 Sao kê 10/2026.xlsx</div><div class="mini">Cashflow — đã đối soát</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTEGRATIONS -->
+      <div class="view" id="view-integrations">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Tích hợp</h3><span class="pill">Adapter: sync / push / pull / webhook — external_id + last_synced_at</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px">
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:#111;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700">S</span><div><div style="font-weight:700;font-size:13px">Sapo</div><div class="mini">Đơn · SP · tồn · khách — 2 chiều</div></div><span class="pill green" style="margin-left:auto">Đã kết nối</span></div><div style="margin-top:10px;display:flex;gap:8px"><button class="btn ghost">Cấu hình API key</button><button class="btn">Đồng bộ ngay</button></div><div class="mini" style="margin-top:8px">Last sync: 07/10 09:12 — 42 đơn</div></div>
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:#C0392B;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700">M</span><div><div style="font-weight:700;font-size:13px">Misa / AMIS</div><div class="mini">Bút toán · công nợ</div></div><span class="pill amber" style="margin-left:auto">Chưa kết nối</span></div><div style="margin-top:10px"><button class="btn ghost">Cấu hình</button></div></div>
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:#2E5AAC;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700">HĐ</span><div><div style="font-weight:700;font-size:13px">meInvoice</div><div class="mini">Phát hành HĐĐT đầu ra</div></div><span class="pill" style="margin-left:auto">—</span></div><div style="margin-top:10px"><button class="btn ghost">Cấu hình</button></div></div>
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:#1A7A4C;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700">IB</span><div><div style="font-weight:700;font-size:13px">InBot</div><div class="mini">HĐĐT đầu vào — auto fetch</div></div><span class="pill green" style="margin-left:auto">4 mới</span></div><div class="mini" style="margin-top:8px">Webhook + cron fallback — BullMQ</div></div>
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:#8A7A5A;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700">TCT</span><div><div style="font-weight:700;font-size:13px">HĐĐT Tổng cục Thuế</div><div class="mini">hoadondientu.gdt.gov.vn</div></div><span class="pill" style="margin-left:auto">—</span></div></div>
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:#6B6763;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700">MST</span><div><div style="font-weight:700;font-size:13px">Tra cứu MST</div><div class="mini">gdt.gov.vn — NCC/khách</div></div><span class="pill green" style="margin-left:auto">Sẵn sàng</span></div></div>
+          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-size:11px;font-weight:700">QR</span><div><div style="font-weight:700;font-size:13px">VietQR</div><div class="mini">QR linh hoạt theo đơn/NCC</div></div><span class="pill green" style="margin-left:auto">Sẵn sàng</span></div><div class="mini" style="margin-top:8px">vietqr.io / Sepay — tùy chỉnh số tiền & nội dung</div></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-head"><h3>Nhật ký tích hợp</h3><span class="mini">integration_logs — mọi lần gọi API, lỗi, retry</span></div>
+          <table class="table">
+            <tr><th>Thời gian</th><th>Provider</th><th>Hành động</th><th>Kết quả</th></tr>
+            <tr><td>07/10 09:12</td><td>Sapo — pull orders</td><td>42 đơn</td><td><span class="pill green">OK</span></td></tr>
+            <tr><td>07/10 08:00</td><td>InBot — fetch</td><td>4 HĐ mới</td><td><span class="pill green">OK</span></td></tr>
+            <tr><td>06/10 23:00</td><td>Sapo — push order</td><td>SO-1019</td><td><span class="pill red">Lỗi — retry 1/3</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const tabs=document.querySelectorAll('.tab'), navs=document.querySelectorAll('.nav-item'), views=document.querySelectorAll('.view');
+function show(id){
+  views.forEach(v=>v.classList.toggle('active', v.id==='view-'+id));
+  tabs.forEach(t=>t.classList.toggle('active', t.dataset.view===id));
+  navs.forEach(n=>n.classList.toggle('active', n.dataset.view===id));
+}
+tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.view)));
+navs.forEach(n=>n.addEventListener('click',()=>show(n.dataset.view)));
+</script>
+</body>
+</html>
