@@ -19,7 +19,13 @@ Modular Monolith + Mini-App Shell. `packages/core`, `packages/integrations/<prov
 | **Plan** | Opus 5.5 (`plan`) | Phân tích, thiết kế, chia task → plan file |
 | **Code** | Sonnet 5.5 (`code`) | Viết code theo plan |
 | **Test** | Haiku 4.5 (`test`) | Viết & chạy test |
-| **Review** | Sonnet 5.5 (`review`) | Review correctness/bảo mật/hiệu năng |
+| **Review** | Dynamic (`review`) | Sonnet 5.5 (mặc định) / Opus 5.5 (trọng yếu) |
+
+### Cơ chế phân luồng Review (Dual-Track Pipeline):
+1. ⚙️ **Nhánh thông thường (Standard):** Opus (Plan) ➔ Sonnet (Code) ➔ Haiku (Test) ➔ **Sonnet (Review)**
+   - Áp dụng cho: UI components, layouts, trang nội dung, tài liệu, prototype.
+2. 🚨 **Nhánh trọng yếu (Critical):** Khi task dính các nhãn `finance`, `database`, `security` hoặc sửa đổi `packages/core/*`, `packages/integrations/*`, schema DB
+   - Kích hoạt **Opus 5.5 (Review)** để thẩm định chuyên sâu lần cuối trước khi trình Commander/Chủ tịch nghiệm thu.
 
 Handoff: Plan → (duyệt) → Code → Test → Review → Done. Quay lại Code/Test nếu Review request_changes.
 
