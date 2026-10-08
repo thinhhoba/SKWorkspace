@@ -59,6 +59,7 @@ h1{font-size:28px;letter-spacing:-.04em;margin-top:8px;line-height:1.1}
 </head>
 <body>
 <div class="page">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><img src="assets/logo-sk-workspace.png" alt="SK Workspace" style="height:42px;width:auto;border-radius:10px"><img src="assets/logo-sapo2misa-by-sk.png" alt="Sapo2Misa by SK" style="height:26px;width:auto;border-radius:8px"><span style="margin-left:auto;font-family:JetBrains Mono,monospace;font-size:10px;color:var(--muted)">blueprint · whiteprint</span></div>
   <div class="eyebrow">SK Workspace · Sơ đồ tư duy cấu trúc hệ thống <b>5 cột · Nguồn → Core Shell → 14 app → Đích</b> <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"><a class="chip" href="sk-workspace-platform-architecture.html">Blueprint tối</a><a class="chip" href="sk-workspace-enterprise-clean.html">Clean sáng</a><a class="chip" href="ui-web.html">UI Web →</a><a class="chip" href="ui-pwa.html">UI PWA →</a></span></div>
   <h1>Nguồn dữ liệu → Shell → App nghiệp vụ → Đích & liên kết ngoài</h1>
   <p class="sub">Một hình duy nhất để hiểu toàn hệ thống: <b>SK Workspace là Data Hub</b> (Sapo API + nhập tay → DataStore truth → MISA 63 cột / HĐĐT / Thuế). Sapo2Misa chỉ là <b>1 trong 14</b> ô trong nhóm Tài chính. Shell duy nhất (WorkspaceRoot + HomePage + appRegistry + RBAC + Workflow Engine) điều hướng bằng <code style="background:#fff;border:1px solid #E8E6E0;padding:1px 6px;border-radius:6px">#home → #app/* → #settings</code>.</p>

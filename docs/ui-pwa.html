@@ -26,8 +26,11 @@ a{color:var(--primary);text-decoration:none}
 .top{position:sticky;top:0;z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)}
 html[data-theme="blueprint"] .top{background:rgba(21,31,50,.96);backdrop-filter:blur(8px)}
 html[data-theme="whiteprint"] .top{background:rgba(255,255,255,.96);backdrop-filter:blur(8px)}
-.mark{width:26px;height:26px;border-radius:8px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;overflow:hidden}
 html[data-theme="blueprint"] .mark{background:#38bdf8;color:#0b1120}
+.mark img{width:100%;height:100%;object-fit:cover;display:block}
+.brand-logo{height:26px;width:auto;border-radius:8px;display:block}
+.brand-logo--circle{height:26px;width:26px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
 .mono{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .theme{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px}
 .theme button{font-family:'JetBrains Mono',monospace;font-size:11px;padding:7px 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer}
@@ -94,7 +97,7 @@ html[data-theme="blueprint"] .banner{background:#0f172a;color:#f1f5f9;border:1px
 <body>
 <div class="page">
   <div class="top">
-    <span class="mark">SK</span><strong>SK Workspace — PWA</strong><span class="mono">Web đủ · PWA gọn · 1 codebase</span>
+    <img class="brand-logo--circle" src="assets/logo-sk-circle.png" alt="SK"><img class="brand-logo" src="assets/logo-sk-workspace.png" alt="SK Workspace" style="height:22px"><span class="mono">PWA · 1 codebase</span>
     <div class="theme" role="group" aria-label="Chọn theme">
       <button type="button" data-theme="blueprint" aria-pressed="false" onclick="setTheme('blueprint')">⬢ Blueprint</button>
       <button type="button" data-theme="whiteprint" aria-pressed="false" onclick="setTheme('whiteprint')">⬣ Whiteprint</button>
@@ -115,9 +118,9 @@ html[data-theme="blueprint"] .banner{background:#0f172a;color:#f1f5f9;border:1px
 
   <div class="grid">
     <div class="phone">
-      <div class="phone-head"><span class="mark">SK</span><span class="mono">Đăng nhập</span><span class="badge">Google</span></div>
+      <div class="phone-head"><span class="mark"><img src="assets/logo-sk-circle.png" alt="SK"></span><span class="mono">Đăng nhập</span><span class="badge">Google</span></div>
       <div class="screen">
-        <div style="text-align:center;padding:6px 0"><div class="mark" style="margin:0 auto 6px">SK</div><div style="font-weight:700">SK Workspace</div><div class="mini">Cty TNHH Thực Phẩm Sơn Khang</div></div>
+        <div style="text-align:center;padding:6px 0"><img src="assets/logo-sk-circle.png" alt="SK" style="width:40px;height:40px;border-radius:50%;display:block;margin:0 auto 6px;border:1px solid var(--line)"><div style="font-weight:700">SK Workspace</div><div class="mini">Cty TNHH Thực Phẩm Sơn Khang</div></div>
         <button type="button" class="gbtn" onclick="mockPwa('g')">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.31v2.77h3.57a10.24 10.24 0 0 0 3.27-6.09z"/><path fill="#34A853" d="M12 23a10.9 10.9 0 0 0 7.56-2.75l-3.57-2.77A6.66 6.66 0 0 1 12 18.5c-2.96 0-5.47-2-6.37-4.68H1.9v2.94A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.63 13.82A6.6 6.6 0 0 1 5.28 12c0-.64.11-1.26.35-1.82V7.24H1.9A11 11 0 0 0 .8 12c0 1.78.42 3.46 1.1 4.94l3.73-3.12z"/><path fill="#EA4335" d="M12 5.5a6.04 6.04 0 0 1 4.27 1.67l3.2-3.2A10.88 10.88 0 0 0 12 1a11 11 0 0 0-10.1 6.24l3.73 2.94C6.53 7.5 9.04 5.5 12 5.5z"/></svg>
           Tiếp tục với Google
@@ -136,7 +139,7 @@ html[data-theme="blueprint"] .banner{background:#0f172a;color:#f1f5f9;border:1px
     </div>
 
     <div class="phone">
-      <div class="phone-head"><span class="mark">SK</span><span class="mono">Bàn làm việc</span><span class="badge">Home</span></div>
+      <div class="phone-head"><span class="mark"><img src="assets/logo-sk-circle.png" alt="SK"></span><span class="mono">Bàn làm việc</span><span class="badge">Home</span></div>
       <div class="screen">
         <div class="offline ok"><span>●</span><div><b>Online</b><div class="mini">Cache tới 08/10 08:00 · Sapo sync</div></div><span style="margin-left:auto" class="pill">● Live</span></div>
         <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Tìm app, đơn, NCC…</div>
@@ -151,7 +154,7 @@ html[data-theme="blueprint"] .banner{background:#0f172a;color:#f1f5f9;border:1px
     </div>
 
     <div class="phone">
-      <div class="phone-head"><span class="mark">SK</span><span class="mono">Mua & VietQR</span><span class="badge">PR-0412</span></div>
+      <div class="phone-head"><span class="mark"><img src="assets/logo-sk-circle.png" alt="SK"></span><span class="mono">Mua & VietQR</span><span class="badge">PR-0412</span></div>
       <div class="screen">
         <div class="card"><div class="card-h"><h3>PR-0412 — An Thịnh Food</h3><span class="pill amber">Chờ duyệt</span></div><div style="padding:10px"><div class="mini">Tổng: <strong style="color:var(--ink)">38.200.000 ₫</strong></div><div style="margin-top:8px;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px;display:flex;gap:10px;align-items:center"><div style="width:56px;height:56px;background:var(--surface);border-radius:8px;display:grid;place-items:center;color:var(--ink);font-size:9px;text-align:center">QR<br>VietQR</div><div><div style="font-size:12px;font-weight:700">QR linh hoạt</div><div class="mini" style="color:color-mix(in srgb, var(--bg) 30%, var(--muted))">Theo đơn / NCC / tùy chỉnh</div></div></div><button type="button" class="btn block" style="margin-top:8px">Chia sẻ QR / Tải ảnh</button></div></div>
         <div class="card"><div class="card-h"><h3>Kho Q7/Q12</h3><span class="mini">Sapo sync</span></div><div class="table-wrap"><table class="table"><thead><tr><th>SKU</th><th>Tồn</th><th></th></tr></thead><tbody><tr><td>Heo xay 500g</td><td>12</td><td><span class="pill red">Thiếu</span></td></tr><tr><td>Bò viên 1kg</td><td>60</td><td><span class="pill amber">Sắp thiếu</span></td></tr></tbody></table></div></div>
@@ -161,7 +164,7 @@ html[data-theme="blueprint"] .banner{background:#0f172a;color:#f1f5f9;border:1px
     </div>
 
     <div class="phone">
-      <div class="phone-head"><span class="mark">SK</span><span class="mono">Bán & Chấm công</span></div>
+      <div class="phone-head"><span class="mark"><img src="assets/logo-sk-circle.png" alt="SK"></span><span class="mono">Bán & Chấm công</span></div>
       <div class="screen">
         <div class="card"><div class="card-h"><h3>SO-1021 — An Thịnh Mart</h3><span class="pill amber">Chờ giao</span></div><div style="padding:10px"><div class="table-wrap"><table class="table"><thead><tr><th>SKU</th><th>SL</th><th>Tiền</th></tr></thead><tbody><tr><td>Bò viên 1kg</td><td>20</td><td>1.760.000</td></tr></tbody></table></div><div style="display:flex;gap:8px;margin-top:8px"><button type="button" class="btn ghost" style="flex:1">Báo giá</button><button type="button" class="btn" style="flex:1">Giao</button></div></div></div>
         <div class="card"><div class="card-h"><h3>Chấm công</h3><span class="mini">GPS optional</span></div><div style="padding:12px;text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:26px">08:04</div><div class="mini">07/10/2026 — Ca sáng · Vào 07:58 — Đúng giờ</div><button type="button" class="btn block" style="margin-top:8px">✓ Check-in</button></div></div>

@@ -41,8 +41,11 @@ a{color:var(--primary);text-decoration:none}
 html[data-theme="blueprint"] .top{background:rgba(21,31,50,.96);backdrop-filter:blur(8px)}
 html[data-theme="whiteprint"] .top{background:rgba(255,255,255,.96);backdrop-filter:blur(8px)}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em}
-.mark{width:30px;height:30px;border-radius:9px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;overflow:hidden}
 html[data-theme="blueprint"] .mark{background:#38bdf8;color:#0b1120}
+.mark img{width:100%;height:100%;object-fit:cover;display:block}
+.brand-logo{height:30px;width:auto;display:block;border-radius:8px}
+.brand-logo--circle{height:30px;width:30px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
 .mono-sm{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .theme{display:flex;gap:6px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px}
 .theme button{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;padding:7px 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer}
@@ -158,7 +161,7 @@ html[data-theme="blueprint"] .nav-i.active small{background:rgba(255,255,255,.12
 <body>
 <div class="page">
   <div class="top" role="banner">
-    <div class="brand"><span class="mark">SK</span> SK Workspace <span class="mono-sm" style="margin-left:6px">Sơn Khang · 14 app · Data Hub</span></div>
+    <div class="brand"><img class="brand-logo--circle" src="assets/logo-sk-circle.png" alt="SK"><img class="brand-logo" src="assets/logo-sk-workspace.png" alt="SK Workspace" style="height:28px"><span class="mono-sm" style="margin-left:2px">Sơn Khang · 14 app · Data Hub</span></div>
     <div class="theme" role="group" aria-label="Chọn theme">
       <button type="button" data-theme="blueprint" aria-pressed="false" onclick="setTheme('blueprint')">⬢ Blueprint (Tối)</button>
       <button type="button" data-theme="whiteprint" aria-pressed="false" onclick="setTheme('whiteprint')">⬣ Whiteprint (Sáng)</button>
@@ -193,6 +196,7 @@ html[data-theme="blueprint"] .nav-i.active small{background:rgba(255,255,255,.12
   <div class="view active" id="view-login" role="tabpanel">
     <div class="login-wrap">
       <div class="login-brand">
+        <img src="assets/logo-sk-workspace.png" alt="SK Workspace" style="height:40px;width:auto;display:block;margin-bottom:10px;border-radius:10px">
         <div class="mono-sm">Công ty TNHH Thực Phẩm Sơn Khang</div>
         <h2>SK Workspace — nơi làm việc duy nhất</h2>
         <p>14 app nội bộ trong 1 shell. Sapo2Misa chỉ là 1 ô trong Tài chính. Đồng bộ Sapo 2 chiều, đẩy sang MISA 63 cột, VietQR linh hoạt, chấm công GPS — tất cả qua Data Hub.</p>
@@ -239,7 +243,7 @@ html[data-theme="blueprint"] .nav-i.active small{background:rgba(255,255,255,.12
   <!-- HOME — trong shell -->
   <div class="view" id="view-home" role="tabpanel">
     <div class="shell">
-      <div class="topbar"><div class="brand"><span class="mark">SK</span> SK Workspace</div><div class="search" role="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> <input id="homeSearch" placeholder="Tìm app, đơn, NCC, khách…" style="border:0;outline:0;background:transparent;flex:1;color:inherit;font-size:13px" oninput="filterTiles()"><kbd>⌘ K</kbd></div><div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="icon" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7-6 11-6 11S6 15 6 8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="icon" aria-label="Cài đặt"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></span><span class="avatar">TH</span></div></div>
+      <div class="topbar"><div class="brand"><img class="brand-logo--circle" src="assets/logo-sk-circle.png" alt="SK" style="height:26px;width:26px"><span style="font-weight:800;letter-spacing:-.02em">SK Workspace</span></div><div class="search" role="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> <input id="homeSearch" placeholder="Tìm app, đơn, NCC, khách…" style="border:0;outline:0;background:transparent;flex:1;color:inherit;font-size:13px" oninput="filterTiles()"><kbd>⌘ K</kbd></div><div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="icon" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7-6 11-6 11S6 15 6 8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="icon" aria-label="Cài đặt"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></span><span class="avatar">TH</span></div></div>
       <div class="layout">
         <nav class="sidenav" aria-label="Điều hướng">
           <div class="nav-g">Bàn làm việc</div>
@@ -293,7 +297,7 @@ html[data-theme="blueprint"] .nav-i.active small{background:rgba(255,255,255,.12
   <!-- DASHBOARD -->
   <div class="view" id="view-dashboard" role="tabpanel">
     <div class="shell">
-      <div class="topbar"><div class="brand"><span class="mark">SK</span> Tổng quan</div><div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Tìm đơn, NCC, khách… <kbd>⌘ K</kbd></div><div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="icon"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7-6 11-6 11S6 15 6 8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="avatar">TH</span></div></div>
+      <div class="topbar"><div class="brand"><img class="brand-logo--circle" src="assets/logo-sk-circle.png" alt="SK" style="height:26px;width:26px"><span style="font-weight:800;letter-spacing:-.02em">Tổng quan</span></div><div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Tìm đơn, NCC, khách… <kbd>⌘ K</kbd></div><div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="icon"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7-6 11-6 11S6 15 6 8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="avatar">TH</span></div></div>
       <div style="padding:14px;background:var(--surface-2);background:color-mix(in srgb, var(--bg) 55%, var(--surface-2))">
         <div class="kpis">
           <div class="kpi"><label>Doanh thu T10</label><strong>1.842.000.000 ₫</strong><div class="trend up">↗ +8,4% so T09 · Sapo sync</div></div>
