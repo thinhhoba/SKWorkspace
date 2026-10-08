@@ -4,6 +4,8 @@
   "description": "Không gian làm việc nội bộ — 14 app · Sapo ↔ Data Hub ↔ MISA 63 cột",
   "start_url": "ui-web.html#home",
   "display": "standalone",
+  "scope": ".",
+  "orientation": "any",
   "background_color": "#F8FAFC",
   "theme_color": "#F8FAFC",
   "icons": [

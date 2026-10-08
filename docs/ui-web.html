@@ -2,7 +2,7 @@
 <html lang="vi" data-mu="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F8FAFC">
 <link rel="manifest" href="manifest.json">
 <title>SK Workspace — Enterprise Clean</title>
@@ -154,11 +154,11 @@ function syncThemeMeta(m){
       <!-- VIEW HOME = Bento Dashboard -->
       <div id="viewHome">
         <div class="flex items-center justify-between flex-wrap gap-2">
-          <h2 class="text-[16px] font-extrabold flex items-center gap-2"><span class="w-7 h-7 rounded-lg border grid place-items-center text-sm" style="background:var(--surface);border-color:var(--line)">▦</span> Bàn làm việc <span class="mono text-[11px] px-2 py-0.5 rounded-full border font-bold" style="background:var(--surface-2);border-color:var(--line)">#home Bento</span></h2>
+          <h2 class="text-[16px] font-extrabold flex items-center gap-2"><span class="w-7 h-7 rounded-lg border grid place-items-center text-sm" style="background:var(--surface);border-color:var(--line)">▦</span> Bàn làm việc <span class="text-[11px] px-2 py-0.5 rounded-full border font-bold" style="background:var(--surface-2);border-color:var(--line)">#home Bento</span></h2>
           <div class="flex items-center gap-2">
             <span class="hidden sm:inline mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">RBAC hasAppAccess</span>
             <button onclick="location.hash='#login'" class="mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Đăng nhập</button>
-            <span class="mono text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--warning-soft);color:var(--warning);border-color:var(--warning-bd)">Sapo ↔ Hub ↔ MISA</span>
+            <span class="text-[11px] px-2.5 py-1 rounded-full border font-bold" style="background:var(--warning-soft);color:var(--warning);border-color:var(--warning-bd)">Sapo ↔ Hub ↔ MISA</span>
           </div>
         </div>
         <div class="mt-3 flex gap-2 flex-wrap items-center">
@@ -184,8 +184,8 @@ function syncThemeMeta(m){
       <!-- VIEW SAPO2MISA -->
       <div id="viewSapo2Misa" class="hidden">
         <div class="flex items-center gap-2 flex-wrap">
-          <h2 class="text-[15px] font-extrabold flex items-center gap-2">Sapo2Misa <span class="mono text-[11px] px-2 py-0.5 rounded-full border font-bold" style="background:var(--primary-soft);color:var(--primary);border-color:var(--primary-bd)">1/14 · Tài chính</span></h2>
-          <span class="mono text-[11px] px-2.5 py-1 rounded-full border" style="background:var(--surface);border-color:var(--line)">Excel 63 cột · ledger external_id</span>
+          <h2 class="text-[15px] font-extrabold flex items-center gap-2">Sapo2Misa <span class="text-[11px] px-2 py-0.5 rounded-full border font-bold" style="background:var(--primary-soft);color:var(--primary);border-color:var(--primary-bd)">1/14 · Tài chính</span></h2>
+          <span class="text-[11px] px-2.5 py-1 rounded-full border" style="background:var(--surface);border-color:var(--line)">Excel 63 cột · ledger external_id</span>
           <a href="#home" class="ml-auto mono text-xs underline">← Về Bàn làm việc</a>
         </div>
         <!-- Stepper 4 -->
@@ -290,16 +290,16 @@ const navItems=[
   {id:'finance', icon:svgIcons.finance, label:'Tài chính-Kế toán', group:'finance', badge:'63 cột', color:'text-amber-700 bg-amber-50 border-amber-200'},
   {id:'sapo2misa', icon:svgIcons.sync, label:'Sapo2Misa', group:'finance', badge:'1/14', color:'text-emerald-700 bg-emerald-50 border-emerald-200'},
   {id:'sales', icon:svgIcons.sales, label:'Bán hàng', group:'sales', color:'text-sky-700 bg-sky-50 border-sky-200'},
-  {id:'crm', icon:svgIcons.crm, label:'CRM', group:'sales', color:'text-violet-700 bg-violet-50 border-violet-200'},
-  {id:'purchase', icon:svgIcons.purchase, label:'Mua hàng', group:'sales', badge:'VietQR', color:'text-orange-700 bg-orange-50 border-orange-200'},
+  {id:'crm', icon:svgIcons.crm, label:'CRM', group:'sales', color:'text-sky-700 bg-sky-50 border-sky-200'},
+  {id:'purchase', icon:svgIcons.purchase, label:'Mua hàng', group:'sales', badge:'VietQR', color:'text-amber-700 bg-amber-50 border-amber-200'},
   {id:'pos', icon:svgIcons.pos, label:'POS', group:'sales', color:'text-sky-700 bg-sky-50 border-sky-200'},
   {id:'stock', icon:svgIcons.stock, label:'Kho', group:'ops', color:'text-emerald-700 bg-emerald-50 border-emerald-200'},
   {id:'delivery', icon:svgIcons.delivery, label:'Giao vận', group:'ops', color:'text-emerald-700 bg-emerald-50 border-emerald-200'},
   {id:'asset', icon:svgIcons.asset, label:'Tài sản', group:'ops', color:'text-slate-700 bg-slate-50 border-slate-200'},
-  {id:'hr', icon:svgIcons.hr, label:'Nhân sự', group:'office', color:'text-violet-700 bg-violet-50 border-violet-200'},
-  {id:'contract', icon:svgIcons.contract, label:'Văn thư', group:'office', color:'text-red-700 bg-red-50 border-red-200'},
+  {id:'hr', icon:svgIcons.hr, label:'Nhân sự', group:'office', color:'text-slate-700 bg-slate-50 border-slate-200'},
+  {id:'contract', icon:svgIcons.contract, label:'Văn thư', group:'office', color:'text-slate-700 bg-slate-50 border-slate-200'},
   {id:'task', icon:svgIcons.task, label:'Quy trình/Lịch', group:'office', color:'text-emerald-700 bg-emerald-50 border-emerald-200'},
-  {id:'media', icon:svgIcons.media, label:'Thư viện', group:'office', color:'text-purple-700 bg-purple-50 border-purple-200'},
+  {id:'media', icon:svgIcons.media, label:'Thư viện', group:'office', color:'text-slate-700 bg-slate-50 border-slate-200'},
 ];
 const apps=[
   {name:'Tài chính-Kế toán', desc:'Sapo2Misa 63 cột · 1/14', group:'finance', color:'amber', icon:svgIcons.finance},
@@ -307,14 +307,14 @@ const apps=[
   {name:'Sapo2Payment', desc:'Phiếu thu MISA', group:'finance', color:'amber', icon:svgIcons.finance},
   {name:'SKDebt', desc:'Tuổi nợ 0-15/16-30', group:'finance', color:'amber', icon:svgIcons.finance},
   {name:'Bán hàng', desc:'Đơn · giá theo khách', group:'sales', color:'sky', icon:svgIcons.sales},
-  {name:'CRM', desc:'KH · NCC · RFM', group:'sales', color:'violet', icon:svgIcons.crm},
-  {name:'Mua hàng', desc:'So sánh giá · VietQR', group:'sales', color:'orange', icon:svgIcons.purchase},
+  {name:'CRM', desc:'KH · NCC · RFM', group:'sales', color:'sky', icon:svgIcons.crm},
+  {name:'Mua hàng', desc:'So sánh giá · VietQR', group:'sales', color:'amber', icon:svgIcons.purchase},
   {name:'POS', desc:'Bán lẻ quầy', group:'sales', color:'sky', icon:svgIcons.pos},
   {name:'Kho', desc:'Q7/Q12 · kiểm kê', group:'ops', color:'emerald', icon:svgIcons.stock},
   {name:'Giao vận', desc:'SKDelivery · COD', group:'ops', color:'emerald', icon:svgIcons.delivery},
   {name:'Tài sản', desc:'Xe · bảo dưỡng', group:'ops', color:'slate', icon:svgIcons.asset},
-  {name:'Nhân sự', desc:'Hồ sơ · chấm công GPS', group:'office', color:'violet', icon:svgIcons.hr},
-  {name:'Văn thư', desc:'SKContract · HĐTM', group:'office', color:'red', icon:svgIcons.contract},
+  {name:'Nhân sự', desc:'Hồ sơ · chấm công GPS', group:'office', color:'slate', icon:svgIcons.hr},
+  {name:'Văn thư', desc:'SKContract · HĐTM', group:'office', color:'rose', icon:svgIcons.contract},
   {name:'Quy trình/Lịch', desc:'SKTask · SKCalendar', group:'office', color:'emerald', icon:svgIcons.task},
 ];
 const logs=[
@@ -333,10 +333,16 @@ const logs=[
 ];
 // 63 cols mock
 const MISA_COLS=[
-  {key:'so_ct',label:'Số CT'},{key:'ngay_ht',label:'Ngày HT'},{key:'ngay_ct',label:'Ngày CT'},{key:'mst',label:'MST'},{key:'ten_kh',label:'Tên KH'},{key:'dia_chi',label:'Địa chỉ'},{key:'dien_giai',label:'Diễn giải'},{key:'ma_hang',label:'Mã hàng'},{key:'ten_hang',label:'Tên hàng'},{key:'dvt',label:'ĐVT'},{key:'so_luong',label:'SL'},{key:'don_gia',label:'Đơn giá'},{key:'thanh_tien',label:'Thành tiền'},{key:'thue_suat',label:'Thuế suất'},{key:'tien_thue',label:'Tiền thuế'},{key:'tk_no',label:'TK Nợ'},{key:'tk_co',label:'TK Có'},{key:'tong_hang',label:'Tổng hàng'},{key:'tong_thue',label:'Tổng thuế'},{key:'tong_tt',label:'Tổng TT'},{key:'hinh_thuc',label:'Hình thức TT'},{key:'han_tt',label:'Hạn TT'},{key:'chiet_khau',label:'Chiết khấu'},{key:'cp_vc',label:'CP vận chuyển'},{key:'lo_han',label:'Lô/hạn'},{key:'ghi_chu',label:'Ghi chú'},{key:'nv_ban',label:'NV bán'},{key:'kenh',label:'Kênh'},
+  // Header 1-10
+  {key:'ngay_ht',label:'Ngày HT'},{key:'ngay_ct',label:'Ngày CT'},{key:'so_ct',label:'Số CT'},{key:'mst',label:'MST'},{key:'ten_kh',label:'Tên KH'},{key:'dia_chi',label:'Địa chỉ'},{key:'dien_giai',label:'Diễn giải'},{key:'ma_kh',label:'Mã KH'},{key:'nhom_kh',label:'Nhóm KH'},{key:'chi_nhanh',label:'Chi nhánh'},
+  // Chi tiet 11-35
+  {key:'ma_hang',label:'Mã hàng'},{key:'ten_hang',label:'Tên hàng'},{key:'dvt',label:'DVT'},{key:'so_luong',label:'SL'},{key:'don_gia',label:'Đơn giá'},{key:'thanh_tien',label:'Thành tiền'},{key:'thue_suat',label:'Thuế suất'},{key:'tien_thue',label:'Tiền thuế'},{key:'tk_no',label:'TK Nợ'},{key:'tk_co',label:'TK Có'},{key:'kho',label:'Kho'},{key:'so_lo',label:'Số lô'},{key:'han_sd',label:'Hạn SD'},{key:'ck_ty_le',label:'CK %'},{key:'ck_tien',label:'Tiền CK'},{key:'ngoai_te',label:'Ngoại tệ'},{key:'ty_gia',label:'Tỷ giá'},{key:'thanh_tien_qd',label:'Thành tiền QD'},{key:'tien_thue_qd',label:'Tiền thuế QĐ'},{key:'tk_no_qd',label:'TK Nợ QĐ'},{key:'tk_co_qd',label:'TK Có QĐ'},{key:'ghi_chu_dong',label:'Ghi chú dòng'},{key:'ma_ct_lq',label:'CT liên quan'},{key:'cp_dong',label:'CP dòng'},{key:'phi_khac',label:'Phí khác'},
+  // Tong hop 36-45
+  {key:'tong_hang',label:'Tổng tiền hàng'},{key:'tong_thue',label:'Tổng thuế'},{key:'tong_tt',label:'Tổng TT'},{key:'tong_ck',label:'Tổng CK'},{key:'tong_cp',label:'Tổng CP'},{key:'hinh_thuc',label:'Hình thức TT'},{key:'han_tt',label:'Hạn TT'},{key:'ck_hd_ty_le',label:'CK HD %'},{key:'ck_hd_tien',label:'Tiền CK HD'},{key:'con_phai_thu',label:'Còn phải thu'},
+  // Mo rong 46-63
+  {key:'chiet_khau',label:'Chiết khấu'},{key:'cp_vc',label:'CP vận chuyển'},{key:'lo_han',label:'Lô/hạn'},{key:'ghi_chu',label:'Ghi chú'},{key:'nv_ban',label:'NV bán'},{key:'kenh',label:'Kênh'},{key:'ma_nv',label:'Mã NV'},{key:'bo_phan',label:'Bộ phận'},{key:'du_an',label:'Dự án'},{key:'hop_dong',label:'Hợp đồng'},{key:'ngay_giao',label:'Ngày giao'},{key:'dia_giao',label:'Đ/c giao'},{key:'ghi_chu_giao',label:'Ghi chú giao'},{key:'trang_thai',label:'Trạng thái'},{key:'nguon',label:'Nguồn'},{key:'external_id',label:'External ID'},{key:'last_synced',label:'Last synced'},{key:'tich_hop',label:'Tích hợp'},
 ];
-while(MISA_COLS.length<63){ var i=MISA_COLS.length+1; MISA_COLS.push({key:'col_'+i,label:'Cột '+i}); }
-const VISIBLE_DEFAULT=['so_ct','ngay_ht','mst','ten_kh','ma_hang','so_luong','don_gia','thanh_tien','thue_suat','tien_thue','tk_no','tk_co'];
+const VISIBLE_DEFAULT=['so_ct','ngay_ht','mst','ten_kh','ma_hang','so_luong','don_gia','thanh_tien','thue_suat','tien_thue','tk_no','tk_co']; // TODO GĐ2 @tanstack/react-virtual
 let showAllCols=false;
 let activeFilter='all';
 let currentView='home';
@@ -392,14 +398,14 @@ function renderFilters(){
   row.innerHTML=cats.map(function(c){
     var k=c[0],l=c[1],on=activeFilter===k;
     var st=on?'background:var(--ink);color:var(--bg);border-color:var(--ink)':'background:var(--surface);color:var(--ink);border-color:var(--line)';
-    return '<button role="tab" aria-selected="'+(on?'true':'false')+'" onclick="activeFilter=\''+k+'\';renderFilters();renderHomeGrid()" class="mono text-xs px-3 py-1.5 rounded-full border font-bold" style="'+st+'">'+l+'</button>';
+    return '<button role="tab" aria-selected="'+(on?'true':'false')+'" onclick="activeFilter=\''+k+'\';renderFilters();renderHomeGrid()" class="text-xs px-3 py-1.5 rounded-full border font-bold" style="'+st+'">'+l+'</button>';
   }).join('');
 }
 function renderHomeGrid(){
   var q=(document.getElementById('gridSearch')?.value||'').toLowerCase();
   var grid=document.getElementById('homeGrid');
   if(!grid) return;
-  var map={amber:'bg-amber-50 border-amber-200 text-amber-800', sky:'bg-sky-50 border-sky-200 text-sky-800', violet:'bg-violet-50 border-violet-200 text-violet-800', orange:'bg-orange-50 border-orange-200 text-orange-800', emerald:'bg-emerald-50 border-emerald-200 text-emerald-800', slate:'bg-slate-50 border-slate-200 text-slate-700', red:'bg-red-50 border-red-200 text-red-700'};
+  var map={amber:'bg-amber-50 border-amber-200 text-amber-800', sky:'bg-sky-50 border-sky-200 text-sky-800', emerald:'bg-emerald-50 border-emerald-200 text-emerald-800', slate:'bg-slate-50 border-slate-200 text-slate-700', rose:'bg-rose-50 border-rose-200 text-rose-700'};
   var filtered=apps.filter(function(a){
     var okCat=activeFilter==='all'||a.group===activeFilter;
     var okQ=!q||a.name.toLowerCase().includes(q)||a.desc.toLowerCase().includes(q);
@@ -407,10 +413,10 @@ function renderHomeGrid(){
   });
   grid.innerHTML=filtered.map(function(a){
     return '<div class="rounded-xl border p-4 hover:shadow-md transition" style="background:var(--surface);border-color:var(--line)">'
-      +'<div class="flex items-center justify-between"><span class="mono text-[11px] tracking-widest font-bold px-2 py-1 rounded-full border '+map[a.color]+'">'+a.group.toUpperCase()+'</span><span class="w-7 h-7 rounded-lg grid place-items-center border" style="background:var(--surface-2);border-color:var(--line);color:var(--muted)">'+a.icon+'</span></div>'
+      +'<div class="flex items-center justify-between"><span class="text-[11px] tracking-widest font-bold px-2 py-1 rounded-full border '+map[a.color]+'">'+a.group.toUpperCase()+'</span><span class="w-7 h-7 rounded-lg grid place-items-center border" style="background:var(--surface-2);border-color:var(--line);color:var(--muted)">'+a.icon+'</span></div>'
       +'<div class="text-sm font-extrabold mt-3">'+a.name+'</div>'
       +'<div class="text-xs mt-1" style="color:var(--muted)">'+a.desc+'</div>'
-      +'<div class="mt-3 h-1.5 rounded-full overflow-hidden" style="background:var(--surface-2)"><div class="h-full rounded-full '+(a.color==='amber'?'bg-amber-500':a.color==='sky'?'bg-sky-500':a.color==='violet'?'bg-violet-500':a.color==='orange'?'bg-orange-500':a.color==='emerald'?'bg-emerald-500':'bg-slate-400')+'" style="width:'+(a.color==='amber'?'88':a.color==='sky'?'76':a.color==='emerald'?'92':'64')+'%"></div></div></div>';
+      +'<div class="mt-3 h-1.5 rounded-full overflow-hidden" style="background:var(--surface-2)"><div class="h-full rounded-full '+(a.color==='amber'?'bg-amber-500':a.color==='sky'?'bg-sky-500':a.color==='emerald'?'bg-emerald-500':'bg-slate-400')+'" style="width:'+(a.color==='amber'?'88':a.color==='sky'?'76':a.color==='emerald'?'92':'64')+'%"></div></div></div>';
   }).join('')||'<div class="col-span-full mono text-xs text-center py-8" style="color:var(--muted)">Không có app phù hợp — <button onclick="activeFilter=\'all\';document.getElementById(\'gridSearch\').value=\'\';renderFilters();renderHomeGrid()" class="underline">Xóa lọc</button></div>';
 }
 function renderKpis(){
@@ -424,7 +430,7 @@ function renderKpis(){
   ];
   el.innerHTML=kpis.map(function(k){
     return '<div class="kpi-card" style="border-left:4px solid '+k.border+'">'
-      +'<div class="mono text-[11px] tracking-widest font-bold" style="color:var(--muted)">'+k.label.toUpperCase()+'</div>'
+      +'<div class="text-[11px] tracking-widest font-bold" style="color:var(--muted)">'+k.label.toUpperCase()+'</div>'
       +'<div class="mono text-xl font-extrabold mt-2">'+k.value+'</div>'
       +'<div class="text-xs mt-1" style="color:'+(k.tone==='danger'?'var(--danger)':k.tone==='warning'?'var(--warning)':'var(--success)')+'">'+k.sub+'</div></div>';
   }).join('');
@@ -448,8 +454,8 @@ function renderBento(){
   var c=document.getElementById('bentoDebt');
   if(c) c.innerHTML='<div class="flex items-center justify-between"><span class="text-sm font-extrabold">Công nợ B2B quá hạn</span><span class="mono text-[11px] px-2 py-1 rounded-full border" style="background:var(--danger-soft);color:var(--danger);border-color:var(--danger-bd)">2 khách</span></div>'
     +'<div class="mt-3 grid md:grid-cols-2 gap-3">'
-    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line);background:var(--danger-soft)"><div><div class="text-sm font-bold">An Thịnh Mart — <span class="mono">84.200.000 ₫</span></div><div class="mono text-[11px]" style="color:var(--muted)">Quá hạn 12 ngày</div></div><button onclick="alert(\'Đã gửi nhắc nợ — An Thịnh Mart (mock)\')" class="mono text-xs px-3 py-1.5 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Nhắc</button></div>'
-    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line)"><div><div class="text-sm font-bold">Minh Khang — <span class="mono">42.100.000 ₫</span></div><div class="mono text-[11px]" style="color:var(--muted)">Quá hạn 5 ngày</div></div><button onclick="alert(\'Đã gửi nhắc nợ — Minh Khang (mock)\')" class="mono text-xs px-3 py-1.5 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Nhắc</button></div>'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line);background:var(--danger-soft)"><div><div class="text-sm font-bold">An Thịnh Mart — <span class="mono">84.200.000 ₫</span></div><div class="mono text-[11px]" style="color:var(--muted)">Quá hạn 12 ngày</div></div><button onclick="alert(\'Đã gửi nhắc nợ — An Thịnh Mart (mock)\')" class="text-xs px-3 py-1.5 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Nhắc</button></div>'
+    +'<div class="flex items-center justify-between rounded-xl border p-3" style="border-color:var(--line)"><div><div class="text-sm font-bold">Minh Khang — <span class="mono">42.100.000 ₫</span></div><div class="mono text-[11px]" style="color:var(--muted)">Quá hạn 5 ngày</div></div><button onclick="alert(\'Đã gửi nhắc nợ — Minh Khang (mock)\')" class="text-xs px-3 py-1.5 rounded-full border font-bold" style="background:var(--surface);border-color:var(--line)">Nhắc</button></div>'
     +'</div>';
 }
 function renderSteppers(){
