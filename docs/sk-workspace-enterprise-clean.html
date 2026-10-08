@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK Workspace — Platform Architecture | Enterprise Clean (Sáng)</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --card-border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-sub: #64748b;
+    --text-muted: #94a3b8;
+    --primary: #0ea5e9;
+    --primary-soft: #f0f9ff;
+    --primary-border: #bae6fd;
+    --accent: #d97706;
+    --accent-soft: #fffbeb;
+    --accent-border: #fde68a;
+    --success: #059669;
+    --success-soft: #ecfdf5;
+    --success-border: #a7f3d0;
+    --purple: #7c3aed;
+    --purple-soft: #f5f3ff;
+    --purple-border: #ddd6fe;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{background:var(--bg);color:var(--text-main);padding:32px;line-height:1.5;min-width:900px}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:1px solid var(--card-border);margin-bottom:28px;gap:16px;flex-wrap:wrap}
+  .header h1{font-size:26px;font-weight:800;color:var(--text-main);letter-spacing:-.5px}
+  .header h1 span{color:var(--primary)}
+  .header .subtitle{color:var(--text-sub);font-size:14px;margin-top:4px}
+  .badge-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .badge{background:#fff;border:1px solid var(--card-border);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;color:#334155;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .badge.highlight{background:var(--primary-soft);border-color:var(--primary-border);color:var(--primary)}
+  .badge.accent{background:var(--accent-soft);border-color:var(--accent-border);color:var(--accent)}
+  .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{border:1px solid var(--card-border);background:#fff;color:var(--text-main);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .btn:hover{filter:brightness(.98)}
+  .toggle{border:1px solid var(--card-border);background:#fff;color:var(--text-sub);padding:6px 12px;border-radius:999px;font-size:12px;cursor:pointer}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px}
+  .card{background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:20px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-border)}
+  .card.p1::before{background:var(--primary)}
+  .card.p2::before{background:var(--success)}
+  .card.p3::before{background:var(--accent)}
+  .card-num{font-size:12px;font-weight:800;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px}
+  .card-title{font-size:17px;font-weight:700;color:var(--text-main);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .card-desc{font-size:13px;color:var(--text-sub);line-height:1.6}
+  .arch-section{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .section-head{font-size:15px;font-weight:700;color:var(--text-main);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .section-tag{font-size:11px;background:var(--purple-soft);color:var(--purple);padding:3px 8px;border-radius:4px;border:1px solid var(--purple-border)}
+  .layers-flow{display:flex;flex-direction:column;gap:14px}
+  .layer-row{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center;padding:12px 16px;background:#f8fafc;border-radius:8px;border:1px solid var(--card-border)}
+  .layer-name{font-weight:700;font-size:13px;color:var(--primary);display:flex;flex-direction:column}
+  .layer-name small{font-size:11px;color:var(--text-sub);font-weight:400;margin-top:2px}
+  .layer-items{display:flex;gap:10px;flex-wrap:wrap}
+  .layer-chip{background:#fff;border:1px solid var(--card-border);padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;box-shadow:0 1px 1px rgba(0,0,0,.03)}
+  .layer-chip.active{background:var(--success-soft);border-color:var(--success-border);color:var(--success)}
+  .layer-chip.sync{background:var(--primary-soft);border-color:var(--primary-border);color:var(--primary)}
+  .layer-chip.hub{background:var(--accent-soft);border-color:var(--accent-border);color:var(--accent)}
+  .ui-dual-preview{display:grid;grid-template-columns:1.8fr 1.2fr;gap:20px}
+  .preview-box{background:#f8fafc;border:1px solid var(--card-border);border-radius:12px;padding:18px}
+  .preview-box h3{font-size:14px;font-weight:700;color:var(--text-main);margin-bottom:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .preview-box h3 span{font-size:12px;font-weight:400;color:var(--text-sub)}
+  .desktop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .desktop-tile{background:#fff;border:1px solid var(--card-border);border-radius:8px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .desktop-tile .title{font-size:12px;font-weight:700;color:#334155;margin-bottom:6px}
+  .desktop-tile .stat{font-size:15px;font-weight:800;color:var(--text-main)}
+  .desktop-tile .sub{font-size:11px;color:var(--text-sub);margin-top:4px}
+  .pwa-phone{background:#fff;border:2px solid var(--card-border);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
+  .pwa-header{display:flex;justify-content:space-between;font-size:11px;color:var(--text-sub);border-bottom:1px solid var(--card-border);padding-bottom:8px}
+  .pwa-card{background:#f8fafc;border:1px solid var(--card-border);border-radius:8px;padding:10px;font-size:12px}
+  .pwa-card b{color:var(--text-main)}
+  .pwa-nav{display:flex;justify-content:space-around;background:#f1f5f9;border-radius:8px;padding:8px;font-size:11px;color:var(--text-sub)}
+  .pwa-nav span.active{color:var(--primary);font-weight:700}
+  .extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  .extra-box{background:#f8fafc;border:1px solid var(--card-border);border-radius:10px;padding:14px}
+  .extra-box h4{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .extra-box ul{font-size:12px;color:var(--text-sub);line-height:1.7;padding-left:16px}
+  .extra-box code{background:#fff;border:1px solid var(--card-border);padding:1px 6px;border-radius:4px;color:var(--primary);font-size:11px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 8px;font-size:11px;color:var(--text-sub)}
+  .legend i{width:10px;height:10px;border-radius:999px;display:inline-block;vertical-align:middle;margin-right:6px;border:1px solid var(--card-border)}
+  .footer-tech{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--card-border);padding-top:18px;margin-top:24px;font-size:12px;color:var(--text-sub);flex-wrap:wrap;gap:8px}
+  .footer-tech strong{color:var(--text-main)}
+  .print-note{margin-top:14px;background:#f8fafc;border:1px dashed var(--card-border);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--text-sub);line-height:1.6}
+  @media print{body{padding:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.actions,.toggle{display:none!important}@page{size:A3 landscape;margin:10mm}}
+  @media(max-width:900px){body{min-width:0;padding:16px}.grid-3{grid-template-columns:1fr}.ui-dual-preview{grid-template-columns:1fr}.layer-row{grid-template-columns:1fr}.extra-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>SK Workspace — <span>Platform Architecture</span></h1>
+    <div class="subtitle">Công ty TNHH Thực Phẩm Sơn Khang · Modular Monolith Mini-App Shell · Data Hub Sapo → MISA · 14 app nội bộ</div>
+    <div class="badge-bar">
+      <span class="badge highlight">Next.js 15 + Prisma + Postgres</span>
+      <span class="badge">BullMQ + Redis + MinIO</span>
+      <span class="badge">Auth.js + Google OAuth + RBAC + Audit Log</span>
+      <span class="badge">Docker Compose + Nginx + Let's Encrypt</span>
+      <span class="badge accent">★ Trọng tâm GĐ1: Sapo + InBot + MST</span>
+    </div>
+    <div class="legend">
+      <span><i style="background:#0ea5e9"></i> Nguồn vào</span>
+      <span><i style="background:#7c3aed"></i> SK Workspace Core</span>
+      <span><i style="background:#d97706"></i> App nghiệp vụ</span>
+      <span><i style="background:#059669"></i> Liên kết ngoài</span>
+    </div>
+  </div>
+  <div class="actions">
+    <a class="toggle" href="sk-workspace-platform-architecture.html" title="Chuyển sang bản Tối (Blueprint)">🌙 Bản Tối</a>
+    <button class="btn" onclick="window.print()">🖨️ In / Xuất PDF (A3)</button>
+    <span class="badge highlight" style="font-size:12px;padding:6px 12px;">Enterprise Clean · Sáng</span>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card p1">
+    <div class="card-num">Trụ Cột 01</div>
+    <div class="card-title">🔄 Chạy song song Sapo</div>
+    <div class="card-desc">Adapter Sapo đồng bộ 2 chiều: pull đơn hàng, sản phẩm, khách hàng, tồn kho về SK Workspace; push đơn mới sang Sapo. Lưu <b>external_id</b> và <b>last_synced_at</b> cho incremental sync.</div>
+  </div>
+  <div class="card p2">
+    <div class="card-num">Trụ Cột 02</div>
+    <div class="card-title">🧾 Tích hợp hóa đơn khép kín</div>
+    <div class="card-desc">meInvoice phát hành HĐĐT đầu ra; InBot hút HĐĐT đầu vào; đối soát với Tổng cục Thuế. File PDF/XML lưu trên <b>MinIO S3</b>, lưu vết trong <b>integration_logs</b>. Sapo2Misa = 1 app trong Tài chính (stepper 4 bước, Excel 63 cột).</div>
+  </div>
+  <div class="card p3">
+    <div class="card-num">Trụ Cột 03</div>
+    <div class="card-title">🚀 Deploy 1 VPS Tối Giản</div>
+    <div class="card-desc"><code>docker compose up -d</code> dựng Postgres, Redis, MinIO, Next.js. Nginx + Let's Encrypt SSL. Backup hàng ngày. PWA qua next-pwa — Add to Home Screen như app native. Google OAuth đăng nhập nhanh.</div>
+  </div>
+</div>
+
+<div class="arch-section">
+  <div class="section-head">
+    <span>Kiến Trúc Đa Tầng Hợp Nhất (Modular Monolith — Data Hub)</span>
+    <span class="section-tag">1 VPS · 1 Codebase · 14 App · Hash Router #app/*</span>
+  </div>
+  <div class="layers-flow">
+    <div class="layer-row">
+      <div class="layer-name">Tầng 1: Shell & UI<small>WorkspaceRoot / HomePage / appRegistry</small></div>
+      <div class="layer-items">
+        <div class="layer-chip active">🖥️ Web Desktop (Full 14 app)</div>
+        <div class="layer-chip active">📱 PWA Mobile (Add to Home Screen)</div>
+        <div class="layer-chip">🔐 Google OAuth + JWT/OTP fallback</div>
+        <div class="layer-chip">🛡️ RBAC hasAppAccess(appId)</div>
+      </div>
+    </div>
+    <div class="layer-row">
+      <div class="layer-name">Tầng 2: 14 App Nội Bộ<small>5 nhóm — ERPNext/MISA</small></div>
+      <div class="layer-items">
+        <div class="layer-chip hub">📊 Bàn làm việc</div>
+        <div class="layer-chip hub">💰 Tài chính-Kế toán (Sapo2Misa)</div>
+        <div class="layer-chip hub">🛒 Mua hàng + VietQR</div>
+        <div class="layer-chip hub">📦 Bán hàng</div>
+        <div class="layer-chip hub">🤝 CRM</div>
+        <div class="layer-chip hub">🏬 Kho</div>
+        <div class="layer-chip hub">🚚 Giao vận-Phương tiện</div>
+        <div class="layer-chip hub">🏷️ Tài sản</div>
+        <div class="layer-chip hub">👥 Nhân sự-Tiền lương</div>
+        <div class="layer-chip hub">💬 Hỗ trợ/CSKH</div>
+        <div class="layer-chip hub">🛍️ POS</div>
+        <div class="layer-chip hub">✅ Quy trình/CV/Lịch</div>
+        <div class="layer-chip hub">📁 Văn thư (SKContract)</div>
+        <div class="layer-chip hub">🖼️ Thư viện media</div>
+      </div>
+    </div>
+    <div class="layer-row">
+      <div class="layer-name">Tầng 3: Tích Hợp<small>Sync / Pull / Push / Webhook</small></div>
+      <div class="layer-items">
+        <div class="layer-chip sync">🔄 Sapo Omnichannel API</div>
+        <div class="layer-chip sync">📑 MISA AMIS (Excel 63 cột)</div>
+        <div class="layer-chip sync">🤖 InBot (HĐ đầu vào)</div>
+        <div class="layer-chip sync">🏛️ HĐĐT Tổng Cục Thuế</div>
+        <div class="layer-chip sync">💳 VietQR / Casso / Sepay</div>
+        <div class="layer-chip sync">🔍 Tra cứu MST</div>
+        <div class="layer-chip sync">📅 Google Workspace (Drive/Calendar)</div>
+      </div>
+    </div>
+    <div class="layer-row">
+      <div class="layer-name">Tầng 4: Data & Infra<small>DataStore · Workflow Engine</small></div>
+      <div class="layer-items">
+        <div class="layer-chip">🐘 PostgreSQL 16 (RLS + Tenant)</div>
+        <div class="layer-chip">⚡ Redis 7 + BullMQ Worker</div>
+        <div class="layer-chip">🪣 MinIO (PDF/XML)</div>
+        <div class="layer-chip">🌐 Nginx + SSL</div>
+        <div class="layer-chip">🔄 SK Workflow Engine (If-This-Then-That)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="extra-grid">
+    <div class="extra-box">
+      <h4>🧭 Luồng điều hướng người dùng (Hash Router)</h4>
+      <ul>
+        <li><code>#home</code> (Grid 5×3) → <code>#app/sapo2misa</code> · <code>#app/skdebt</code> · <code>#app/sktask</code> … → <code>#settings</code> (ADMIN) / <code>#profile</code></li>
+        <li>HomePage: filter Tất cả / Tài chính / Kinh doanh / Nhân sự / Vận hành — tìm kiếm — Chờ ứng dụng — Đổi hình nền.</li>
+        <li>Mỗi app mount riêng trong WorkspaceRoot; RBAC chặn app chưa cấp quyền.</li>
+      </ul>
+    </div>
+    <div class="extra-box">
+      <h4>📐 Nguyên tắc</h4>
+      <ul>
+        <li>Mỗi app có owner & file hồ sơ riêng; server.ts là hotspot, tuần tự hóa.</li>
+        <li>Sapo2Misa chỉ là 1 trong 14 — stepper 4 bước + Excel 63 cột, không đồng nhất với toàn Workspace.</li>
+        <li>Workflow Engine bắn trigger liên app: đơn mới → tạo Task/Note/Cảnh báo.</li>
+        <li>Dữ liệu chung liên app: SapoOrder trung tâm — Khách/NCC/Công nợ/Tồn kho.</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:10px;font-size:11px;color:var(--text-sub)">Nguồn: <code>appRegistry.ts</code> · <code>WorkspaceRoot.tsx</code> · <code>HomePage.tsx</code> · <code>sapo2misa/*</code> — 08/10/2026</div>
+</div>
+
+<div class="ui-dual-preview">
+  <div class="preview-box">
+    <h3>Mô Phỏng Web Desktop <span>Không gian tập trung — 14 app</span></h3>
+    <div class="desktop-grid">
+      <div class="desktop-tile">
+        <div class="title">Doanh Thu T10</div>
+        <div class="stat" style="color: var(--primary);">1.842.000.000 ₫</div>
+        <div class="sub">↗ +8,4% so tháng trước</div>
+      </div>
+      <div class="desktop-tile">
+        <div class="title">Công Nợ Phải Thu</div>
+        <div class="stat" style="color: var(--accent);">642.300.000 ₫</div>
+        <div class="sub">12 khách quá hạn cần nhắc</div>
+      </div>
+      <div class="desktop-tile">
+        <div class="title">Tồn Kho Đa Điểm</div>
+        <div class="stat" style="color: var(--success);">1.204 SKU</div>
+        <div class="sub">18 SKU dưới định mức mua</div>
+      </div>
+      <div class="desktop-tile">
+        <div class="title">Mua Hàng & VietQR</div>
+        <div class="stat">PR-0412</div>
+        <div class="sub">An Thịnh Food: 38.2T ₫ (Chờ duyệt)</div>
+      </div>
+      <div class="desktop-tile">
+        <div class="title">Bán Hàng Sapo</div>
+        <div class="stat">SP-2026-0841</div>
+        <div class="sub">Đã giao · Đồng bộ 2 chiều</div>
+      </div>
+      <div class="desktop-tile">
+        <div class="title">Hóa Đơn InBot Mới</div>
+        <div class="stat" style="color: var(--purple);">4 Hóa Đơn</div>
+        <div class="sub">Tự lưu PDF/XML trên MinIO</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-sub)">Xem chi tiết: <a href="ui-web.html">ui-web.html</a> (8 tab) · <a href="architecture.html">architecture.html</a> (bản trước)</div>
+  </div>
+
+  <div class="preview-box">
+    <h3>Mô Phỏng PWA Mobile <span>Add to Home Screen</span></h3>
+    <div class="pwa-phone">
+      <div class="pwa-header">
+        <span>📶 5G · SK Workspace PWA</span>
+        <span>08:04 · 100%</span>
+      </div>
+      <div class="pwa-card">
+        <div><b>Chấm công GPS:</b> Vào 07:58 (Đúng giờ)</div>
+        <div style="font-size: 11px; color: var(--text-sub);">Ca sáng 07/10/2026 · Xe 51C-123.45</div>
+      </div>
+      <div class="pwa-card">
+        <div><b>Tạo nhanh VietQR:</b> PR-0412</div>
+        <div style="color: var(--accent); font-weight: 700;">38.200.000 ₫ — An Thịnh Food</div>
+      </div>
+      <div class="pwa-card">
+        <div><b>Cảnh báo nhắc nợ:</b> 12 khách quá hạn</div>
+        <div style="font-size: 11px; color: var(--text-sub);">An Thịnh Mart (quá 12 ngày) → Gửi Zalo</div>
+      </div>
+      <div class="pwa-nav">
+        <span class="active">⬢ Home</span>
+        <span>▦ Đơn</span>
+        <span>◈ Mua</span>
+        <span>⬣ Kho</span>
+        <span>👤 Tôi</span>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text-sub)"><a href="ui-pwa.html">ui-pwa.html</a> — 4 màn hình điện thoại</div>
+  </div>
+</div>
+
+<div style="margin-top:18px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  <div style="font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--primary);margin-bottom:8px">🔐 Google OAuth — Đăng nhập nhanh</div>
+  <div style="font-size:12px;color:var(--text-sub);line-height:1.7">
+    <b style="color:var(--text-main)">Auth.js (NextAuth) provider Google:</b> Client ID/Secret từ Google Cloud Console, redirect <code>https://workspace.sonkhang.vn/api/auth/callback/google</code>. Email → map vào <code>users</code> (allowlist domain <code>sonkhang.vn</code> hoặc invite), cấp RBAC, JWT session. Fallback OTP nếu không dùng Google. Xem <code>docs/sapo2misa-notes.md</code> và <code>CLAUDE.md</code>.
+  </div>
+</div>
+
+<div class="footer-tech">
+  <div>Công ty TNHH Thực Phẩm Sơn Khang · <strong>SK Workspace — Enterprise Clean (Sáng)</strong> · Data Hub Sapo → MISA</div>
+  <div>Quy trình: <strong>Sapo ↔ SK Workspace ↔ MISA / InBot / Thuế</strong></div>
+</div>
+<div class="print-note">
+  Mở file trực tiếp trên trình duyệt để in A3 (Landscape) hoặc xuất PDF. Cần bản PNG/SVG rời hoặc slide thuyết trình, nói mình xuất thêm. &nbsp;|&nbsp; Chuyển theme: <a href="sk-workspace-platform-architecture.html">Bản Tối (Blueprint) →</a>
+</div>
+
+</body>
+</html>
