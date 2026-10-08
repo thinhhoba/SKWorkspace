@@ -3,261 +3,389 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SK Workspace — UI Web Redesign</title>
+<title>SK Workspace — Đăng nhập & Bàn làm việc | Blueprint / Whiteprint</title>
+<script>
+(function(){
+  try{
+    var s=localStorage.getItem('sk-theme');
+    if(!s) s = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'whiteprint' : 'blueprint';
+    document.documentElement.setAttribute('data-theme', s);
+  }catch(e){ document.documentElement.setAttribute('data-theme','blueprint'); }
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,ital,wght@6..72,1,400&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#F2F0EB;--surface:#FFFFFF;--line:#E8E6E0;--ink:#11110F;--muted:#8A8682;--gold:#C8B98A;--gold-soft:#FFF8E1;--green:#0E7A4A;--green-soft:#E8F5E9;--red:#C0392B;--red-soft:#FBE9E7;--blue:#2563EB;--purple:#7C3AED;--nav:#0F172A;--nav2:#1E293B}
+:root{--r:14px}
+html[data-theme="blueprint"]{
+  --bg:#0b1120; --bg-grid:rgba(56,189,248,.05); --surface:#151f32; --surface-2:#0f172a;
+  --line:#23334d; --line-2:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --gold:#fbbf24;
+  --primary:#38bdf8; --primary-soft:rgba(56,189,248,.12); --green:#34d399; --red:#fb7185; --amber:#fbbf24;
+  --shadow:0 16px 40px rgba(0,0,0,.35);
+}
+html[data-theme="whiteprint"]{
+  --bg:#f8fbff; --bg-grid:rgba(14,165,233,.04); --surface:#ffffff; --surface-2:#f1f5f9;
+  --line:#dbeafe; --line-2:#e2e8f0; --ink:#0f172a; --muted:#64748b; --gold:#d97706;
+  --primary:#0ea5e9; --primary-soft:#f0f9ff; --green:#059669; --red:#e11d48; --amber:#d97706;
+  --shadow:0 12px 30px rgba(15,23,42,.08);
+}
 *{font-family:'Instrument Sans',sans-serif}
-body{background:var(--bg);color:var(--ink)}
-a{color:inherit;text-decoration:none}
+body{background:var(--bg);color:var(--ink);min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(var(--bg-grid) 1px, transparent 1px),linear-gradient(90deg,var(--bg-grid) 1px, transparent 1px);
+  background-size:32px 32px}
+a{color:var(--primary);text-decoration:none}
 .mono{font-family:'JetBrains Mono',monospace}
-.page{max-width:1360px;margin:0 auto;padding:22px 18px 36px}
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.eyebrow b{color:var(--ink);border:1px solid var(--line);background:#fff;padding:3px 8px;border-radius:999px;font-size:10px}
-h1{font-size:30px;letter-spacing:-.03em;margin-top:8px;line-height:1.1} h1 em{font-family:'Newsreader',serif;font-style:italic;font-weight:400;color:#8A7A5A}
-.sub{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;max-width:860px}
-.chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted)}
-.chip.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
-.view-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.vtab{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer}
-.vtab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-.hint{font-size:11px;color:var(--muted);margin-top:8px}
-/* shell frame */
-.shell{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 16px 50px rgba(0,0,0,.08)}
-.topbar{height:56px;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:3}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.02em}
-.mark{width:32px;height:32px;border-radius:10px;background:var(--ink);color:var(--gold);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700}
-.search{flex:1;max-width:520px;display:flex;align-items:center;gap:10px;background:#F6F5F1;border:1px solid var(--line);border-radius:999px;padding:9px 14px;color:var(--muted);font-size:13px}
-.search kbd{margin-left:auto;background:#fff;border:1px solid var(--line);border-bottom-width:2px;padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px}
-.top-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
-.icon-btn{width:32px;height:32px;border-radius:999px;background:#F6F5F1;border:1px solid var(--line);display:grid;place-items:center;font-size:14px}
-.avatar{width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,#C8B98A,#E8D9B0);display:grid;place-items:center;font-size:11px;font-weight:700;border:1px solid var(--line)}
-.google-btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;gap:6px}
-.layout{display:grid;grid-template-columns:230px 1fr;min-height:760px}
-.sidenav{background:#FCFCFA;border-right:1px solid var(--line);padding:12px 10px}
-.nav-group{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;padding:0 8px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:13px;color:#2A2A28;cursor:pointer}
-.nav-item.active{background:var(--ink);color:#fff}
-.nav-item .dot{width:6px;height:6px;border-radius:999px;background:var(--gold)}
-.nav-item small{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:2px 6px;border-radius:999px}
-.nav-item.active small{background:rgba(255,255,255,.12);color:#E8E6E0;border-color:rgba(255,255,255,.14)}
-.main{padding:16px;background:var(--bg)}
-.view{display:none} .view.active{display:block}
-/* login */
-.login-card{max-width:520px;margin:24px auto;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.06)}
-.login-head{padding:22px 20px 14px;text-align:center}
-.login-head h3{font-size:18px;letter-spacing:-.02em}
-.login-body{padding:0 20px 20px;display:grid;gap:10px}
-.gbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 14px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:600;cursor:pointer}
-.gbtn span{width:18px;height:18px;border-radius:999px;background:conic-gradient(from 0deg,#EA4335,#FBBC05,#34A853,#4285F4);display:inline-block}
-.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.page{max-width:1280px;margin:0 auto;padding:18px 16px 32px;position:relative}
+.top{position:sticky;top:0;z-index:20;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow)}
+html[data-theme="blueprint"] .top{background:rgba(21,31,50,.96);backdrop-filter:blur(8px)}
+html[data-theme="whiteprint"] .top{background:rgba(255,255,255,.96);backdrop-filter:blur(8px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700}
+html[data-theme="blueprint"] .mark{background:#38bdf8;color:#0b1120}
+.mono-sm{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.theme{display:flex;gap:6px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+.theme button{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;padding:7px 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer}
+.theme button.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.theme button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.menu{margin-left:auto;position:relative}
+.menu-btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);cursor:pointer}
+.menu-pop{position:absolute;right:0;top:calc(100% + 8px);min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:6px;display:none}
+.menu-pop.open{display:block}
+.menu-pop a{display:block;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
+.menu-pop a:hover{background:var(--surface-2)}
+.menu-pop small{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:block;padding:4px 10px 2px}
+.hero{margin-top:16px;text-align:center}
+.hero h1{font-size:30px;letter-spacing:-.04em;line-height:1.1}
+.hero h1 em{font-family:'Newsreader',serif;font-style:italic;font-weight:400;color:var(--primary)}
+.hero p{font-size:13px;color:var(--muted);margin:8px auto 0;max-width:760px;line-height:1.6}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.chip.dark{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs{margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tab{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tab.active{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.tab:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.view{display:none;margin-top:16px}
+.view.active{display:block}
+/* login — standalone */
+.login-wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:stretch}
+.login-brand{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.login-brand::before{content:"SK";position:absolute;right:12px;bottom:-6px;font-size:88px;font-weight:800;letter-spacing:-.06em;color:var(--line);opacity:.28;pointer-events:none}
+.login-brand h2{font-size:22px;letter-spacing:-.02em}
+.login-brand p{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
+.bullets{margin-top:14px;display:grid;gap:8px}
+.bullet{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px}
+.bullet i{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--primary-soft);border:1px solid var(--line);font-style:normal;flex-shrink:0}
+.login-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.login-card h3{font-size:16px;text-align:center}
+.field{margin-top:10px}
+.field label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.gbtn{margin-top:12px;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:12px;display:flex;gap:10px;justify-content:center;align-items:center;font-weight:700;cursor:pointer;color:var(--ink)}
+.gbtn:hover{border-color:var(--primary)}
+.gbtn svg{width:18px;height:18px}
+.gbtn:disabled{opacity:.6;cursor:not-allowed}
+.alert{display:none;margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;line-height:1.5}
+.alert.show{display:block}
+.alert.err{background:color-mix(in srgb, var(--red) 10%, var(--surface));border-color:color-mix(in srgb, var(--red) 30%, var(--line));color:var(--red)}
+.alert.ok{background:color-mix(in srgb, var(--green) 10%, var(--surface));border-color:color-mix(in srgb, var(--green) 30%, var(--line));color:var(--green)}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin:12px 0}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
-.input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;width:100%;background:#fff}
-.btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 14px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
-.btn.ghost{background:#fff;color:var(--ink)}
-.btn.block{width:100%;text-align:center}
-/* cards */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
-.kpi label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.kpi strong{font-size:19px;display:block;margin-top:6px;letter-spacing:-.02em}
-.kpi span{font-size:11px;color:var(--muted)}
-.trend{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:6px}.trend.up{color:var(--green)}.trend.down{color:var(--red)}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.card-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap}
-.card-head h3{font-size:13px}
-.card-head a{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.grid2{display:grid;grid-template-columns:1.25fr .75fr;gap:10px;margin-top:12px}
-.table{width:100%;border-collapse:collapse;font-size:13px}
-.table th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);background:#FCFCFA}
-.table td{padding:10px 12px;border-bottom:1px solid #F0EFEB}
-.pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#F6F5F1}
-.pill.green{background:var(--green-soft);color:var(--green);border-color:#C8E6C9}.pill.amber{background:var(--gold-soft);color:#8D6E00;border-color:#FFE082}.pill.red{background:var(--red-soft);color:var(--red);border-color:#FFCCBC}
-.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.input{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink)}
+.input:focus{outline:2px solid var(--primary);outline-offset:0;border-color:var(--primary)}
+.input[aria-invalid="true"]{border-color:var(--red)}
+.btn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 14px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.6;cursor:not-allowed}
 .mini{font-size:11px;color:var(--muted)}
-.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
-.app-tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:flex-start}
-.app-tile b{font-size:12px}
-.app-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:14px;flex-shrink:0;border:1px solid var(--line)}
-.app-icon.finance{background:#FFF8E1}.app-icon.ops{background:#E8F5E9}.app-icon.sales{background:#EFF6FF}.app-icon.hr{background:#F5F3FF}.app-icon.docs{background:#FEF2F2}
-@media(max-width:1100px){.layout{grid-template-columns:1fr}.sidenav{display:none}.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.kpis{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr} .search kbd{display:none}}
+.note{margin-top:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px;color:var(--muted);line-height:1.5}
+.note code{background:var(--surface);border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;color:var(--primary)}
+.note summary{cursor:pointer;font-weight:600;color:var(--ink)}
+/* shell */
+.shell{margin-top:4px;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+.topbar{height:52px;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.search{flex:1;max-width:520px;display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:13px}
+.search kbd{margin-left:auto;background:var(--surface);border:1px solid var(--line);border-bottom-width:2px;padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:10px}
+.icon{width:30px;height:30px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center}
+.icon svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.6}
+.avatar{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,var(--gold),#fff);display:grid;place-items:center;font-size:11px;font-weight:800;border:1px solid var(--line);color:var(--ink)}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:640px}
+.sidenav{background:var(--surface-2);border-right:1px solid var(--line);padding:10px}
+.nav-g{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px;padding:0 8px}
+.nav-i{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;font-size:13px;color:var(--ink);cursor:pointer;border:1px solid transparent}
+.nav-i:hover{border-color:var(--line);background:var(--surface)}
+.nav-i.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.nav-i.locked{opacity:.55}
+.nav-i small{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.06em;padding:3px 7px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.nav-i.active small{background:rgba(255,255,255,.14);color:var(--bg);border-color:transparent}
+html[data-theme="blueprint"] .nav-i.active small{background:rgba(255,255,255,.12);color:#f1f5f9}
+.main{padding:14px;background:var(--surface-2);background:color-mix(in srgb, var(--bg) 55%, var(--surface-2))}
+.filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.filter-row button{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.filter-row button.active{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+.filter-row button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line)}
+.kpi:nth-child(1)::before{background:var(--primary)} .kpi:nth-child(2)::before{background:var(--amber)} .kpi:nth-child(3)::before{background:var(--green)} .kpi:nth-child(4)::before{background:var(--red)}
+.kpi label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.kpi strong{font-size:18px;display:block;margin-top:4px}
+.kpi .trend{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:4px}
+.kpi .trend.up{color:var(--green)} .kpi .trend.down{color:var(--red)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap}
+.card-h h3{font-size:13px}
+.grid2{display:grid;grid-template-columns:1.3fr .7fr;gap:10px;margin-top:10px}
+.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px;display:flex;gap:10px;align-items:center;transition:transform .12s, border-color .12s}
+.tile:hover{transform:translateY(-1px);border-color:var(--primary)}
+.tile.finance{border-left:3px solid var(--gold)} .tile.sales{border-left:3px solid var(--primary)} .tile.ops{border-left:3px solid var(--green)} .tile.office{border-left:3px solid var(--muted)}
+.tile.hidden{display:none}
+.tile-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface-2);flex-shrink:0}
+.tile-ic svg{width:16px;height:16px;stroke:var(--ink);fill:none;stroke-width:1.6}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.table th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);background:var(--surface-2);position:sticky;top:0}
+.table td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.pill{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+.pill.green{color:var(--green)} .pill.amber{color:var(--amber)} .pill.red{color:var(--red)}
+@media(max-width:1000px){.login-wrap{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.sidenav{display:none}.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr} .search kbd{display:none} .table{min-width:480px}}
+@media print{body::before{display:none!important} .top,.tabs,.filter-row,.menu{display:none!important} .shell,.login-brand,.login-card{box-shadow:none!important} @page{size:A3 landscape;margin:10mm}}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="eyebrow">SK Workspace · UI Web Redesign · Enterprise Clean <b>14 app · Google OAuth · Hash Router #app/*</b> <span style="margin-left:auto;display:flex;gap:8px"><a class="chip" href="sk-workspace-platform-architecture.html">Blueprint (Tối)</a><a class="chip" href="sk-workspace-enterprise-clean.html">Clean (Sáng)</a><a class="chip" href="mindmap.html">Sơ đồ tư duy →</a><a class="chip" href="ui-pwa.html">PWA →</a></span></div>
-  <h1>Workspace <em>tập trung</em> — tìm là thấy, bấm là làm</h1>
-  <p class="sub">Redesign theo mô hình <b>MISA / ERPNext</b>: 1 shell duy nhất (WorkspaceRoot + HomePage + appRegistry + RBAC) + 14 app. Sapo2Misa chỉ là 1 ô trong Tài chính. Đăng nhập nhanh bằng Google. Web là bản đủ, PWA là bản gọn.</p>
-  <div class="chip-row"><span class="chip dark">Next.js 15 + Auth.js (Google)</span><span class="chip">hasAppAccess(appId)</span><span class="chip">Sapo ↔ SK Data Hub ↔ MISA 63 cột</span><span class="chip">#home → #app/* → #settings</span></div>
-  <div class="view-tabs" id="tabs">
-    <button class="vtab active" data-view="login">Đăng nhập (Google)</button>
-    <button class="vtab" data-view="home">Bàn làm việc (Home)</button>
-    <button class="vtab" data-view="dashboard">Dashboard</button>
-    <button class="vtab" data-view="finance">Tài chính (Sapo2Misa)</button>
-    <button class="vtab" data-view="procure">Mua hàng + VietQR</button>
-    <button class="vtab" data-view="sales">Bán hàng + CRM</button>
-    <button class="vtab" data-view="warehouse">Kho · Giao vận · Tài sản</button>
-    <button class="vtab" data-view="people">Nhân sự · Chấm công</button>
-    <button class="vtab" data-view="office">Văn thư · Thư viện</button>
-  </div>
-  <div class="hint">Bấm tab để xem từng màn hình · Thiết kế mới: login Google nổi bật, Home dạng grid 14 app, filter theo nhóm, tìm kiếm #app — <a href="mindmap.html" style="color:var(--blue);text-decoration:underline">xem sơ đồ tư duy cấu trúc →</a></div>
-
-  <div class="shell">
-    <div class="topbar">
-      <div class="logo"><span class="mark">SK</span> SK Workspace <span class="mono" style="font-size:10px;color:var(--muted);margin-left:6px">workspace.sonkhang.vn</span></div>
-      <div class="search">⌕ Tìm app, đơn, NCC, khách… <kbd>⌘ K</kbd></div>
-      <div class="top-actions">
-        <button class="google-btn"> <span style="width:14px;height:14px;border-radius:999px;background:conic-gradient(#EA4335,#FBBC05,#34A853,#4285F4);display:inline-block"></span> Google</button>
-        <div class="icon-btn">🔔</div>
-        <div class="icon-btn">⚙</div>
-        <div class="avatar">TH</div>
-      </div>
+  <div class="top" role="banner">
+    <div class="brand"><span class="mark">SK</span> SK Workspace <span class="mono-sm" style="margin-left:6px">Sơn Khang · 14 app · Data Hub</span></div>
+    <div class="theme" role="group" aria-label="Chọn theme">
+      <button type="button" data-theme="blueprint" aria-pressed="false" onclick="setTheme('blueprint')">⬢ Blueprint (Tối)</button>
+      <button type="button" data-theme="whiteprint" aria-pressed="false" onclick="setTheme('whiteprint')">⬣ Whiteprint (Sáng)</button>
     </div>
-    <div class="layout">
-      <div class="sidenav">
-        <div class="nav-group">Bàn làm việc</div>
-        <div class="nav-item active" data-view="dashboard"><span class="dot"></span> Tổng quan</div>
-        <div class="nav-group">Tài chính</div>
-        <div class="nav-item" data-view="finance"><span class="dot"></span> Tài chính-Kế toán <small>63 cột</small></div>
-        <div class="nav-item" data-view="finance"><span class="dot"></span> Sapo2Misa <small>1/14</small></div>
-        <div class="nav-group">Kinh doanh</div>
-        <div class="nav-item" data-view="sales"><span class="dot"></span> Bán hàng</div>
-        <div class="nav-item" data-view="sales"><span class="dot"></span> CRM</div>
-        <div class="nav-item" data-view="procure"><span class="dot"></span> Mua hàng <small>QR</small></div>
-        <div class="nav-item" data-view="warehouse"><span class="dot"></span> POS</div>
-        <div class="nav-group">Vận hành</div>
-        <div class="nav-item" data-view="warehouse"><span class="dot"></span> Kho</div>
-        <div class="nav-item" data-view="warehouse"><span class="dot"></span> Giao vận</div>
-        <div class="nav-item" data-view="warehouse"><span class="dot"></span> Tài sản</div>
-        <div class="nav-item" data-view="people"><span class="dot"></span> Nhân sự</div>
-        <div class="nav-group">Văn phòng số</div>
-        <div class="nav-item" data-view="office"><span class="dot"></span> Văn thư</div>
-        <div class="nav-item" data-view="office"><span class="dot"></span> Thư viện</div>
-        <div class="nav-item" data-view="people"><span class="dot"></span> Quy trình/Lịch</div>
-      </div>
-      <div class="main">
-
-        <!-- LOGIN -->
-        <div class="view active" id="view-login">
-          <div class="login-card">
-            <div class="login-head">
-              <div class="mark" style="margin:0 auto 10px">SK</div>
-              <h3>Đăng nhập SK Workspace</h3>
-              <div class="mini" style="margin-top:6px">Công ty TNHH Thực Phẩm Sơn Khang — chọn Google để vào nhanh</div>
-            </div>
-            <div class="login-body">
-              <button class="gbtn"><span></span> Tiếp tục với Google</button>
-              <div class="mini" style="text-align:center">Chỉ email được cấp quyền (allowlist <b>sonkhang.vn</b> hoặc invite) mới vào được. Admin cấp RBAC theo app.</div>
-              <div class="divider">hoặc</div>
-              <input class="input" placeholder="Email công ty">
-              <input class="input" placeholder="Mật khẩu / OTP" type="password">
-              <button class="btn block">Đăng nhập</button>
-              <div class="mini" style="text-align:center">Quên mật khẩu · Liên hệ Admin</div>
-              <div style="background:#F6F5F1;border:1px solid var(--line);border-radius:10px;padding:10px" class="mini">Auth.js provider Google — callback <code style="background:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--line)">/api/auth/callback/google</code> — map email → users → hasAppAccess(appId)</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- HOME -->
-        <div class="view" id="view-home">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">#home — Grid 5×3</h3><span class="pill">Filter: Tất cả · Tài chính · Kinh doanh · Nhân sự · Vận hành</span><span class="mono mini" style="margin-left:auto">#app/sapo2misa · #app/skdebt · #app/sktask</span></div>
-          <div class="home-grid">
-            <div class="app-tile"><span class="app-icon finance">💰</span><div><b>Tài chính-Kế toán</b><div class="mini">Sapo2Misa (1/14) · 63 cột MISA</div></div></div>
-            <div class="app-tile"><span class="app-icon finance">🧾</span><div><b>Sapo2Payroll</b><div class="mini">Lương & KPI</div></div></div>
-            <div class="app-tile"><span class="app-icon finance">💳</span><div><b>Sapo2Payment</b><div class="mini">Phiếu thu MISA</div></div></div>
-            <div class="app-tile"><span class="app-icon finance">⏰</span><div><b>SKDebt</b><div class="mini">Tuổi nợ 0-15/16-30</div></div></div>
-            <div class="app-tile"><span class="app-icon sales">📦</span><div><b>Bán hàng</b><div class="mini">Đơn · giá theo khách</div></div></div>
-            <div class="app-tile"><span class="app-icon sales">🤝</span><div><b>CRM</b><div class="mini">KH · NCC · RFM</div></div></div>
-            <div class="app-tile"><span class="app-icon sales">🛒</span><div><b>Mua hàng</b><div class="mini">So sánh giá · VietQR</div></div></div>
-            <div class="app-tile"><span class="app-icon ops">🏬</span><div><b>Kho</b><div class="mini">Q7/Q12 · kiểm kê</div></div></div>
-            <div class="app-tile"><span class="app-icon ops">🚚</span><div><b>SKDelivery</b><div class="mini">Giao & COD</div></div></div>
-            <div class="app-tile"><span class="app-icon ops">🏷️</span><div><b>Tài sản</b><div class="mini">Xe · bảo dưỡng</div></div></div>
-            <div class="app-tile"><span class="app-icon hr">👥</span><div><b>Nhân sự</b><div class="mini">Hồ sơ · chấm công</div></div></div>
-            <div class="app-tile"><span class="app-icon docs">📁</span><div><b>SKContract</b><div class="mini">Hợp đồng TM</div></div></div>
-            <div class="app-tile"><span class="app-icon docs">✅</span><div><b>SKTask / SKNote</b><div class="mini">Kanban · Ghi chú</div></div></div>
-            <div class="app-tile"><span class="app-icon docs">🖼️</span><div><b>Thư viện</b><div class="mini">Ảnh/video/content SP</div></div></div>
-          </div>
-          <div class="card" style="margin-top:12px"><div class="card-head"><h3>Luồng hash router</h3><span class="mini">#home (5×3) → #app/* → #settings / #profile · RBAC hasAppAccess</span></div><div style="padding:12px" class="mini">Tìm kiếm filter + wallpaper + Drawer — mỗi app mount riêng trong WorkspaceRoot — sk-analyst (read-only) · sk-platform-engineer (server) · sk-frontend-engineer (UI)</div></div>
-        </div>
-
-        <!-- DASHBOARD -->
-        <div class="view" id="view-dashboard">
-          <div class="kpis">
-            <div class="kpi"><label>Doanh thu T10</label><strong>1.842.000.000 ₫</strong><span>↗ so tháng trước</span><div class="trend up">+8,4% · Sapo sync</div></div>
-            <div class="kpi"><label>Công nợ phải thu</label><strong>642.300.000 ₫</strong><span>12 khách quá hạn</span><div class="trend down">Cần nhắc nợ</div></div>
-            <div class="kpi"><label>Công nợ phải trả</label><strong>318.500.000 ₫</strong><span>5 NCC tới hạn tuần này</span><div class="trend up">+3,1%</div></div>
-            <div class="kpi"><label>Tồn kho</label><strong>1.204 SKU</strong><span>18 SKU dưới định mức</span><div class="trend down">⚠ nhắc mua</div></div>
-          </div>
-          <div class="grid2">
-            <div class="card"><div class="card-head"><h3>Đơn bán gần đây (Sapo 2 chiều)</h3><a href="#">Xem tất cả</a></div><table class="table"><tr><th>Mã</th><th>Khách</th><th>Tổng</th><th>TT</th></tr><tr><td>SP-0841</td><td>An Thịnh Mart</td><td>42.8T</td><td><span class="pill green">Đã giao</span></td></tr><tr><td>SP-0840</td><td>Minh Khang Food</td><td>18.3T</td><td><span class="pill amber">Đang giao</span></td></tr><tr><td>SP-0839</td><td>Hòa Bình</td><td>67.2T</td><td><span class="pill">Chờ duyệt</span></td></tr></table></div>
-            <div class="card"><div class="card-head"><h3>Nhắc việc (Workflow Engine)</h3><a href="#">3 việc</a></div><div style="padding:10px;display:grid;gap:8px"><div style="display:flex;gap:8px;align-items:center;background:var(--gold-soft);border:1px solid #FFE082;border-radius:12px;padding:10px"><span>⚠</span><div><div style="font-size:12px;font-weight:600">18 SKU dưới định mức</div><div class="mini">Tạo đề nghị mua?</div></div><button class="btn" style="margin-left:auto">Tạo</button></div><div style="display:flex;gap:8px;align-items:center;background:var(--red-soft);border:1px solid #FFCCBC;border-radius:12px;padding:10px"><span>⏰</span><div><div style="font-size:12px;font-weight:600">12 khách quá hạn</div><div class="mini">Gửi nhắc nợ</div></div><button class="btn ghost" style="margin-left:auto">Gửi</button></div><div style="display:flex;gap:8px;align-items:center;background:var(--green-soft);border:1px solid #C8E6C9;border-radius:12px;padding:10px"><span>✓</span><div><div style="font-size:12px;font-weight:600">4 HĐ InBot mới</div><div class="mini">Đã tải PDF/XML → MinIO</div></div><button class="btn ghost" style="margin-left:auto">Xem</button></div></div></div>
-          </div>
-        </div>
-
-        <!-- FINANCE -->
-        <div class="view" id="view-finance">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Tài chính-Kế toán · Sapo2Misa</h3><span class="pill">Sapo2Misa = 1 trong 14</span><span style="margin-left:auto" class="toolbar"><button class="btn ghost">MISA AMIS</button><button class="btn">Xuất Excel 63 cột</button></span></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>Stepper 4 bước — Sapo → Excel MISA</h3><span class="mini">Chọn đơn · Map KH/SP · Kiểm tra · Xuất</span></div><div style="padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="pill green">1. Chọn đơn Sapo</span> → <span class="pill amber">2. Map</span> → <span class="pill">3. Kiểm tra</span> → <span class="pill">4. Xuất 63 cột</span><span style="margin-left:auto" class="mini">Ledger chống trùng · integration_logs</span></div></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>Đơn sẵn sàng xuất</h3><span class="mini">CentralOrders truth</span></div><table class="table"><tr><th>Đơn Sapo</th><th>Khách (MST)</th><th>Tổng</th><th>Trạng thái</th></tr><tr><td>SP-0841</td><td>An Thịnh Mart — 0312345678</td><td>42.800.000</td><td><span class="pill green">Sẵn sàng</span></td></tr><tr><td>SP-0840</td><td>Minh Khang — 0318765432</td><td>18.300.000</td><td><span class="pill amber">Thiếu MST</span></td></tr></table></div>
-        </div>
-
-        <!-- PROCURE -->
-        <div class="view" id="view-procure">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Mua hàng</h3><span class="pill">Đề nghị → Duyệt → Đơn → Nhập kho</span><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm NCC, SKU..." style="min-width:180px"><button class="btn ghost">So sánh giá</button><button class="btn">+ Đề nghị</button></span></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>So sánh giá NCC</h3><a href="#">Lưu giá</a></div><table class="table"><tr><th>SKU</th><th>NCC A</th><th>NCC B</th><th>Rẻ nhất</th><th></th></tr><tr><td>Heo xay 500g</td><td>42.000</td><td><strong>39.500</strong></td><td><span class="pill green">NCC B</span></td><td><button class="btn ghost">Chọn</button></td></tr></table></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>PR-0412 · VietQR linh hoạt</h3><span class="pill amber">Chờ duyệt</span></div><div style="padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="width:96px;height:96px;background:#111;color:#fff;border-radius:10px;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:center">QR<br>38.200.000<br>PR-0412</div><div><div style="font-weight:700">An Thịnh Food — 38.200.000 ₫</div><div class="mini">Theo đơn / NCC / tùy chỉnh — vietqr.io / Sepay</div><div style="margin-top:8px;display:flex;gap:8px"><button class="btn">Chia sẻ QR</button><button class="btn ghost">Tải ảnh</button></div></div></div></div>
-        </div>
-
-        <!-- SALES -->
-        <div class="view" id="view-sales">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Bán hàng & CRM</h3><span class="pill">Báo giá → Đơn → Giao → HĐ · Giá theo khách</span><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm khách, đơn..."><button class="btn ghost">CRM</button><button class="btn">+ Đơn</button></span></div>
-          <div class="grid2" style="margin-top:10px">
-            <div class="card"><div class="card-head"><h3>Đơn hàng</h3><a href="#">Sapo sync</a></div><table class="table"><tr><th>Mã</th><th>Khách</th><th>Tổng</th><th>TT</th></tr><tr><td>SO-1021</td><td>An Thịnh Mart</td><td>42.8T</td><td><span class="pill amber">Chờ giao</span></td></tr><tr><td>SO-1020</td><td>Minh Khang</td><td>18.3T</td><td><span class="pill green">Đã giao</span></td></tr></table></div>
-            <div class="card"><div class="card-head"><h3>Công nợ & Nhắc nợ</h3><a href="#">Gửi</a></div><table class="table"><tr><th>Khách</th><th>Dư nợ</th><th>Quá hạn</th><th></th></tr><tr><td>An Thịnh Mart</td><td>84.2T</td><td>12 ngày</td><td><button class="btn ghost">Nhắc</button></td></tr></table></div>
-          </div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>Giá riêng từng khách</h3><span class="mini">Ưu tiên khi tạo đơn</span></div><table class="table"><tr><th>Khách</th><th>SKU</th><th>Niêm yết</th><th>Giá riêng</th></tr><tr><td>An Thịnh Mart</td><td>Bò viên 1kg</td><td>92.000</td><td><strong>88.000</strong></td></tr></table></div>
-        </div>
-
-        <!-- WAREHOUSE -->
-        <div class="view" id="view-warehouse">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Kho · Giao vận · Tài sản</h3><span class="pill">Q7 / Q12 · Nhập/Xuất/Chuyển · Kiểm kê</span><span style="margin-left:auto" class="toolbar"><button class="btn ghost">Kiểm kê</button><button class="btn">+ Nhập/Xuất</button></span></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>Tồn kho đa điểm</h3><a href="#">Sapo sync</a></div><table class="table"><tr><th>SKU</th><th>Q7</th><th>Q12</th><th>Tổng</th><th></th></tr><tr><td>Heo xay 500g</td><td>8</td><td>4</td><td>12</td><td><span class="pill red">Dưới mức</span></td></tr><tr><td>Bò viên 1kg</td><td>42</td><td>18</td><td>60</td><td><span class="pill amber">Sắp thiếu</span></td></tr></table></div>
-          <div class="grid2"><div class="card"><div class="card-head"><h3>Giao vận</h3><a href="#">DL-0311 Q7→Q1→Q3</a></div><table class="table"><tr><th>Mã</th><th>Xe</th><th>TT</th></tr><tr><td>DL-0311</td><td>51C-123.45</td><td><span class="pill amber">Đang giao</span></td></tr></table></div><div class="card"><div class="card-head"><h3>Tài sản · Phương tiện</h3><a href="#">Bảo dưỡng</a></div><table class="table"><tr><th>Xe</th><th>Tới hạn</th><th>CP tháng</th></tr><tr><td>51C-123.45 Tải 1.5T</td><td>15/10</td><td>4.2T</td></tr></table></div></div>
-        </div>
-
-        <!-- PEOPLE -->
-        <div class="view" id="view-people">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Nhân sự · Chấm công · Quy trình</h3><span style="margin-left:auto" class="toolbar"><button class="btn ghost">SKTask Kanban</button><button class="btn">+ Nhân sự</button></span></div>
-          <div class="grid2" style="margin-top:10px">
-            <div class="card"><div class="card-head"><h3>Chấm công hôm nay</h3><span class="mini">GPS optional · PWA</span></div><table class="table"><tr><th>NV</th><th>Vào</th><th>TT</th></tr><tr><td>Nguyễn Văn A — Kho</td><td>07:58</td><td><span class="pill green">Đúng giờ</span></td></tr><tr><td>Trần Thị B — Sales</td><td>08:12</td><td><span class="pill amber">Trễ 12’</span></td></tr></table></div>
-            <div class="card"><div class="card-head"><h3>Lương T10</h3><a href="#">Xuất Excel</a></div><table class="table"><tr><th>NV</th><th>Công</th><th>Lương</th><th></th></tr><tr><td>Nguyễn Văn A</td><td>22</td><td>18.4T</td><td><span class="pill">Nháp</span></td></tr></table><div style="padding:8px" class="mini">CB + phụ cấp + OT − BHXH − tạm ứng</div></div>
-          </div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>SKTask · SKCalendar (GG sync) · SKNote</h3><span class="mini">Workflow if-this-then-that</span></div><div style="padding:12px;display:flex;gap:8px;flex-wrap:wrap"><span class="pill">Kanban</span><span class="pill">Lịch GG 2 chiều</span><span class="pill">Ghi chú</span><span class="mini">Trigger: đơn mới / tồn thấp / nợ quá hạn → tạo Task</span></div></div>
-        </div>
-
-        <!-- OFFICE -->
-        <div class="view" id="view-office">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="font-size:16px">Văn thư · Hợp đồng · Thư viện</h3><span style="margin-left:auto" class="toolbar"><input class="input" placeholder="Tìm hợp đồng, media..."><button class="btn">+ Thêm</button></span></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>SKContract — Hợp đồng TM</h3><span class="mini">Duyệt · ký số · nhắc hạn</span></div><table class="table"><tr><th>Số</th><th>Tiêu đề</th><th>Hạn</th><th>TT</th></tr><tr><td>VB-041</td><td>HĐ nguyên tắc — An Thịnh Food</td><td>30/10</td><td><span class="pill amber">Chờ ký</span></td></tr></table></div>
-          <div class="card" style="margin-top:10px"><div class="card-head"><h3>Thư viện media</h3><span class="mini">Ảnh / video / content sản phẩm — MinIO</span></div><div style="padding:12px;display:flex;gap:10px;flex-wrap:wrap"><div style="border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px"><div style="font-size:12px;font-weight:600">📷 Bò viên 1kg — ảnh SP</div><div class="mini">SKU-BV01 · 3 ảnh</div></div><div style="border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px"><div style="font-size:12px;font-weight:600">🎬 Video đóng gói</div><div class="mini">MP4 · 42MB</div></div><div style="border:1px solid var(--line);border-radius:12px;padding:12px;min-width:180px"><div style="font-size:12px;font-weight:600">📄 Menu Q4.pdf</div><div class="mini">Content · đã duyệt</div></div></div></div>
-        </div>
-
+    <div class="menu">
+      <button type="button" class="menu-btn" aria-expanded="false" aria-haspopup="true" onclick="toggleMenu()">☰ Menu</button>
+      <div class="menu-pop" id="menuPop" role="menu">
+        <small>Tài liệu</small>
+        <a role="menuitem" href="mindmap.html">Sơ đồ tư duy 5 cột →</a>
+        <a role="menuitem" href="sk-workspace-blueprint.html">Kiến trúc Blueprint (tối)</a>
+        <a role="menuitem" href="sk-workspace-whiteprint.html">Kiến trúc Whiteprint (sáng)</a>
+        <a role="menuitem" href="ui-pwa.html">Bản PWA →</a>
+        <small>Hash router</small>
+        <a role="menuitem" href="#home">#home — Grid 5×3</a>
+        <a role="menuitem" href="#app/sapo2misa">#app/sapo2misa</a>
       </div>
     </div>
   </div>
+
+  <div class="hero">
+    <h1>Đăng nhập <em>một chạm</em> — Bàn làm việc <em>tập trung</em></h1>
+    <p>Chỉ 2 theme duy nhất: <b>Blueprint</b> (nền navy lưới kỹ thuật) và <b>Whiteprint</b> (nền trắng lưới xanh) — cùng token, cùng shell <code style="background:var(--surface);border:1px solid var(--line);padding:1px 6px;border-radius:6px">#home → #app/* → #settings</code> · Google OAuth là mặc định, OTP là fallback.</p>
+    <div class="chips"><span class="chip dark">Auth.js · Google OAuth</span><span class="chip">hasAppAccess(appId) · RBAC</span><span class="chip">Sapo ↔ SK Data Hub ↔ MISA 63 cột</span><span class="chip">Web đủ · PWA gọn</span></div>
+    <div class="tabs" role="tablist" aria-label="Chế độ xem">
+      <button type="button" role="tab" class="tab active" data-view="login" aria-selected="true" onclick="show('login')">Đăng nhập</button>
+      <button type="button" role="tab" class="tab" data-view="home" aria-selected="false" onclick="show('home')">Bàn làm việc (Home)</button>
+      <button type="button" role="tab" class="tab" data-view="dashboard" aria-selected="false" onclick="show('dashboard')">Tổng quan (Dashboard)</button>
+    </div>
+  </div>
+
+  <!-- LOGIN — standalone, không nằm trong shell -->
+  <div class="view active" id="view-login" role="tabpanel">
+    <div class="login-wrap">
+      <div class="login-brand">
+        <div class="mono-sm">Công ty TNHH Thực Phẩm Sơn Khang</div>
+        <h2>SK Workspace — nơi làm việc duy nhất</h2>
+        <p>14 app nội bộ trong 1 shell. Sapo2Misa chỉ là 1 ô trong Tài chính. Đồng bộ Sapo 2 chiều, đẩy sang MISA 63 cột, VietQR linh hoạt, chấm công GPS — tất cả qua Data Hub.</p>
+        <div class="bullets">
+          <div class="bullet"><i>🔐</i><div><b style="font-size:12px">Đăng nhập bằng Google</b><div class="mini">Allowlist <b>sonkhang.vn</b> hoặc invite · Admin cấp RBAC theo app</div></div></div>
+          <div class="bullet"><i>▦</i><div><b style="font-size:12px">1 shell — 14 app</b><div class="mini">WorkspaceRoot + HomePage + appRegistry + Workflow Engine (if-this-then-that)</div></div></div>
+          <div class="bullet"><i>🔄</i><div><b style="font-size:12px">Data Hub</b><div class="mini">Sapo API + nhập tay → DataStore truth → Excel MISA / HĐĐT / Thuế</div></div></div>
+        </div>
+      </div>
+      <div class="login-card">
+        <h3>Đăng nhập</h3>
+        <div class="mini" style="text-align:center;margin-top:4px">Chọn Google để vào nhanh nhất — JWT session</div>
+        <button type="button" class="gbtn" id="gbtn" onclick="mockGoogle()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.31v2.77h3.57a10.24 10.24 0 0 0 3.27-6.09z"/><path fill="#34A853" d="M12 23a10.9 10.9 0 0 0 7.56-2.75l-3.57-2.77A6.66 6.66 0 0 1 12 18.5c-2.96 0-5.47-2-6.37-4.68H1.9v2.94A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.63 13.82A6.6 6.6 0 0 1 5.28 12c0-.64.11-1.26.35-1.82V7.24H1.9A11 11 0 0 0 .8 12c0 1.78.42 3.46 1.1 4.94l3.73-3.12z"/><path fill="#EA4335" d="M12 5.5a6.04 6.04 0 0 1 4.27 1.67l3.2-3.2A10.88 10.88 0 0 0 12 1a11 11 0 0 0-10.1 6.24l3.73 2.94C6.53 7.5 9.04 5.5 12 5.5z"/></svg>
+          Tiếp tục với Google
+        </button>
+        <div class="alert ok" id="okAlert" role="status">Đã đăng nhập (mock) — trong thực tế sẽ redirect tới <code>/api/auth/callback/google</code>.</div>
+        <div class="alert err" id="errAlert" role="alert"></div>
+        <div class="divider">hoặc đăng nhập bằng email</div>
+        <form onsubmit="return mockLogin(event)" novalidate>
+          <div class="field">
+            <label for="email">Email công ty</label>
+            <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="ten@sonkhang.vn" aria-describedby="email-hint" required>
+            <div class="mini" id="email-hint">Chỉ email trong allowlist <b>sonkhang.vn</b> hoặc đã được invite.</div>
+          </div>
+          <div class="field">
+            <label for="password">Mật khẩu / OTP</label>
+            <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+            <button type="submit" class="btn block" style="flex:1">Đăng nhập</button>
+            <button type="button" class="btn ghost" onclick="mockOtp()">Gửi lại OTP</button>
+          </div>
+          <div class="mini" style="text-align:center;margin-top:8px"><a href="#">Quên mật khẩu</a> · Liên hệ Admin để được cấp RBAC theo app</div>
+        </form>
+        <details class="note" style="margin-top:12px">
+          <summary>Chi tiết kỹ thuật (Auth.js)</summary>
+          <div style="margin-top:8px">Provider Google — callback <code>/api/auth/callback/google</code> — map email → <code>users</code> → <code>hasAppAccess(appId)</code> · Fallback OTP · JWT session · Audit log.</div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME — trong shell -->
+  <div class="view" id="view-home" role="tabpanel">
+    <div class="shell">
+      <div class="topbar"><div class="brand"><span class="mark">SK</span> SK Workspace</div><div class="search" role="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> <input id="homeSearch" placeholder="Tìm app, đơn, NCC, khách…" style="border:0;outline:0;background:transparent;flex:1;color:inherit;font-size:13px" oninput="filterTiles()"><kbd>⌘ K</kbd></div><div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="icon" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7-6 11-6 11S6 15 6 8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="icon" aria-label="Cài đặt"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></span><span class="avatar">TH</span></div></div>
+      <div class="layout">
+        <nav class="sidenav" aria-label="Điều hướng">
+          <div class="nav-g">Bàn làm việc</div>
+          <div class="nav-i" data-nav="dashboard" onclick="show('dashboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Tổng quan</div>
+          <div class="nav-g">Tài chính</div>
+          <div class="nav-i" data-nav="finance" onclick="show('dashboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 15a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg> Tài chính-Kế toán <small>63 cột</small></div>
+          <div class="nav-i locked" title="Chưa cấp quyền"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Sapo2Misa <small>🔒</small></div>
+          <div class="nav-g">Kinh doanh</div>
+          <div class="nav-i" onclick="show('home')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2l12 5-12 5-4-2z"/><path d="M6 12l12 5-12 5-4-2z"/></svg> Bán hàng</div>
+          <div class="nav-i" onclick="show('home')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> CRM</div>
+          <div class="nav-i" onclick="show('home')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Mua hàng</div>
+          <div class="nav-g">Vận hành</div>
+          <div class="nav-i" onclick="show('dashboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Kho</div>
+          <div class="nav-i" onclick="show('dashboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h10"/><path d="M14 18h5a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.5-4.5A1 1 0 0 0 15.5 8H14"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg> Giao vận</div>
+          <div class="nav-g">Văn phòng số</div>
+          <div class="nav-i" onclick="show('home')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13H8M16 17H8M13 13h2"/></svg> Văn thư</div>
+          <div class="nav-i" onclick="show('home')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.66-3.66a2 2 0 0 0-2.83 0L3 22"/></svg> Thư viện</div>
+        </nav>
+        <div class="main">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3>#home — Grid 5×3</h3><span class="pill">Sapo2Misa = 1 trong 14</span><span class="mono mini" style="margin-left:auto">#app/sapo2misa · #app/skdebt · #app/sktask</span></div>
+          <div class="filter-row" role="group" aria-label="Lọc nhóm">
+            <button type="button" class="active" data-filter="all" onclick="setFilter('all')">Tất cả</button>
+            <button type="button" data-filter="finance" onclick="setFilter('finance')">Tài chính</button>
+            <button type="button" data-filter="sales" onclick="setFilter('sales')">Kinh doanh</button>
+            <button type="button" data-filter="ops" onclick="setFilter('ops')">Vận hành</button>
+            <button type="button" data-filter="office" onclick="setFilter('office')">Văn phòng số</button>
+          </div>
+          <div class="home-grid" id="homeGrid">
+            <div class="tile finance" data-group="finance" data-name="Tài chính-Kế toán Sapo2Misa"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M3 7h18M7 3v4M17 3v4M3 7v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7"/><path d="M9 14h6M9 18h6"/></svg></span><div><b style="font-size:12px">Tài chính-Kế toán</b><div class="mini">Sapo2Misa (1/14) · 63 cột MISA</div></div></div>
+            <div class="tile finance" data-group="finance" data-name="Sapo2Payroll"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg></span><div><b style="font-size:12px">Sapo2Payroll</b><div class="mini">Lương & KPI</div></div></div>
+            <div class="tile finance" data-group="finance" data-name="Sapo2Payment"><span class="tile-ic"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span><div><b style="font-size:12px">Sapo2Payment</b><div class="mini">Phiếu thu MISA</div></div></div>
+            <div class="tile finance" data-group="finance" data-name="SKDebt"><span class="tile-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><b style="font-size:12px">SKDebt</b><div class="mini">Tuổi nợ 0-15/16-30</div></div></div>
+            <div class="tile sales" data-group="sales" data-name="Bán hàng"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M6 2l12 5-12 5-4-2z"/><path d="M6 12l12 5-12 5-4-2z"/></svg></span><div><b style="font-size:12px">Bán hàng</b><div class="mini">Đơn · giá theo khách</div></div></div>
+            <div class="tile sales" data-group="sales" data-name="CRM"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><div><b style="font-size:12px">CRM</b><div class="mini">KH · NCC · RFM</div></div></div>
+            <div class="tile sales" data-group="sales" data-name="Mua hàng"><span class="tile-ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span><div><b style="font-size:12px">Mua hàng</b><div class="mini">So sánh giá · VietQR</div></div></div>
+            <div class="tile sales" data-group="sales" data-name="POS"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M3 3h18v13H3z"/><path d="M8 21h8"/><path d="M12 16v5"/></svg></span><div><b style="font-size:12px">POS</b><div class="mini">Bán lẻ quầy</div></div></div>
+            <div class="tile ops" data-group="ops" data-name="Kho"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span><div><b style="font-size:12px">Kho</b><div class="mini">Q7/Q12 · kiểm kê</div></div></div>
+            <div class="tile ops" data-group="ops" data-name="SKDelivery"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h10"/><path d="M14 18h5a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.5-4.5A1 1 0 0 0 15.5 8H14"/></svg></span><div><b style="font-size:12px">SKDelivery</b><div class="mini">Giao & COD</div></div></div>
+            <div class="tile ops" data-group="ops" data-name="Tài sản"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 13a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg></span><div><b style="font-size:12px">Tài sản</b><div class="mini">Xe · bảo dưỡng</div></div></div>
+            <div class="tile office" data-group="office" data-name="Nhân sự"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><div><b style="font-size:12px">Nhân sự</b><div class="mini">Hồ sơ · chấm công GPS</div></div></div>
+            <div class="tile office" data-group="office" data-name="SKContract"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span><div><b style="font-size:12px">SKContract</b><div class="mini">Hợp đồng TM</div></div></div>
+            <div class="tile office" data-group="office" data-name="SKTask"><span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span><div><b style="font-size:12px">SKTask / SKNote</b><div class="mini">Kanban · Ghi chú · Lịch GG</div></div></div>
+            <div class="tile office" data-group="office" data-name="Thư viện"><span class="tile-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-3.66-3.66a2 2 0 0 0-2.83 0L3 22"/></svg></span><div><b style="font-size:12px">Thư viện</b><div class="mini">Ảnh/video/content SP</div></div></div>
+          </div>
+          <div class="card" style="margin-top:10px"><div class="card-h"><h3>Hash router</h3><span class="mini">#home (5×3) → #app/* → #settings / #profile · RBAC hasAppAccess(appId)</span></div><div style="padding:10px" class="mini">Tìm kiếm lọc theo tên app (gõ “kho”, “misa”…) · Nhóm màu: <span style="color:var(--gold)">▮</span> Tài chính · <span style="color:var(--primary)">▮</span> Kinh doanh · <span style="color:var(--green)">▮</span> Vận hành · <span style="color:var(--muted)">▮</span> Văn phòng số — mỗi app mount riêng trong WorkspaceRoot.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="view" id="view-dashboard" role="tabpanel">
+    <div class="shell">
+      <div class="topbar"><div class="brand"><span class="mark">SK</span> Tổng quan</div><div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Tìm đơn, NCC, khách… <kbd>⌘ K</kbd></div><div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="icon"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7-6 11-6 11S6 15 6 8"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="avatar">TH</span></div></div>
+      <div style="padding:14px;background:var(--surface-2);background:color-mix(in srgb, var(--bg) 55%, var(--surface-2))">
+        <div class="kpis">
+          <div class="kpi"><label>Doanh thu T10</label><strong>1.842.000.000 ₫</strong><div class="trend up">↗ +8,4% so T09 · Sapo sync</div></div>
+          <div class="kpi"><label>Công nợ phải thu</label><strong>642.300.000 ₫</strong><div class="trend down">12 khách quá hạn · cần nhắc</div></div>
+          <div class="kpi"><label>Công nợ phải trả</label><strong>318.500.000 ₫</strong><div class="trend up">5 NCC tới hạn tuần này</div></div>
+          <div class="kpi"><label>Tồn kho</label><strong>1.204 SKU</strong><div class="trend down">18 SKU dưới định mức · nhắc mua</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card"><div class="card-h"><h3>Đơn bán gần đây (Sapo 2 chiều)</h3><a href="#">Xem tất cả →</a></div><div class="table-wrap"><table class="table"><thead><tr><th>Mã</th><th>Khách</th><th>Tổng</th><th>TT</th></tr></thead><tbody><tr><td>SP-0841</td><td>An Thịnh Mart</td><td>42.800.000 ₫</td><td><span class="pill green">Đã giao</span></td></tr><tr><td>SP-0840</td><td>Minh Khang Food</td><td>18.300.000 ₫</td><td><span class="pill amber">Đang giao</span></td></tr><tr><td>SP-0839</td><td>Hòa Bình</td><td>67.200.000 ₫</td><td><span class="pill">Chờ duyệt</span></td></tr></tbody></table></div></div>
+          <div class="card"><div class="card-h"><h3>Nhắc việc (Workflow Engine)</h3><span class="pill">3 việc</span></div><div style="padding:10px;display:grid;gap:8px"><div style="display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px"><span>⚠</span><div><div style="font-size:12px;font-weight:700">18 SKU dưới định mức</div><div class="mini">Tạo đề nghị mua?</div></div><button type="button" class="btn" style="margin-left:auto">Tạo</button></div><div style="display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px"><span>⏰</span><div><div style="font-size:12px;font-weight:700">12 khách quá hạn</div><div class="mini">Gửi nhắc nợ</div></div><button type="button" class="btn ghost" style="margin-left:auto">Gửi</button></div><div style="display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px"><span>✓</span><div><div style="font-size:12px;font-weight:700">4 HĐ InBot mới</div><div class="mini">Đã tải PDF/XML → MinIO</div></div><button type="button" class="btn ghost" style="margin-left:auto">Xem</button></div></div></div>
+        </div>
+        <div class="card" style="margin-top:10px"><div class="card-h"><h3>Pipeline dữ liệu</h3><span class="mini">Sapo pull · chuẩn hóa CentralOrders · Excel 63 cột · integration_logs</span></div><div style="padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="pill">Sapo</span> → <span class="pill">SK Data Hub</span> → <span class="pill">MISA / HĐĐT</span><span style="margin-left:auto" class="mini">Ledger chống trùng · external_id + last_synced_at</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;text-align:center" class="mini">In A3: <button type="button" class="btn ghost" onclick="window.print()">🖨 In / PDF</button> · Toggle lưu localStorage · prefers-color-scheme · Sapo2Misa = 1 trong 14 app Tài chính</div>
 </div>
 <script>
-const tabs=document.querySelectorAll('.vtab'), views=document.querySelectorAll('.view'), navs=document.querySelectorAll('.nav-item');
-function show(id){
-  views.forEach(v=>v.classList.toggle('active', v.id==='view-'+id));
-  tabs.forEach(t=>t.classList.toggle('active', t.dataset.view===id));
-  navs.forEach(n=>n.classList.toggle('active', n.dataset.view===id));
+const KEY='sk-theme';
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  try{ localStorage.setItem(KEY, t); }catch(e){}
+  document.querySelectorAll('.theme button').forEach(function(b){ var on=b.getAttribute('data-theme')===t; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
 }
-tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.view)));
-navs.forEach(n=>n.addEventListener('click',()=>show(n.dataset.view)));
+function show(id){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('active', v.id==='view-'+id); });
+  document.querySelectorAll('.tab').forEach(function(x){ var on=x.getAttribute('data-view')===id; x.classList.toggle('active', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+  if(id!=='login') history.replaceState(null,'','#'+id);
+  document.querySelectorAll('.nav-i').forEach(function(n){ n.classList.toggle('active', n.getAttribute('data-nav')===id); });
+}
+function toggleMenu(){
+  var pop=document.getElementById('menuPop');
+  var btn=document.querySelector('.menu-btn');
+  var open=pop.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', function(e){
+  var pop=document.getElementById('menuPop');
+  var menu=document.querySelector('.menu');
+  if(pop && menu && !menu.contains(e.target)) { pop.classList.remove('open'); document.querySelector('.menu-btn').setAttribute('aria-expanded','false'); }
+});
+function setFilter(f){
+  document.querySelectorAll('.filter-row button').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-filter')===f); });
+  var q=(document.getElementById('homeSearch') && document.getElementById('homeSearch').value || '').toLowerCase();
+  document.querySelectorAll('#homeGrid .tile').forEach(function(t){
+    var g=t.getAttribute('data-group');
+    var name=(t.getAttribute('data-name')||'').toLowerCase();
+    var okGroup=(f==='all' || g===f);
+    var okSearch=!q || name.indexOf(q)!==-1;
+    t.classList.toggle('hidden', !(okGroup && okSearch));
+  });
+}
+function filterTiles(){ var f=document.querySelector('.filter-row button.active'); setFilter(f ? f.getAttribute('data-filter') : 'all'); }
+function mockGoogle(){
+  var b=document.getElementById('gbtn');
+  b.disabled=true; b.textContent='Đang chuyển tới Google…';
+  setTimeout(function(){ document.getElementById('okAlert').classList.add('show'); b.disabled=false; b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.31v2.77h3.57a10.24 10.24 0 0 0 3.27-6.09z"/><path fill="#34A853" d="M12 23a10.9 10.9 0 0 0 7.56-2.75l-3.57-2.77A6.66 6.66 0 0 1 12 18.5c-2.96 0-5.47-2-6.37-4.68H1.9v2.94A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.63 13.82A6.6 6.6 0 0 1 5.28 12c0-.64.11-1.26.35-1.82V7.24H1.9A11 11 0 0 0 .8 12c0 1.78.42 3.46 1.1 4.94l3.73-3.12z"/><path fill="#EA4335" d="M12 5.5a6.04 6.04 0 0 1 4.27 1.67l3.2-3.2A10.88 10.88 0 0 0 12 1a11 11 0 0 0-10.1 6.24l3.73 2.94C6.53 7.5 9.04 5.5 12 5.5z"/></svg> Tiếp tục với Google'; }, 600);
+}
+function mockLogin(e){
+  e.preventDefault();
+  var email=document.getElementById('email');
+  var pw=document.getElementById('password');
+  var err=document.getElementById('errAlert');
+  var ok=document.getElementById('okAlert');
+  ok.classList.remove('show'); err.classList.remove('show');
+  var valid=true;
+  if(!email.value || email.value.indexOf('@')===-1){ email.setAttribute('aria-invalid','true'); valid=false; }
+  else email.removeAttribute('aria-invalid');
+  if(!pw.value){ pw.setAttribute('aria-invalid','true'); valid=false; }
+  else pw.removeAttribute('aria-invalid');
+  if(!valid){ err.textContent='Vui lòng nhập email hợp lệ và mật khẩu/OTP.'; err.classList.add('show'); return false; }
+  if(email.value.indexOf('sonkhang.vn')===-1 && email.value.indexOf('sonkhang')===-1){
+    err.textContent='Email không thuộc allowlist sonkhang.vn và chưa được invite — liên hệ Admin để được cấp quyền.'; err.classList.add('show'); return false;
+  }
+  err.classList.remove('show'); ok.textContent='Đăng nhập thành công (mock) — sẽ tạo JWT session và hasAppAccess(appId).'; ok.classList.add('show');
+  setTimeout(function(){ show('home'); }, 500);
+  return false;
+}
+function mockOtp(){
+  var err=document.getElementById('errAlert'); var ok=document.getElementById('okAlert');
+  ok.classList.remove('show'); err.classList.remove('show');
+  ok.textContent='Đã gửi OTP tới email (mock) — hết hạn sau 5 phút.'; ok.classList.add('show');
+}
+(function(){
+  var s; try{ s=localStorage.getItem(KEY); }catch(e){ s=null; }
+  if(!s) s = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'whiteprint' : 'blueprint';
+  document.documentElement.setAttribute('data-theme', s);
+  document.querySelectorAll('.theme button').forEach(function(b){ var on=b.getAttribute('data-theme')===s; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  var hash=(location.hash||'').replace('#','');
+  if(hash==='home' || hash==='dashboard') show(hash);
+})();
 </script>
 </body>
 </html>
