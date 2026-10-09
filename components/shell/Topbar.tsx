@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { useTheme } from "next-themes";
-import { Search, Sun, Moon, Menu } from "lucide-react";
+import { Search, Sun, Moon, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -23,6 +23,30 @@ function Clock() {
   return <span className="font-mono text-xs text-muted-foreground tabular-nums">{d} {hh}:{mm} · {dd}/{mo}</span>;
 }
 
+type TopbarUser = { name: string; role: string; username: string };
+
+function roleBadgeClass(role: string) {
+  switch (role) {
+    case "ADMIN":
+      return "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300";
+    case "ACCOUNTANT":
+      return "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300";
+    case "WAREHOUSE":
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300";
+    case "DRIVER":
+      return "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300";
+    default:
+      return "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300";
+  }
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function Topbar({
   onMenuClick,
   onOpenPalette,
@@ -35,6 +59,25 @@ export function Topbar({
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
+  const [user, setUser] = React.useState<TopbarUser | null>(null);
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => {
+        if (r.status === 401) return null;
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if (data && data.user) setUser(data.user as TopbarUser);
+        else if (data && data.name) setUser(data as TopbarUser);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <header
@@ -76,6 +119,34 @@ export function Topbar({
         <span className="hidden lg:inline mr-1">
           <Clock />
         </span>
+        {user && (
+          <div className="hidden sm:flex items-center gap-2 pl-2 ml-1 border-l">
+            <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+              {initials(user.name)}
+            </div>
+            <div className="hidden md:block leading-none">
+              <div className="text-sm font-medium leading-none">{user.name}</div>
+              <span className={`mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${roleBadgeClass(user.role)}`}>
+                {user.role}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Đăng xuất"
+              title="Đăng xuất"
+              className="h-8 w-8 shrink-0"
+              onClick={async () => {
+                try {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                } catch {}
+                window.location.href = "/login";
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -87,13 +158,6 @@ export function Topbar({
         >
           {mounted && theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
-        <div className="hidden sm:flex items-center gap-2 pl-2 ml-1 border-l">
-          <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary">HT</div>
-          <div className="hidden md:block leading-none">
-            <div className="text-sm font-medium">Hồ Bá Thịnh</div>
-            <div className="text-[11px] text-muted-foreground">ADMIN</div>
-          </div>
-        </div>
       </div>
     </header>
   );
