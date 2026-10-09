@@ -20,6 +20,8 @@ jobs:
 
       - run: npm ci
 
+      - run: npx prisma generate
+
       - run: npx tsc --noEmit
 
       - uses: docker/setup-buildx-action@v3
@@ -47,6 +49,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT || 22 }}
           script: |
@@ -54,4 +57,5 @@ jobs:
             cd /opt/sk-workspace
             docker compose pull app
             docker compose up -d --remove-orphans
+            docker compose exec -T app npx prisma db push --skip-generate || true
             docker system prune -f

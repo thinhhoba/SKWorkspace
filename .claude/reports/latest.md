@@ -1,39 +1,46 @@
-# Báo cáo Prisma & Healthcheck Go-Live — 09/10/2026
+# Báo cáo Docker Cutover Zero-Downtime — 09/10/2026
 
-## 1) Schema — `prisma/schema.prisma`
-- Provider `postgresql`, generator `prisma-client-js`. Đã bổ sung 2 model còn thiếu so với bản trước: `StockTransfer` và `Order` (theo yêu cầu verify "User/Customer/InventoryItem/StockTransfer/Order/MisaLedgerEntry").
-- 6 models: `User` (@unique username), `Customer` (@unique code), `InventoryItem` (@unique [sku, warehouse] `sku_warehouse`), `StockTransfer` (@unique code), `Order` (@unique external_id), `MisaLedgerEntry` (@unique external_id).
-- `@map` bảng snake_case, `@unique external_id` cho chống trùng đồng bộ.
+## 1) Dockerfile — Prisma Linux
+- `FROM node:20-alpine` 3 stage (deps/builder/runner). `COPY prisma ./prisma/` + `RUN npx prisma generate` trước `RUN npm run build` — đảm bảo Prisma Client sinh trên Linux trước khi build Next.js standalone (tránh lỗi engine mismatch Alpine).
+- Stage runner `COPY --from=builder /app/.next/standalone ./` + `/.next/static`, chạy `node server.js` trên port 3000, user `nextjs`.
 
-## 2) Singleton — `packages/core/db.ts`
-- `createPrismaClient()` dùng `@prisma/adapter-pg` (Prisma 7) khi có `DATABASE_URL`; thiếu thì trả `Proxy` fallback ném lỗi có kiểm soát.
-- `globalThis` singleton, `checkDatabaseConnection()` → `"connected" | "fallback_mock"` (`SELECT 1`).
+## 2) Compose — localhost only (127.0.0.1)
+- `app`: `127.0.0.1:3000:3000` (không expose 0.0.0.0), `healthcheck` wget `/api/health`.
+- `postgres`: `127.0.0.1:5432:5432` (chỉ host, không public).
+- `redis`: không expose port (chỉ nội bộ `sk-net`).
+- **Đã bỏ service `nginx` container chiếm 80/443** — Host Nginx làm reverse proxy duy nhất, tránh xung đột port Let's Encrypt.
 
-## 3) Seed — `prisma/seed.ts` + `prisma` trong `package.json`
-- `seed.ts`: lazy import `PrismaClient`+`PrismaPg` chỉ khi có `DATABASE_URL`; không có DB thì log fallback và exit 0. Upsert 4 users (admin/ketoan/thukho/taixe), customers từ `MOCK_CUSTOMERS`, inventory từ `INITIAL_INVENTORY_ITEMS`.
-- `package.json`: `scripts.db:seed = "tsx prisma/seed.ts"`, `prisma.seed = "tsx prisma/seed.ts"`.
+## 3) Deploy — `.github/workflows/deploy.yml`
+- Build job: `npm ci` → `npx prisma generate` → `npx tsc --noEmit` → `docker/build-push-action` (GHCR, cache gha).
+- Deploy job (appleboy/ssh-action): `with` có cả `password: VPS_PASSWORD` + `key: VPS_SSH_KEY` (dual auth), script: `docker compose pull app` → `up -d --remove-orphans` → `docker compose exec -T app npx prisma db push --skip-generate || true` → `docker system prune -f`.
 
-## 4) Healthcheck — `app/api/health/route.ts`
-- `GET /api/health` trả `{status:"healthy", services:{database: fallback_mock|connected, pwa:"active"}}` — không throw khi thiếu DB (fallback_mock).
+## 4) Script cutover / rollback
+- `scripts/switch-to-v2.sh`: `cp $CONF $CONF.bak`, `sed s|127.0.0.1:6060|127.0.0.1:3000|`, `nginx -t`, `systemctl reload nginx`.
+- `scripts/rollback-to-v1.sh`: kiểm tra `$CONF.bak` tồn tại, `cp $CONF.bak $CONF`, `nginx -t`, `systemctl reload nginx`.
 
-## 5) Fallback — `packages/integrations/misa/ledgerDb.ts`
-- `getLedger()/addLedgerEntry()` thử `checkDatabaseConnection() === "connected"` thì dùng Prisma, catch thì fallback file `.data/sapo2misa_ledger.json` + `memoryLedger`.
-
-## 6) Verify 09/10/2026
-- `npx prisma generate` — PASS (Generated Prisma Client v7.10.0).
+## 5) Verify 09/10/2026
 - `npx tsc --noEmit` — PASS (0 lỗi).
-- `npm run build` — PASS — 18 routes, có `ƒ /api/health`, `○ /customers`, `○ /inventory` (output chứa "/api/health" và "/customers" và "/inventory"). Warning copy `page_client-reference-manifest.js` là vấn đề standalone đã có sẵn, không block build.
+- `npm run build` — PASS — 18 routes (có `ƒ /api/health`, `○ /customers`, `○ /inventory`...), `standalone` sinh `.next/standalone/server.js` (6.3 KB). Warning copy `page_client-reference-manifest.js` đã biết, không block build.
+- `npx prisma generate` — PASS (v7.10.0).
 
-## 7) Hướng dẫn go-live
-```bash
-# .env
-DATABASE_URL="postgresql://user:pass@host:5432/sk_workspace?schema=public"
-
-npx prisma migrate dev --name init   # tạo migration từ schema.prisma
-npm run db:seed                       # hoặc: npx prisma db seed
-# Docker (Postgres + Redis + MinIO + App)
-docker compose up -d --build
-curl http://localhost:3000/api/health  # -> {"status":"healthy","services":{"database":"connected"}}
+## 6) Hướng dẫn Host Nginx + Cutover
+```nginx
+# /etc/nginx/sites-available/workspace.sonkhang.vn — trước cutover
+location / { proxy_pass http://127.0.0.1:6060; }
+# sau cutover (script tự đổi)
+location / { proxy_pass http://127.0.0.1:3000; }
 ```
-- Chưa có `DATABASE_URL` thì app vẫn chạy bằng mock/fallback (build & health trả `fallback_mock`).
+```bash
+# Chuẩn bị: đảm bảo app v2 chạy
+docker compose up -d --build && curl http://127.0.0.1:3000/api/health
 
+# Cutover zero-downtime (không tắt v1 trước, đổi proxy rồi reload)
+bash scripts/switch-to-v2.sh
+
+# Kiểm tra
+curl https://workspace.sonkhang.vn/api/health
+
+# Rollback nếu lỗi
+bash scripts/rollback-to-v1.sh
+```
+- Tắt v1 (port 6060) thủ công sau khi v2 ổn định.
