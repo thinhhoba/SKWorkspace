@@ -10,3 +10,10 @@ dist/
 Thumbs.db
 proxy-config.json
 scripts/proxy-config.json
+.env.production
+.env.production.local
+nginx/certs/
+postgres_data/
+redis_data/
+public/sw.js
+public/workbox-*.js

@@ -1,29 +1,24 @@
-# Báo cáo PWA 4 vai trò — 08/10/2026
+# Báo cáo Deploy VPS tự động (GHCR) — 09/10/2026
 
 ## Tóm tắt đã làm
-PWA `/pwa` chuyển từ 4 tab cứng (Tổng quan / Kho / Giao vận / Tôi) sang 4 persona độc lập: Giám đốc (`admin`), Kế toán (`accountant`), Kho lạnh (`warehouse`), Giao hàng (`delivery`). Role Switcher trên topbar đổi vai; BottomNav và màn hình chính render theo `PwaRole`. Role shell cũ `ADMIN | MANAGER | STAFF | VIEWER` giữ nguyên.
+Triển khai trọn gói deploy Cách 2: GitHub Actions + GHCR. Build Docker image siêu nhẹ trên GitHub, VPS chỉ pull & restart (5-10s, zero-downtime). Đã tạo/cập nhật 7 tệp theo chỉ thị.
 
-## File
-- `packages/core/rbac.ts` — thêm `PwaRole` + `PWA_ROLES`; `Role` shell `ADMIN` vẫn còn.
-- `app/pwa/_components/RoleProvider.tsx` — context role/tab, persist localStorage.
-- `app/pwa/_components/RoleSwitcher.tsx` — dropdown topbar, `min-h-[52px]`.
-- `app/pwa/_components/roleNav.ts` — `PWA_NAV` 4 bộ 4 tab theo vai.
-- `app/pwa/_components/RoleHome.tsx` — home theo vai: KPI `128.400.000` / `540.200.000`, `SP-0842`, An Thịnh, Minh Khang, `-18.2°C`, VietQR `img.vietqr.io`, `tel:`, nút `min-h-[52px]`.
-- `app/pwa/_components/BottomNav.tsx` — nav theo `PWA_NAV[role]`, không còn hardcode 4 tab cũ.
-- `app/pwa/layout.tsx` — bọc `RoleProvider` + `RoleSwitcher`.
-- `app/pwa/page.tsx` — render `<RoleHome />`.
+## File thay đổi
+- `next.config.mjs` — thêm `output: "standalone"` (Next 15 đóng gói server độc lập).
+- `Dockerfile` — multi-stage 3 tầng `node:20-alpine`: `deps` (npm ci) → `builder` (npm run build) → `runner` (copy `.next/standalone` + `.next/static` + `public`, user `nextjs`, `node server.js`).
+- `docker-compose.yml` — 4 service `app` (GHCR + fallback build local, healthcheck `/api/health`) + `postgres:16-alpine` + `redis:7-alpine` + `nginx:1.27-alpine`; volumes `postgres_data`/`redis_data`, network `sk-net`.
+- `nginx/nginx.conf` — gzip, `client_max_body_size 50M`, cache PWA (`/sw.js` + `manifest.json` no-cache, `/_next/static/` immutable 1 năm), `proxy_pass app:3000`.
+- `.github/workflows/deploy.yml` — 2 jobs: `build` (checkout, setup-node 20, npm ci, tsc --noEmit, buildx + login GHCR + build-push `ghcr.io/${{ github.repository }}:latest` với cache gha) → `deploy` (appleboy/ssh-action: `docker compose pull app && up -d --remove-orphans && prune`).
+- `.env.production.example` — mẫu `POSTGRES_*`, `DATABASE_URL`, `REDIS_URL`, `NEXTAUTH_*`, `GITHUB_REPOSITORY`.
+- `scripts/setup-vps.sh` — cài Docker + compose plugin, tạo `/opt/sk-workspace`, mở UFW 22/80/443.
+- `.gitignore` — loại trừ `.env.production`, `nginx/certs/`, volumes, `public/sw.js`/`workbox-*.js`.
 
 ## Verify
 - `npx tsc --noEmit` — exit 0.
-- `npm run build` (Next 15.5.10) — PASS, 7 routes static (`/`, `/finance/sapo2misa`, `/pwa`, `/pwa/giaovan`, `/pwa/kho`, `/pwa/toi`).
-- Grep:
-  - `PwaRole` `admin|accountant|warehouse|delivery` trong `rbac.ts`; `Role` `ADMIN` còn.
-  - `RoleSwitcher`, `RoleProvider`, `RoleHome` tồn tại.
-  - BottomNav lấy `PWA_NAV[role]` — không còn ITEMS cứng Tổng quan/Kho/Giao vận/Tôi.
-  - `vnd(128400000)`, `vnd(540200000)`, `SP-0842`, An Thịnh, Minh Khang, `-18.2°C`, `vietqr.io` / VietQR, `tel:`, `min-h-[52px]` — đủ.
+- `npm run build` — PASS, `output: standalone` sinh `.next/standalone` (server.js + node_modules ~77M). Cảnh báo copy trace `(shell)` không chặn build (route vẫn static).
+- `ls .next/standalone` — có `server.js`, `package.json`, `node_modules`.
 
 ## Cách thử
-```
-npm run dev
-```
-Mở `/pwa`. Trên topbar bấm Role Switcher → lần lượt Giám đốc / Kế toán / Kho lạnh / Giao hàng. BottomNav và nội dung đổi theo vai (4 tab khác nhau).
+1. Đặt Secrets trên GitHub: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_SSH_PORT` (optional).
+2. Trên VPS mới: `sudo bash scripts/setup-vps.sh` rồi copy `.env.production` + `docker-compose.yml` + `nginx/` vào `/opt/sk-workspace`.
+3. Push lên `main`/`master` → Actions build & push GHCR → SSH deploy tự động. Hoặc local: `docker compose up -d --build`.
