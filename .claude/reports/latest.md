@@ -1,24 +1,21 @@
-# Báo cáo Deploy VPS tự động (GHCR) — 09/10/2026
+# Báo cáo Deploy VPS Cách 2 (GHCR) — 09/10/2026
 
-## Tóm tắt đã làm
-Triển khai trọn gói deploy Cách 2: GitHub Actions + GHCR. Build Docker image siêu nhẹ trên GitHub, VPS chỉ pull & restart (5-10s, zero-downtime). Đã tạo/cập nhật 7 tệp theo chỉ thị.
-
-## File thay đổi
-- `next.config.mjs` — thêm `output: "standalone"` (Next 15 đóng gói server độc lập).
-- `Dockerfile` — multi-stage 3 tầng `node:20-alpine`: `deps` (npm ci) → `builder` (npm run build) → `runner` (copy `.next/standalone` + `.next/static` + `public`, user `nextjs`, `node server.js`).
-- `docker-compose.yml` — 4 service `app` (GHCR + fallback build local, healthcheck `/api/health`) + `postgres:16-alpine` + `redis:7-alpine` + `nginx:1.27-alpine`; volumes `postgres_data`/`redis_data`, network `sk-net`.
-- `nginx/nginx.conf` — gzip, `client_max_body_size 50M`, cache PWA (`/sw.js` + `manifest.json` no-cache, `/_next/static/` immutable 1 năm), `proxy_pass app:3000`.
-- `.github/workflows/deploy.yml` — 2 jobs: `build` (checkout, setup-node 20, npm ci, tsc --noEmit, buildx + login GHCR + build-push `ghcr.io/${{ github.repository }}:latest` với cache gha) → `deploy` (appleboy/ssh-action: `docker compose pull app && up -d --remove-orphans && prune`).
+## Tóm tắt file
+- `next.config.mjs` — `output: "standalone"`, PWA next-pwa, `eslint.ignoreDuringBuilds: true`.
+- `Dockerfile` — 3 stages `node:20-alpine`: `deps` (npm ci) → `builder` (npm run build) → `runner` (copy `public` + `.next/standalone` + `.next/static`, user `nextjs`, `node server.js`).
+- `docker-compose.yml` — 4 services `app`/`postgres`/`redis`/`nginx`; `app` image `ghcr.io/${GITHUB_REPOSITORY}:latest` + `build` fallback, `3000:3000`, `restart: always`, healthcheck `wget /api/health`; `postgres:16-alpine` + `redis:7-alpine`; `nginx:1.27-alpine` mount `nginx.conf` + `certs`; volumes `postgres_data`/`redis_data`, network `sk-net`.
+- `nginx/nginx.conf` — `gzip on`, `client_max_body_size 50M`, `proxy_pass http://app:3000` (qua upstream), cache `sw.js`/`manifest.json` no-cache, `/_next/static/` immutable 1 năm.
+- `.github/workflows/deploy.yml` — 2 jobs `build` (checkout, setup-node 20, npm ci, `tsc --noEmit`, buildx + login `ghcr.io` + build-push `ghcr.io/${{ github.repository }}:latest` cache gha) → `deploy` (`appleboy/ssh-action` với `VPS_HOST`/`VPS_SSH_KEY`, `docker compose pull app && up -d && prune`).
 - `.env.production.example` — mẫu `POSTGRES_*`, `DATABASE_URL`, `REDIS_URL`, `NEXTAUTH_*`, `GITHUB_REPOSITORY`.
 - `scripts/setup-vps.sh` — cài Docker + compose plugin, tạo `/opt/sk-workspace`, mở UFW 22/80/443.
-- `.gitignore` — loại trừ `.env.production`, `nginx/certs/`, volumes, `public/sw.js`/`workbox-*.js`.
+- `.gitignore` — ignore `.env.production`, `nginx/certs/`, `public/sw.js`/`workbox-*.js`.
 
 ## Verify
-- `npx tsc --noEmit` — exit 0.
-- `npm run build` — PASS, `output: standalone` sinh `.next/standalone` (server.js + node_modules ~77M). Cảnh báo copy trace `(shell)` không chặn build (route vẫn static).
-- `ls .next/standalone` — có `server.js`, `package.json`, `node_modules`.
+- `npx tsc --noEmit` — **PASS** (exit 0, 0 lỗi).
+- `npm run build` — **PASS** (standalone, `server.js` tồn tại tại `.next/standalone/server.js` ~6.3K, build trace warning `(shell)` không chặn build).
+- File tồn tại: `next.config.mjs` (standalone) ✓, `Dockerfile` (3 stages) ✓, `docker-compose.yml` (4 services + ghcr.io + 3000:3000 + restart always) ✓, `nginx/nginx.conf` (gzip + 50M + proxy_pass + cache) ✓, `.github/workflows/deploy.yml` (build+deploy + tsc + ghcr.io + appleboy/ssh-action + VPS_HOST/VPS_SSH_KEY) ✓, `.env.production.example` ✓, `scripts/setup-vps.sh` ✓, `.gitignore` (.env.production + nginx/certs) ✓.
 
-## Cách thử
-1. Đặt Secrets trên GitHub: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_SSH_PORT` (optional).
-2. Trên VPS mới: `sudo bash scripts/setup-vps.sh` rồi copy `.env.production` + `docker-compose.yml` + `nginx/` vào `/opt/sk-workspace`.
-3. Push lên `main`/`master` → Actions build & push GHCR → SSH deploy tự động. Hoặc local: `docker compose up -d --build`.
+## Hướng dẫn cấu hình & chạy
+1. **GitHub Secrets** (Settings → Secrets → Actions): `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_SSH_PORT` (optional, default 22). `GITHUB_TOKEN` có sẵn.
+2. **VPS mới**: `sudo bash scripts/setup-vps.sh` (cài Docker, tạo `/opt/sk-workspace`, mở UFW). Sau đó copy `docker-compose.yml` + `nginx/` + tạo `.env.production` từ `.env.production.example` vào `/opt/sk-workspace`.
+3. **Deploy**: push lên `main`/`master` → Actions tự build & push GHCR → SSH pull & restart. Hoặc local: `docker compose up -d --build`.
