@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY:-sk-workspace/sk-workspace}:latest
+    image: ${IMAGE_NAME:-ghcr.io/thinhhoba/skworkspace:latest}
     build:
       context: .
       dockerfile: Dockerfile
