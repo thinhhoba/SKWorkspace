@@ -21,7 +21,7 @@
 ## 2. Kết quả kiểm thử & Nghiệm thu chất lượng
 - `npx tsc --noEmit`: **PASS (Exit 0, 0 lỗi kiểu dữ liệu)**.
 - `npm run build`: **PASS (Exit 0)**:
-  - `ƒ /api/sapo2misa/sync` — Dynamic server-rendered.
   - `ƒ /api/sapo2misa/export` — Dynamic server-rendered.
   - `ƒ /api/sapo2misa/ledger` — Dynamic server-rendered.
+  - `ƒ /api/sapo2misa/sync` — Dynamic server-rendered.
   - `○ /finance/sapo2misa` — 9.13 kB prerendered.

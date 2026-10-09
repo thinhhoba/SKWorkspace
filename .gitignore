@@ -17,3 +17,4 @@ postgres_data/
 redis_data/
 public/sw.js
 public/workbox-*.js
+.data/

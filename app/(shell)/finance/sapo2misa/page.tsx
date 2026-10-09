@@ -1,50 +1,70 @@
 "use client";
 import * as React from "react";
 import dynamic from "next/dynamic";
-import { Check, Circle, ArrowRight, Table2, Eye, EyeOff, Download, Copy, ChevronDown, ChevronUp, Search } from "lucide-react";
+import {
+  Check,
+  Circle,
+  ArrowRight,
+  Table2,
+  Eye,
+  EyeOff,
+  Download,
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  RefreshCw,
+  History,
+  AlertCircle
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MAPPING_ROWS } from "@/constants/misaColumns";
+import type { MisaRow } from "./_components/MisaGrid";
 
-const MisaGrid = dynamic(() => import("./_components/MisaGrid"), { ssr: false, loading: () => <div className="h-[300px] grid place-items-center text-sm text-muted-foreground">Đang tải lưới…</div> });
+const MisaGrid = dynamic(() => import("./_components/MisaGrid"), {
+  ssr: false,
+  loading: () => <div className="h-[300px] grid place-items-center text-sm text-muted-foreground">Đang tải lưới…</div>
+});
 
 type StepStatus = "done" | "current" | "wait";
 type Step = { title: string; desc: string; status: StepStatus };
 
-const STEPS: Step[] = [
+const INITIAL_STEPS: Step[] = [
   { title: "Sapo pull & đồng bộ", desc: "Sapo API · last_synced_at · external_id", status: "done" },
   { title: "Chuẩn hóa CentralOrders", desc: "Map MST (gdt.gov.vn) & SKU → MISA", status: "current" },
   { title: "Sinh Excel 63 cột", desc: "Ledger chống trùng · kiểm tra 63 cột", status: "wait" },
   { title: "Đẩy MISA & phát hành", desc: "Import AMIS · meInvoice · đối soát", status: "wait" },
 ];
 
-const LOGS: { level: "INFO" | "OK" | "WARN" | "RUN"; text: string }[] = [
-  { level: "INFO", text: "[08:14:02] [INFO] Kết nối Sapo API — token OK" },
-  { level: "OK", text: "[08:14:05] [OK] Pull 48 đơn incremental (last_synced_at 07/10)" },
-  { level: "OK", text: "[08:14:07] [OK] Map SKU · Sapo Variant → MISA Vật tư" },
-  { level: "WARN", text: "[08:14:09] [WARN] MST rỗng: SP-0839 (SaiGon Fresh) — cần bổ sung" },
-  { level: "WARN", text: "[08:14:10] [WARN] SKU chưa map: UNKNOWN-SKU (SP-0838)" },
-  { level: "RUN", text: "[08:14:12] [RUN] Kiểm tra trùng external_id — phát hiện 1 trùng (SP-0841)" },
-  { level: "OK", text: "[08:14:20] [OK] RBAC hasAppAccess('sapo2misa') — allow" },
-  { level: "INFO", text: "[08:14:24] [INFO] Sẵn sàng xuất MISA AMIS — còn 2m 14s" },
+interface LogItem {
+  level: "INFO" | "OK" | "WARN" | "RUN" | "ERR";
+  text: string;
+}
+
+const INITIAL_LOGS: LogItem[] = [
+  { level: "INFO", text: "[08:14:02] [INFO] Kết nối Sapo API — xác thực thành công" },
+  { level: "OK", text: "[08:14:05] [OK] Sẵn sàng kéo đơn hàng mới nhất từ hệ thống Sơn Khang" },
+  { level: "INFO", text: "[08:14:10] [INFO] Bấm 'Đồng bộ Sapo' để cập nhật đơn mới và thẩm định 63 cột" },
 ];
 
 function Stepper({ steps }: { steps: Step[] }) {
   const doneCount = steps.filter((s) => s.status === "done").length;
   const currentIdx = steps.findIndex((s) => s.status === "current");
-  // progress % cho thanh gradient glossy
   const progressPct = ((doneCount + (currentIdx >= 0 ? 0.5 : 0)) / steps.length) * 100;
+
   return (
     <>
-      {/* desktop horizontal — glossy-pill + gradient progress */}
+      {/* desktop horizontal */}
       <div className="hidden md:block">
         <div className="relative flex items-start gap-0">
-          {/* track nền */}
           <div className="absolute left-[48px] right-[48px] top-[18px] h-2 rounded-full bg-muted shadow-inner overflow-hidden hidden lg:block">
-            <div className="h-full rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] transition-all duration-500" style={{ width: `${progressPct}%`, background: "linear-gradient(90deg,#0284C7,#38BDF8)" }} />
+            <div
+              className="h-full rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] transition-all duration-500"
+              style={{ width: `${progressPct}%`, background: "linear-gradient(90deg,#0284C7,#38BDF8)" }}
+            />
           </div>
           {steps.map((s, i) => (
             <div key={s.title} className="flex flex-1 flex-col items-center text-center gap-2 relative">
@@ -70,7 +90,7 @@ function Stepper({ steps }: { steps: Step[] }) {
           ))}
         </div>
       </div>
-      {/* mobile vertical — glossy-pill pills + gradient connector */}
+      {/* mobile vertical */}
       <div className="flex md:hidden flex-col gap-4">
         {steps.map((s, i) => (
           <div key={s.title} className="flex gap-3">
@@ -109,21 +129,138 @@ export default function Sapo2MisaPage() {
   const [showAllCols, setShowAllCols] = React.useState(false);
   const [filter, setFilter] = React.useState("");
   const [termOpen, setTermOpen] = React.useState(false);
-  const [termFilter, setTermFilter] = React.useState<"ALL" | "INFO" | "OK" | "WARN" | "RUN">("ALL");
+  const [termFilter, setTermFilter] = React.useState<"ALL" | "INFO" | "OK" | "WARN" | "RUN" | "ERR">("ALL");
   const [toast, setToast] = React.useState<string | null>(null);
+  const [steps, setSteps] = React.useState<Step[]>(INITIAL_STEPS);
+  const [logs, setLogs] = React.useState<LogItem[]>(INITIAL_LOGS);
+  const [rows, setRows] = React.useState<MisaRow[] | undefined>(undefined);
+  const [isSyncing, setIsSyncing] = React.useState(false);
+  const [isExporting, setIsExporting] = React.useState(false);
+  const [ledgerModalOpen, setLedgerModalOpen] = React.useState(false);
+  const [ledgerItems, setLedgerItems] = React.useState<any[]>([]);
+
   const logRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (termOpen && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [termOpen, termFilter]);
+  }, [termOpen, termFilter, logs]);
 
   React.useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2500);
+    const t = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(t);
   }, [toast]);
 
-  const filteredLogs = LOGS.filter((l) => termFilter === "ALL" || l.level === termFilter);
+  // Thực hiện đồng bộ thật từ API
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setTermOpen(true);
+    setSteps([
+      { title: "Sapo pull & đồng bộ", desc: "Đang gọi Sapo API…", status: "current" },
+      { title: "Chuẩn hóa CentralOrders", desc: "Map MST & SKU", status: "wait" },
+      { title: "Sinh Excel 63 cột", desc: "Ledger chống trùng", status: "wait" },
+      { title: "Đẩy MISA & phát hành", desc: "Import AMIS", status: "wait" },
+    ]);
+
+    try {
+      const res = await fetch("/api/sapo2misa/sync", { method: "POST" });
+      const data = await res.json();
+
+      if (data.success && data.rows) {
+        setRows(data.rows);
+
+        const newLogs: LogItem[] = (data.logs || []).map((l: string) => {
+          let lvl: LogItem["level"] = "INFO";
+          if (l.includes("[OK]")) lvl = "OK";
+          else if (l.includes("[WARN]")) lvl = "WARN";
+          else if (l.includes("[ERR]")) lvl = "ERR";
+          else if (l.includes("[RUN]")) lvl = "RUN";
+          return { level: lvl, text: l };
+        });
+
+        setLogs(newLogs);
+
+        setSteps([
+          { title: "Sapo pull & đồng bộ", desc: `Đã kéo ${data.orders_count} đơn hàng`, status: "done" },
+          { title: "Chuẩn hóa CentralOrders", desc: `Map ${data.rows_count} dòng vật tư`, status: "done" },
+          { title: "Sinh Excel 63 cột", desc: "Kiểm tra 63 cột hoàn tất", status: "current" },
+          { title: "Đẩy MISA & phát hành", desc: "Sẵn sàng xuất file AMIS", status: "wait" },
+        ]);
+
+        setToast(`Đã đồng bộ ${data.orders_count} đơn Sapo (${data.rows_count} dòng)`);
+      } else {
+        throw new Error(data.error || "Lỗi đồng bộ");
+      }
+    } catch (err: any) {
+      setToast(`Lỗi: ${err.message}`);
+      setLogs((prev) => [...prev, { level: "ERR", text: `[LỖI] ${err.message}` }]);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Thực hiện xuất file Excel thật và kích hoạt tải về máy
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const res = await fetch("/api/sapo2misa/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows })
+      });
+
+      if (!res.ok) throw new Error("Lỗi khi tải file từ server");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      a.href = url;
+      a.download = `MISA_63COT_SONKHANG_${timestamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setSteps((prev) =>
+        prev.map((s, idx) =>
+          idx === 2
+            ? { ...s, status: "done", desc: "Đã xuất file .xlsx" }
+            : idx === 3
+              ? { ...s, status: "done", desc: "Đã ghi nhận Ledger" }
+              : s
+        )
+      );
+
+      const now = new Date().toLocaleTimeString("vi-VN");
+      setLogs((prev) => [
+        ...prev,
+        { level: "OK", text: `[${now}] [OK] Đã xuất file Excel 63 cột và ghi nhận vào Ledger chống trùng.` }
+      ]);
+
+      setToast("Đã tải xuống file Excel MISA 63 cột thành công!");
+    } catch (err: any) {
+      setToast(`Lỗi xuất Excel: ${err.message}`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Đọc danh sách Ledger
+  const handleOpenLedger = async () => {
+    setLedgerModalOpen(true);
+    try {
+      const res = await fetch("/api/sapo2misa/ledger");
+      const data = await res.json();
+      if (data.success) {
+        setLedgerItems(data.ledger || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const filteredLogs = logs.filter((l) => termFilter === "ALL" || l.level === termFilter);
 
   return (
     <div className="space-y-4">
@@ -131,12 +268,35 @@ export default function Sapo2MisaPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Sapo2Misa — Đồng bộ 63 cột</h1>
-          <p className="text-xs text-muted-foreground">Sapo ↔ Data Hub ↔ MISA AMIS · 1/14 app · Tài chính</p>
+          <p className="text-xs text-muted-foreground">Sapo ↔ Data Hub ↔ MISA AMIS · 1/14 app · Tài chính Sơn Khang</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Nút Đồng bộ Sapo */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full glossy-pill"
+            onClick={handleSync}
+            disabled={isSyncing}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isSyncing ? "animate-spin text-sky-500" : ""}`} />
+            {isSyncing ? "Đang kéo đơn…" : "Đồng bộ Sapo"}
+          </Button>
+
+          {/* Dialog xem lịch sử Ledger */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full glossy-pill"
+            onClick={handleOpenLedger}
+          >
+            <History className="w-3.5 h-3.5 mr-1.5" /> Lịch sử Ledger
+          </Button>
+
+          {/* Dialog xem cấu trúc Mapping 63 cột */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="rounded-full"><Table2 /> Mapping</Button>
+              <Button variant="outline" size="sm" className="rounded-full"><Table2 className="w-3.5 h-3.5 mr-1" /> Mapping</Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle className="text-sm">Xem trước mapping — Sapo → MISA 63 cột</DialogTitle></DialogHeader>
@@ -161,51 +321,80 @@ export default function Sapo2MisaPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="rounded-lg border p-3 mono text-[11px] leading-relaxed bg-muted/40">Adapter <code>packages/integrations/misa</code> · sync/push/pull/webhook · integration_logs</div>
+              <div className="rounded-lg border p-3 mono text-[11px] leading-relaxed bg-muted/40">
+                Adapter <code>packages/integrations/misa</code> · sync/push/pull/webhook · integration_logs
+              </div>
             </DialogContent>
           </Dialog>
-          <Button size="sm" className="rounded-full shadow-[0_4px_12px_rgba(14,165,233,0.3)]" onClick={() => setToast("Đã xuất Excel 63 cột — kiểm tra thư mục tải về")}>
-            <Download /> Xuất Excel
+
+          {/* Nút Xuất Excel thật */}
+          <Button
+            size="sm"
+            className="rounded-full shadow-[0_4px_12px_rgba(14,165,233,0.3)] bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white"
+            onClick={handleExportExcel}
+            disabled={isExporting}
+          >
+            <Download className={`w-3.5 h-3.5 mr-1.5 ${isExporting ? "animate-bounce" : ""}`} />
+            {isExporting ? "Đang tạo Excel…" : "Xuất Excel 63 cột"}
           </Button>
         </div>
       </div>
 
       <div className="clay-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-sm font-semibold flex items-center gap-2">Tiến trình 4 bước <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" /></h2>
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            Tiến trình 4 bước <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
+          </h2>
         </div>
-        <Stepper steps={STEPS} />
+        <Stepper steps={steps} />
       </div>
 
-      {/* grid toolbar + clay-card wrapper quanh MisaGrid — §5 hiệu năng giữ nguyên */}
+      {/* grid toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input placeholder="Lọc Số CT / Tên KH / SKU…" value={filter} onChange={(e) => setFilter(e.target.value)} className="pl-8 h-9 rounded-full border-white/80 bg-white/90" />
+          <Input
+            placeholder="Lọc Số CT / Tên KH / SKU…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="pl-8 h-9 rounded-full border-white/80 bg-white/90"
+          />
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowAllCols((v) => !v)} className="shrink-0 rounded-full glossy-pill">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAllCols((v) => !v)}
+          className="shrink-0 rounded-full glossy-pill"
+        >
           {showAllCols ? <EyeOff /> : <Eye />} {showAllCols ? "Thu gọn 12 cột" : "Hiện đủ 63 cột"}
         </Button>
-        <span className="text-xs text-muted-foreground">{showAllCols ? "63" : "12"}/63 cột · ghim 2 cột đầu</span>
+        <span className="text-xs text-muted-foreground">
+          {showAllCols ? "63" : "12"}/63 cột · ghim 2 cột đầu
+        </span>
       </div>
 
       <div className="clay-card p-2 sm:p-3 overflow-hidden">
-        <MisaGrid showAllCols={showAllCols} filterText={filter} />
+        <MisaGrid showAllCols={showAllCols} filterText={filter} rows={rows} />
       </div>
 
-      {/* terminal drawer — default closed */}
+      {/* terminal drawer */}
       <div className="clay-card overflow-hidden">
         <button
           onClick={() => setTermOpen((v) => !v)}
           className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors"
         >
-          <span className="text-sm font-semibold flex items-center gap-2">Nhật ký đồng bộ <Badge variant="secondary" className="mono text-[10px] rounded-full">{LOGS.length} dòng</Badge></span>
+          <span className="text-sm font-semibold flex items-center gap-2">
+            Nhật ký đồng bộ{" "}
+            <Badge variant="secondary" className="mono text-[10px] rounded-full">
+              {logs.length} dòng
+            </Badge>
+          </span>
           {termOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         {termOpen && (
           <div className="px-4 pb-4 space-y-3">
             <div className="flex flex-wrap gap-1.5">
-              {(["ALL", "INFO", "OK", "WARN", "RUN"] as const).map((lvl) => (
+              {(["ALL", "INFO", "OK", "WARN", "RUN", "ERR"] as const).map((lvl) => (
                 <Button
                   key={lvl}
                   variant={termFilter === lvl ? "default" : "outline"}
@@ -225,15 +414,26 @@ export default function Sapo2MisaPage() {
                   setToast("Đã copy log");
                 }}
               >
-                <Copy /> Copy
+                <Copy className="w-3.5 h-3.5 mr-1" /> Copy
               </Button>
             </div>
-            <div ref={logRef} className="rounded-xl bg-zinc-950 text-zinc-100 mono text-[11px] leading-relaxed p-3 max-h-[180px] overflow-auto border border-zinc-800">
+            <div
+              ref={logRef}
+              className="rounded-xl bg-zinc-950 text-zinc-100 mono text-[11px] leading-relaxed p-3 max-h-[180px] overflow-auto border border-zinc-800"
+            >
               {filteredLogs.map((l, i) => (
                 <div
                   key={i}
                   className={
-                    l.level === "WARN" ? "text-amber-300" : l.level === "OK" ? "text-emerald-300" : l.level === "RUN" ? "text-sky-300" : "text-zinc-300"
+                    l.level === "ERR"
+                      ? "text-rose-400 font-semibold"
+                      : l.level === "WARN"
+                        ? "text-amber-300"
+                        : l.level === "OK"
+                          ? "text-emerald-300"
+                          : l.level === "RUN"
+                            ? "text-sky-300"
+                            : "text-zinc-300"
                   }
                 >
                   {l.text}
@@ -243,6 +443,54 @@ export default function Sapo2MisaPage() {
           </div>
         )}
       </div>
+
+      {/* Dialog xem danh sách Ledger */}
+      <Dialog open={ledgerModalOpen} onOpenChange={setLedgerModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <History className="w-4 h-4 text-sky-500" /> Sổ cái Ledger chống trùng (sapo2misaLedgerDb)
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Danh sách các mã đơn hàng (external_id) đã được xuất file Excel trước đó để ngăn chặn việc nhập trùng lặp vào MISA AMIS.
+          </p>
+          <div className="rounded-lg border overflow-auto max-h-[50vh]">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 bg-muted text-[11px] text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left border-b">Mã đơn (External ID)</th>
+                  <th className="px-3 py-2 text-left border-b">Khách hàng</th>
+                  <th className="px-3 py-2 text-right border-b">Tổng tiền</th>
+                  <th className="px-3 py-2 text-left border-b">Thời điểm xuất</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ledgerItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-muted-foreground">
+                      Chưa có đơn hàng nào được ghi nhận.
+                    </td>
+                  </tr>
+                ) : (
+                  ledgerItems.map((item, idx) => (
+                    <tr key={idx} className="border-b last:border-0">
+                      <td className="px-3 py-2 font-mono font-bold text-sky-600">{item.external_id}</td>
+                      <td className="px-3 py-2 truncate max-w-[150px]">{item.customer_name}</td>
+                      <td className="px-3 py-2 text-right font-mono">
+                        {Number(item.total_amount).toLocaleString("vi-VN")} đ
+                      </td>
+                      <td className="px-3 py-2 text-muted-foreground text-[10px]">
+                        {new Date(item.exported_at).toLocaleString("vi-VN")}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {toast && (
         <div className="fixed bottom-4 right-4 z-50 bg-foreground text-background text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
