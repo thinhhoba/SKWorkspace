@@ -1,23 +1,25 @@
-# Báo cáo Đơn hàng Bán & Soạn Kho Lạnh — 09/10/2026
+# Báo cáo Mua hàng & Nhập kho — 09/10/2026
 
 ## Triển khai
-- `packages/modules/sales/types.ts` — `OrderStatus` 7 trạng thái (cho_duyet/cho_soan/dang_soan/da_soan/dang_giao/hoan_tat/huy), `ORDER_STATUS_LABEL` + `ORDER_STATUS_COLOR`, `PaymentMethod` (COD_VIETQR/DEBT_B2B/TRANSFER), `SalesOrderItem` + `SalesOrder`.
-- `packages/modules/sales/mockData.ts` — 8 đơn mẫu thực tế (Lẩu Bò Q7, Bếp KCN Hiệp Phước, Cơm Tấm SG ...), 3 kho Q7/Q12, thịt heo xay/ba rọi/bò viên, total_amount khớp sum items.
-- `packages/modules/sales/salesService.ts` — `getSalesOrders(filters)`, `getSalesStats()` (totalToday/choSoan/dangGiao/revenueToday/byStatus), `getSalesOrderById`, `updateOrderStatus`, `toggleItemPicked`, `completeOrderPicking` (check 100% picked → da_soan).
-- `app/api/sales/route.ts` — `GET /api/sales?status&warehouse&search` → {success, stats, count, orders}; `POST /api/sales` tạo đơn mới (validate customer_name/warehouse/items).
-- `app/api/sales/[id]/route.ts` — `GET /api/sales/[id]`, `PATCH /api/sales/[id]` với 3 nhánh: `action:complete` → da_soan, `itemId+picked` → toggle, `status/newStatus` → updateOrderStatus (validate 7 trạng thái).
-- `app/(shell)/sales/page.tsx` — "use client":
-  - 4 Clay-KPI grid 2/4 cột: Tổng đơn hôm nay (sky border-l-sky-500), Chờ soạn (amber/warning), Đang giao (sky), Doanh thu dự kiến VNĐ emerald + format vi-VN + `.clay-kpi--sky/warning`.
-  - Bộ lọc: Select trạng thái (8 options), Select kho (ALL/Q7/Q12), Input search mã đơn/tên KH (glossy-pill, debounce 300ms).
-  - Grid card `.clay-card`: code mono, customer_name, warehouse badge Q7/Q12, status badge theo ORDER_STATUS_COLOR, delivery_address, payment VietQR/Công nợ/Chuyển khoản, số món, total_amount VNĐ, delivery_date, nút Soạn hàng (cho_soan/dang_soan) + Chi tiết + đổi trạng thái nhanh (Duyệt→cho_soan, Bắt đầu soạn, Giao→dang_giao).
-  - Modal Checklist Soạn hàng: checkbox 52px (min-h/w-[52px] rounded-xl), haptic vibrate 50ms, SKU mono/lot/quantity, progress bar Đã soạn X/Y percent, nút Hoàn tất disabled nếu chưa 100% → PATCH {action:"complete"}.
-  - Modal Chi tiết: danh sách items, lot, đơn giá, tổng.
-  - Loading skeleton / empty / toast 3s. Tone Sky/Emerald/Amber/Rose/Slate.
+- `packages/modules/purchase/types.ts` — `Supplier` (code/name/tax_code/phone/payment_terms_days/total_payable), `PurchaseStatus` 4 trạng thái (draft/ordered/received/cancelled) + `PURCHASE_STATUS_LABEL/COLOR`, `PurchaseOrderItem` (sku/name/dvt/quantity/received_quantity/unit_price/total_price/lot_number/expiry_date/location), `PurchaseOrder` (code/supplier_id/warehouse Q7|Q12/items/total_amount/paid_amount/status/order_date/received_date/invoice_no/notes).
+- `packages/modules/purchase/mockData.ts` — 5 NCC mẫu (C.P. Việt Nam, VISSAN, San Hà, Japfa, Bao bì Chợ Lớn) + 8 PO mẫu thực tế (Q7/Q12, thịt heo/bò viên, total_amount khớp sum items, trạng thái draft/ordered/received).
+- `packages/modules/purchase/purchaseService.ts` — `getPurchaseOrders(filters: status/warehouse/search)`, `getPurchaseStats()` (total/draft/ordered/received/totalAmount/payable331), `getSuppliers()`, `getPurchaseOrderById`, `createPurchaseOrder`, `receivePurchaseOrder(id, rows: lot_number/expiry_date/location)` → chuyển ordered→received + gán lot/expiry/location FEFO, `updatePurchaseStatus`, `__resetPurchaseStore`.
+- `app/api/purchase/route.ts` — `GET /api/purchase?status&warehouse&search` → {success, stats, count, orders}; `POST /api/purchase` tạo PO mới (validate supplier_id/warehouse Q7|Q12/items sku/name/quantity/unit_price, check NCC tồn tại).
+- `app/api/purchase/[id]/route.ts` — `GET /api/purchase/[id]`, `PATCH /api/purchase/[id]` nhánh `action:receive` (validate lot_number+expiry_date bắt buộc cho mọi dòng → receivePurchaseOrder) và nhánh `status/newStatus` → updatePurchaseStatus.
+- `app/api/purchase/suppliers/route.ts` — `GET /api/purchase/suppliers` → {success, count, suppliers} (5 NCC).
+- `app/(shell)/purchase/page.tsx` — "use client":
+  - 4 Clay-KPI grid 2/4 cột: Tổng đơn mua, Dự thảo (slate), Đã đặt hàng (amber/warning), Đã nhập kho (emerald) + Tổng công nợ 331 VNĐ format vi-VN + `.clay-kpi--warning/success`.
+  - Bộ lọc: Select trạng thái (ALL/draft/ordered/received/cancelled), Select kho (ALL/Q7/Q12), Input search mã PO/tên NCC (glossy-pill, debounce 300ms).
+  - Grid card `.clay-card`: code mono, supplier_name, warehouse badge Q7/Q12, status badge theo PURCHASE_STATUS_COLOR, ngày đặt, số món, total_amount VNĐ, đã thanh toán, nút Nhập kho (ordered) + Chi tiết + đổi trạng thái nhanh.
+  - Modal Nhập kho (Goods Receipt): mỗi dòng item có Input SL thực nhận, Số lô * (lot_number), Hạn dùng * (expiry_date date), Vị trí kệ (location) — `canConfirmReceive` check đủ lot+expiry mới cho Xác nhận; `PATCH {action:"receive", rows}` → toast "đã nhập kho — tăng tồn FEFO" + badge chuyển received (emerald).
+  - Modal Tạo PO: Select NCC (5 options), Select kho Q7/Q12, thêm dòng hàng (sku/name/dvt/quantity/unit_price), validate trước POST.
+  - Loading skeleton / empty / toast 3s. Tone Sky/Emerald/Amber/Rose/Slate — FEFO kho lạnh.
+- `packages/core/appRegistry.ts` — thêm `{id:"purchase", label:"Mua hàng", group:"van-hanh", icon:ShoppingBag, href:"/purchase", color:"warning", desc:"Đặt NCC & nhập kho"}`.
 
 ## Verify 09/10/2026
 - `npx tsc --noEmit` — PASS (0 lỗi).
-- `npm run build` — PASS — 24 routes, `/sales` 7.43 kB / First Load 133 kB, `ƒ /api/sales`, `ƒ /api/sales/[id]`, Middleware 34 kB.
-- Commit `2d86d1b` — `feat(sales): quan ly don hang ban, checklist soan kho lanh FEFO va ban giao giao van`.
+- `npm run build` — PASS — 25 routes, `/purchase` 7.77 kB / First Load 133 kB, `ƒ /api/purchase`, `ƒ /api/purchase/[id]`, `ƒ /api/purchase/suppliers`, Middleware 34 kB.
+- Commit `68b1d0c` — `feat(purchase): quan ly mua hang nha cung cap, phieu nhap kho lanh FEFO va cong no phai tra 331`.
 
 ## Thử
-Mở `/sales` → thấy 4 KPI (7 đơn active, 81tr+ doanh thu). Lọc Chờ soạn → 2 đơn. Bấm Soạn hàng trên DH-2026-002 → tick 52px từng món (rung haptic 50ms), progress Đã soạn X/Y, đủ 100% → Hoàn tất soạn hàng & Sẵn sàng giao → `PATCH {action:"complete"}` → badge chuyển `da_soan` (emerald) → đơn sẵn sàng bàn giao tại `/pwa/giaovan`. Duyệt DH-2026-001 (`cho_duyet`→`cho_soan`) → vào luồng soạn FEFO kho lạnh.
+Mở `/purchase` → thấy 4 KPI (8 PO, công nợ 331). Lọc Đã đặt hàng → danh sách ordered. Bấm Nhập kho trên PO-2026-002 → nhập Số lô + Hạn dùng + Vị trí kệ cho từng món, đủ điều kiện → Xác nhận Nhập kho & Tăng tồn FEFO → `PATCH {action:"receive"}` → badge chuyển `received` (emerald) + tồn kho FEFO tăng theo lot/expiry. Tạo PO mới → chọn NCC + kho → thêm dòng hàng → Tạo đơn → `POST /api/purchase` → PO mới ở trạng thái draft.

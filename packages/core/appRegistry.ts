@@ -45,7 +45,7 @@ export const appRegistry: AppDef[] = [
   { id: "sales", label: "Bán hàng", group: "ban-hang", icon: ShoppingCart, href: "/sales", color: "primary", desc: "Đơn hàng Sapo — soạn & giao" }, // badge: số đơn cho_soan (lấy từ salesService)
   { id: "customers", label: "Khách hàng B2B", group: "ban-hang", icon: Building2, href: "/customers", color: "neutral", desc: "Công nợ & lịch sử mua" },
   { id: "pricing", label: "Bảng giá", group: "ban-hang", icon: Tag, href: "/pricing", color: "neutral", desc: "SKU & giá theo kênh" },
-  { id: "purchase", label: "Mua hàng", group: "van-hanh", icon: ShoppingBag, href: "/purchase", color: "warning", desc: "Đặt NCC & nhập kho" },
+  { id: "purchase", label: "Mua hàng", group: "van-hanh", icon: ShoppingBag, href: "/purchase", color: "warning", desc: "Đặt NCC & nhập kho" }, // badge: số đơn ordered (lấy từ purchaseService)
   { id: "inventory", label: "Kho lạnh", group: "van-hanh", icon: Warehouse, href: "/inventory", color: "success", desc: "Tồn Q7 / Q12 & cảnh báo" },
   { id: "delivery", label: "Giao vận", group: "van-hanh", icon: Truck, href: "/delivery", color: "success", desc: "Tuyến giao & tài xế" },
   { id: "finance", label: "Dòng tiền", group: "tai-chinh", icon: Wallet, href: "/finance", color: "primary", desc: "Thu chi & đối soát" },

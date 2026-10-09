@@ -9,8 +9,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || undefined;
     const orders = getPurchaseOrders({ status, warehouse, search });
     const stats = getPurchaseStats();
-    const suppliers = getSuppliers();
-    return NextResponse.json({ success: true, stats, suppliers, count: orders.length, orders });
+    return NextResponse.json({ success: true, stats, count: orders.length, orders });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Lỗi lấy danh sách đơn mua";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
