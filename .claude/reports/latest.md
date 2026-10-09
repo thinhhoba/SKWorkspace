@@ -1,17 +1,18 @@
-# Báo cáo Chuẩn hóa GHCR Lowercase — 09/10/2026 (Chỉ thị 08)
+# Báo cáo Bento Dashboard & Favicon — 09/10/2026 (Chỉ thị 09)
 
-## Căn cứ
-Repo chính thức `thinhhoba/SKWorkspace` (chữ hoa `SKW`). Docker/GHCR bắt buộc tên image lowercase — không chuẩn hóa sẽ lỗi `invalid reference format: repository name must be lowercase`.
+## Nguyên nhân
+- `app/page.tsx` scaffold (`SK Workspace — scaffold OK`) che mất `app/(shell)/page.tsx` (Bento 3D Claymorphism) — Next.js ưu tiên `app/page.tsx` ngoài cùng.
+- `public/favicon.ico` thiếu → browser 404.
 
-## Thay đổi
-- `.github/workflows/deploy.yml` — thêm step `Chuẩn hóa tên Docker Image sang chữ thường` (`IMAGE_TAG=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]'):latest` → `$GITHUB_ENV`), đổi `docker/build-push-action` sang `tags: ${{ env.IMAGE_TAG }}`.
-- `docker-compose.yml` — đổi `app.image` thành `${IMAGE_NAME:-ghcr.io/thinhhoba/skworkspace:latest}` (lowercase mặc định, vẫn override được qua `IMAGE_NAME` nếu cần).
+## Khắc phục
+- **Xóa** `app/page.tsx` — route `/` nay render `app/(shell)/page.tsx` qua `app/(shell)/layout.tsx` (Topbar + RoleSwitcher + BottomNav 4 vai).
+- **Tạo** `public/favicon.ico` — Vista PNG ICO nhúng `public/assets/logo-sk-circle.png` (971 KB → ICO 971 KB, header `00 00 01 00`), `GET /favicon.ico` 200.
+- **Cập nhật** `app/layout.tsx` metadata: `icons: { icon: "/favicon.ico", apple: "/assets/logo-sk-circle.png" }`.
 
 ## Verify 09/10/2026
-- `npx tsc --noEmit` — PASS (0 lỗi).
-- `npm run build` — đã PASS ở chỉ thị 07 (18 routes, `ƒ /api/health`); chỉ thị 08 không đổi code build nên giữ nguyên.
-- GHCR tag sau chuẩn hóa: `ghcr.io/thinhhoba/skworkspace:latest` (lowercase, hợp lệ).
+- `npx tsc --noEmit` — PASS (0 lỗi nguồn; `.next/types` tham chiếu cũ tự hết sau build).
+- `npm run build` — PASS — `○ / 5.5 kB` (Bento, trước là scaffold), 18 routes gồm `○ /customers`, `○ /inventory`, `ƒ /api/health`.
+- `ls public/favicon.ico` — tồn tại, magic `00 00 01 00` hợp lệ.
 
-## Ghi chú vận hành
-- Trên VPS nếu từng pull tag cũ `ghcr.io/thinhhoba/SKWorkspace:latest` thì xóa/tag lại hoặc `IMAGE_NAME` override — sau commit này CI chỉ push tag lowercase.
-- `docker compose pull app && docker compose up -d` sẽ kéo đúng `ghcr.io/thinhhoba/skworkspace:latest`.
+## Thử
+Mở `https://workspace.sonkhang.vn/` → thấy Bento Dashboard (4 KPI Clay, lưới 14 app, filter), không còn dòng scaffold. Console không còn 404 favicon (favicon là logo tròn SK).

@@ -22,6 +22,10 @@ export const metadata: Metadata = {
     "Không gian làm việc nội bộ 14 app · Sapo ↔ Data Hub ↔ MISA 63 cột",
   metadataBase: new URL("https://sk-workspace.sonkhang.vn"),
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/assets/logo-sk-circle.png",
+  },
 };
 
 export const viewport: Viewport = {
