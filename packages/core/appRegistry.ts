@@ -42,7 +42,7 @@ export const GROUP_ORDER: AppGroup[] = ["tong-quan", "ban-hang", "van-hanh", "ta
 
 export const appRegistry: AppDef[] = [
   { id: "dashboard", label: "Bản làm việc", group: "tong-quan", icon: LayoutDashboard, href: "/", color: "primary", desc: "Bento dashboard — KPI & cảnh báo" },
-  { id: "sales", label: "Bán hàng", group: "ban-hang", icon: ShoppingCart, href: "/sales", color: "primary", desc: "Đơn hàng Sapo — soạn & giao" },
+  { id: "sales", label: "Bán hàng", group: "ban-hang", icon: ShoppingCart, href: "/sales", color: "primary", desc: "Đơn hàng Sapo — soạn & giao" }, // badge: số đơn cho_soan (lấy từ salesService)
   { id: "customers", label: "Khách hàng B2B", group: "ban-hang", icon: Building2, href: "/customers", color: "neutral", desc: "Công nợ & lịch sử mua" },
   { id: "pricing", label: "Bảng giá", group: "ban-hang", icon: Tag, href: "/pricing", color: "neutral", desc: "SKU & giá theo kênh" },
   { id: "purchase", label: "Mua hàng", group: "van-hanh", icon: ShoppingBag, href: "/purchase", color: "warning", desc: "Đặt NCC & nhập kho" },
