@@ -1,3 +1,4 @@
+// Fallback mock: sẽ thay bằng Prisma khi DATABASE_URL khả dụng — xem packages/core/db.ts
 import type { CustomerB2B, DebtSummary, DebtAgingBucket, RiskLevel } from "./types";
 import { MOCK_CUSTOMERS } from "./mockData";
 

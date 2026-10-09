@@ -1,6 +1,11 @@
+// Fallback mock: sẽ thay bằng Prisma khi DATABASE_URL khả dụng — xem packages/core/db.ts
 import fs from "node:fs";
 import path from "node:path";
 import { LedgerEntry } from "./types";
+import { prisma, checkDatabaseConnection } from "@/packages/core/db";
+
+// Memory fallback khi DB/file chưa khả dụng
+let memoryLedger: LedgerEntry[] = [];
 
 const DATA_DIR = path.resolve(process.cwd(), ".data");
 const LEDGER_FILE = path.join(DATA_DIR, "sapo2misa_ledger.json");
@@ -66,4 +71,40 @@ export function recordExportedOrders(entries: LedgerEntry[]): void {
   } catch (err) {
     console.error("[LEDGER DB] Lỗi ghi file ledger:", err);
   }
+  // đồng bộ memory fallback
+  for (const e of entries) {
+    const idx = memoryLedger.findIndex((m) => m.external_id === e.external_id);
+    if (idx >= 0) memoryLedger[idx] = e;
+    else memoryLedger.push(e);
+  }
+}
+
+// --- Prisma-backed API với fallback memory (khi DATABASE_URL chưa khả dụng) ---
+export async function getLedger(): Promise<LedgerEntry[]> {
+  try {
+    const s = await checkDatabaseConnection();
+    if (s === "connected") {
+      return await (prisma as unknown as { misaLedgerEntry: { findMany: () => Promise<LedgerEntry[]> } }).misaLedgerEntry.findMany();
+    }
+  } catch {}
+  // fallback: ưu tiên file, rồi memory
+  try {
+    const fileData = getExportedLedger();
+    if (fileData.length > 0) return fileData;
+  } catch {}
+  return memoryLedger.length > 0 ? [...memoryLedger] : [...INITIAL_LEDGER];
+}
+
+export async function addLedgerEntry(e: LedgerEntry): Promise<LedgerEntry> {
+  try {
+    const s = await checkDatabaseConnection();
+    if (s === "connected") {
+      return await (prisma as unknown as { misaLedgerEntry: { create: (arg: { data: LedgerEntry }) => Promise<LedgerEntry> } }).misaLedgerEntry.create({ data: e });
+    }
+  } catch {}
+  memoryLedger.push(e);
+  try {
+    recordExportedOrders([e]);
+  } catch {}
+  return e;
 }

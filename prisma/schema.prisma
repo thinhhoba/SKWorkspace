@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  password_hash String
+  role          String
+  name          String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  @@map("users")
+}
+
+model Customer {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  name              String
+  company_name      String
+  tax_code          String
+  phone             String
+  address           String
+  delivery_address  String
+  credit_limit      Int      @default(0)
+  payment_term_days Int      @default(30)
+  risk_level        String   @default("safe")
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  @@map("customers")
+}
+
+model InventoryItem {
+  id              String   @id @default(cuid())
+  sku             String
+  name            String
+  category        String
+  dvt             String
+  warehouse       String
+  quantity        Int      @default(0)
+  min_stock       Int      @default(0)
+  max_stock       Int      @default(0)
+  temperature     String
+  lot_number      String
+  production_date String
+  expiry_date     String
+  location        String
+  unit_price      Int      @default(0)
+  status          String   @default("du")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  @@unique([sku, warehouse], name: "sku_warehouse")
+  @@map("inventory_items")
+}
+
+model StockTransfer {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  from_warehouse String
+  to_warehouse   String
+  sku            String
+  item_name      String
+  quantity       Int
+  dvt            String
+  lot_number     String
+  created_by     String
+  status         String   @default("pending")
+  note           String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  @@map("stock_transfers")
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  external_id   String   @unique
+  order_code    String
+  customer_name String
+  total_amount  Int      @default(0)
+  status        String   @default("pending")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  @@map("orders")
+}
+
+model MisaLedgerEntry {
+  id            String   @id @default(cuid())
+  external_id   String   @unique
+  order_code    String
+  customer_name String
+  total_amount  Int
+  exported_at   String
+  file_name     String
+  exported_by   String
+  createdAt     DateTime @default(now())
+  @@map("misa_ledger_entries")
+}

@@ -1,3 +1,4 @@
+// Fallback mock: sẽ thay bằng Prisma khi DATABASE_URL khả dụng — xem packages/core/db.ts
 import { InventoryItem, StockTransfer, WarehouseMetrics, WarehouseCode, StockStatus } from "./types";
 import { INITIAL_INVENTORY_ITEMS, INITIAL_TRANSFERS } from "./mockData";
 

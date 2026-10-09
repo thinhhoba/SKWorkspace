@@ -1,46 +1,39 @@
-# Báo cáo Nghiệm thu Kho lạnh + Khách hàng B2B & VietQR — 09/10/2026
+# Báo cáo Prisma & Healthcheck Go-Live — 09/10/2026
 
-## Phần 1 — Kho lạnh Q7/Q12 (commit 294e97a)
-- Commit `294e97a feat(inventory): quan ly kho lanh Q7 Q12, ton kho FEFO va dieu chuyen kho` đã nghiệm thu trước đó.
-- Verify lại 09/10: `npx tsc --noEmit` **PASS (0 lỗi)**, `npm run build` **PASS** — route `/inventory`, `/api/inventory`, `/api/inventory/transfer` vẫn build OK, `standalone` sinh artefact (warning copy `page_client-reference-manifest.js` không ảnh hưởng route, đã tồn tại từ các phase trước).
+## 1) Schema — `prisma/schema.prisma`
+- Provider `postgresql`, generator `prisma-client-js`. Đã bổ sung 2 model còn thiếu so với bản trước: `StockTransfer` và `Order` (theo yêu cầu verify "User/Customer/InventoryItem/StockTransfer/Order/MisaLedgerEntry").
+- 6 models: `User` (@unique username), `Customer` (@unique code), `InventoryItem` (@unique [sku, warehouse] `sku_warehouse`), `StockTransfer` (@unique code), `Order` (@unique external_id), `MisaLedgerEntry` (@unique external_id).
+- `@map` bảng snake_case, `@unique external_id` cho chống trùng đồng bộ.
 
-## Phần 2 — Khách hàng B2B Công nợ & Aging (Directive 05 Phần 2)
+## 2) Singleton — `packages/core/db.ts`
+- `createPrismaClient()` dùng `@prisma/adapter-pg` (Prisma 7) khi có `DATABASE_URL`; thiếu thì trả `Proxy` fallback ném lỗi có kiểm soát.
+- `globalThis` singleton, `checkDatabaseConnection()` → `"connected" | "fallback_mock"` (`SELECT 1`).
 
-### File đã tạo & verify
-| File | Trạng thái |
-|------|------------|
-| `packages/modules/customers/types.ts` | OK — `CustomerB2B`, `DebtSummary`, `PaymentTerm`, `DebtAgingBucket`, `RiskLevel` |
-| `packages/modules/customers/mockData.ts` | OK — dataset B2B mock (code KH-B2B-*, MST 10 số, aging 4 bucket) |
-| `packages/modules/customers/customerService.ts` | OK — `getCustomers` (filter search/aging/risk), `getDebtSummary`, `getCustomerById`, `buildZaloRemindMessage` |
-| `app/api/customers/route.ts` | OK — `GET /api/customers?search=&aging=&risk=` → `{success, summary, count, customers}` |
-| `app/api/customers/[id]/remind/route.ts` | OK — `POST /api/customers/[id]/remind` → `{message, zaloUrl: https://zalo.me/<phone>}` |
-| `app/(shell)/customers/page.tsx` | OK — `clay-kpi` x4, KPI tổng dư nợ/trong hạn/quá hạn, filter search + aging + risk, bảng aging 4 cột, `vnd()` định dạng vi-VN, nút **Nhắc nợ Zalo** (copy + mở zalo.me) + badge Credit Limit/Risk |
+## 3) Seed — `prisma/seed.ts` + `prisma` trong `package.json`
+- `seed.ts`: lazy import `PrismaClient`+`PrismaPg` chỉ khi có `DATABASE_URL`; không có DB thì log fallback và exit 0. Upsert 4 users (admin/ketoan/thukho/taixe), customers từ `MOCK_CUSTOMERS`, inventory từ `INITIAL_INVENTORY_ITEMS`.
+- `package.json`: `scripts.db:seed = "tsx prisma/seed.ts"`, `prisma.seed = "tsx prisma/seed.ts"`.
 
-### Nghiệm thu build
-- `○ /customers 5.94 kB` — prerendered OK (lần build này là `○`, các lần trước có thể `ƒ` tùy fetch — đều hợp lệ).
-- `ƒ /api/customers` và `ƒ /api/customers/[id]/remind` — dynamic OK.
-- KPI: `total_debt / current / overdue_total (1-15 / 16-30 / >30)`, cảnh báo `overdue_total > 0` đổi `clay-kpi--danger` + `animate-pulse`.
-- Filter: search theo tên/công ty/code/MST, dropdown aging (ALL/current/overdue_1_15/overdue_16_30/overdue_gt30), dropdown risk.
+## 4) Healthcheck — `app/api/health/route.ts`
+- `GET /api/health` trả `{status:"healthy", services:{database: fallback_mock|connected, pwa:"active"}}` — không throw khi thiếu DB (fallback_mock).
 
-## Phần 3 — VietQR động + PWA Giao vận (Directive 05 Phần 3)
+## 5) Fallback — `packages/integrations/misa/ledgerDb.ts`
+- `getLedger()/addLedgerEntry()` thử `checkDatabaseConnection() === "connected"` thì dùng Prisma, catch thì fallback file `.data/sapo2misa_ledger.json` + `memoryLedger`.
 
-### File đã tạo & verify
-| File | Trạng thái |
-|------|------------|
-| `packages/modules/payment/vietqr.ts` | OK — `SK_VIETQR_CONFIG` (970422/0123456789/CONG TY TNHH THUC PHAM SON KHANG), `buildVietQrUrl({amount, addInfo, bankId?, accountNo?, accountName?, template?})` → `https://img.vietqr.io/image/<bank>-<account>-<template>.png?amount=&addInfo=&accountName=`, `buildOrderVietQr(orderCode, amount)` |
-| `app/pwa/giaovan/page.tsx` | OK — `import { buildOrderVietQr }` + `qrUrl = buildOrderVietQr(active.code, active.amount)`, dialog **VietQR động** (`img src=qrUrl`, alt `VietQR <code> <vnd>`), nút **Thu COD — VietQR**, note "VietQR động: amount + addInfo = mã đơn" |
+## 6) Verify 09/10/2026
+- `npx prisma generate` — PASS (Generated Prisma Client v7.10.0).
+- `npx tsc --noEmit` — PASS (0 lỗi).
+- `npm run build` — PASS — 18 routes, có `ƒ /api/health`, `○ /customers`, `○ /inventory` (output chứa "/api/health" và "/customers" và "/inventory"). Warning copy `page_client-reference-manifest.js` là vấn đề standalone đã có sẵn, không block build.
 
-### Nghiệm thu
-- `○ /pwa/giaovan 3.62 kB` build OK.
-- `buildVietQrUrl` validate `amount > 0`, encode `addInfo`/`accountName`.
-- PWA giao vận hiển thị QR đúng amount + mã đơn, đối soát tự động khi KH chuyển khoản.
+## 7) Hướng dẫn go-live
+```bash
+# .env
+DATABASE_URL="postgresql://user:pass@host:5432/sk_workspace?schema=public"
 
-## Tổng hợp verify 09/10/2026
-- `npx tsc --noEmit` — **PASS (exit 0, 0 lỗi)**.
-- `npm run build` — **PASS** — routes `/customers`, `/api/customers`, `/api/customers/[id]/remind`, `/pwa/giaovan`, `/finance/sapo2misa`, `/inventory` đều có mặt.
-
-## Cách thử
-1. `npm run dev` → mở `http://localhost:3000/customers` — kiểm tra 4 thẻ KPI, bảng aging, filter search/aging/risk, bấm **Nhắc nợ Zalo** → copy tin nhắn + mở `https://zalo.me/<phone>` trong tab mới.
-2. Mở `http://localhost:3000/pwa/giaovan` — chọn đơn → bấm **Thu COD — VietQR** → dialog hiện QR `img.vietqr.io` với `amount` + `addInfo=mã đơn` → kiểm tra số tiền khớp `vnd(active.amount)`.
-3. API: `curl http://localhost:3000/api/customers?search=KH&aging=overdue_gt30` và `curl -X POST http://localhost:3000/api/customers/<id>/remind`.
+npx prisma migrate dev --name init   # tạo migration từ schema.prisma
+npm run db:seed                       # hoặc: npx prisma db seed
+# Docker (Postgres + Redis + MinIO + App)
+docker compose up -d --build
+curl http://localhost:3000/api/health  # -> {"status":"healthy","services":{"database":"connected"}}
+```
+- Chưa có `DATABASE_URL` thì app vẫn chạy bằng mock/fallback (build & health trả `fallback_mock`).
 
