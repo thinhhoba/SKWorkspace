@@ -85,3 +85,42 @@ export interface CentralOrder {
   sync_status: "pending" | "synced_amis" | "synced_einvoice" | "error";
   last_synced_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// Sapo Webhook types — Worker 1
+// ---------------------------------------------------------------------------
+export type SapoWebhookTopic =
+  | "orders/create"
+  | "orders/updated"
+  | "orders/paid"
+  | "orders/cancelled"
+  | "orders/fulfilled";
+
+export interface SapoWebhookPayload {
+  id?: number;
+  order?: SapoOrder;
+  topic?: string;
+  shop_domain?: string;
+  [key: string]: unknown;
+}
+
+export interface SapoWebhookLog {
+  id: string;
+  topic: SapoWebhookTopic;
+  order_id: number;
+  order_code: string;
+  alias_code: string;
+  channel: SapoOrderChannel;
+  received_at: string;
+  central_order?: CentralOrder;
+  raw_payload?: Record<string, unknown>;
+}
+
+export interface SapoWebhookStatus {
+  active: boolean;
+  shop_domain: string;
+  secret_configured: boolean;
+  topics: SapoWebhookTopic[];
+  total_received: number;
+  last_event_at: string | null;
+}
