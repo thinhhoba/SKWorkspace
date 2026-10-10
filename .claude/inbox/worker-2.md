@@ -1,55 +1,57 @@
-# CHỈ THỊ LỆNH PHÂN CÔNG — WORKER 2 (SAPO & MISA INTEGRATION SQUAD)
+# CHỈ THỊ LỆNH PHÂN CÔNG — WORKER 2 (WAREHOUSE & COLD CHAIN SQUAD)
 # DỰ ÁN: SK WORKSPACE 2 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
-# NHIỆM VỤ: ĐỒNG BỘ ĐƠN HÀNG SAPO LIVE & TÍCH HỢP MISA OPEN API (/finance/sapo2misa)
+# NHIỆM VỤ: PHÂN HỆ QUẢN LÝ KHO LẠNH & HẠN SỬ DỤNG FEFO (/inventory & PWA Kho)
 
 ---
 
 ### PHẠM VI DANH MỤC FILE CHO PHÉP (STRICT BOUNDARY):
-> ⚠️ **NGUYÊN TẮC AN TOÀN:** Worker 2 CHỈ ĐƯỢC PHÉP đọc và ghi trong các file sau. TUYỆT ĐỐI KHÔNG chạm vào thư mục `packages/modules/pricing` hay `app/(shell)/pricing` để tránh xung đột với Worker 1.
-- `app/api/sapo2misa/amis/route.ts` (Tạo mới)
-- `app/api/sapo2misa/meinvoice/route.ts` (Tạo mới)
-- `app/(shell)/finance/sapo2misa/page.tsx` (Cập nhật)
-- `packages/integrations/misa/misaTransformer.ts` (Đã có, mở rộng nếu cần)
-- Báo cáo kết quả vào: `.claude/reports/worker-2-misa.md`
+> ⚠️ **NGUYÊN TẮC AN TOÀN:** Worker 2 CHỈ ĐƯỢC PHÉP tạo và sửa trong các file sau. TUYỆT ĐỐI KHÔNG chạm vào `delivery`, `customers`, hay `pricing` để tránh xung đột với Worker 1 và Worker 3.
+- `packages/modules/inventory/**` (`types.ts`, `mockData.ts`, `inventoryService.ts`)
+- `app/api/inventory/**` (`route.ts`, `transfer/route.ts`)
+- `app/(shell)/inventory/page.tsx` (Cập nhật giao diện kho lạnh)
+- `app/pwa/kho/page.tsx` (Cập nhật PWA thủ kho)
+- Báo cáo kết quả vào: `.claude/reports/worker-2-inventory.md`
 
 ---
 
-### DỮ LIỆU ĐỊNH DANH & KẾT NỐI:
-- **MST Công ty:** `0111252725` (CÔNG TY TNHH THỰC PHẨM SƠN KHANG)
-- **Sapo Live Client:** Đã cấu hình tại `packages/integrations/sapo/sapoClient.ts` (kết nối endpoint `sonkhang.mysapo.net` với Basic Auth).
-- **MISA AMIS OpenAPI Client:** Đã tạo tại `packages/integrations/misa/amisOpenApiClient.ts` (hàm `syncOrderToAmis`).
-- **MISA meInvoice Bot Client:** Đã tạo tại `packages/integrations/misa/meInvoiceBotClient.ts` (hàm `publishInvoiceFromOrder`).
-- **Chuẩn Alias Code:** `packages/core/aliases.ts` (`SK-SO-...`, `SK-WEB-...`, `SK-POS-...`, `SK-QA-...`, `SK-DL-...`).
+### DỮ LIỆU ĐỊNH DANH VẬN HÀNH:
+- **Thủ kho trung tâm:** TRẦN THỊ NGỌC THÚY (SĐT: `0942 22 60 60`)
+- **Hai kho hoạt động chính thức:**
+  1. `KHO_DINH_CONG`: Kho Tổng Định Công (Số 96 Ngõ 337 Phố Định Công, Hoàng Mai, Hà Nội) — Kho trung tâm phân phối chính.
+  2. `KHO_YEN_BINH`: Kho Vệ Tinh Yên Bình (Thôn 6 Yên Bình / Yên Xuân, Hà Nội) — Kho đệm nguyên liệu & lưu trữ.
+- **Phân loại nhiệt độ chuẩn:**
+  - *Kho Đông Lạnh (-18°C):* Viên chiên LC Foods, Gà chiên CP, Nem chua rán Đức Minh, Dồi sụn, Khoai tây chiên...
+  - *Kho Mát (0°C ~ 4°C):* Tokbokki bánh gạo, Xúc xích, Kim chi, Sốt mì trộn...
+  - *Kho Khô Thường:* Mì trộn Indomie, Mì Koreno, Mì Nissin, Tương ớt/cà Sài Gòn, Mayonnaise, Dầu ăn...
 
 ---
 
 ### CHI TIẾT CÁC HẠNG MỤC CẦN LÀM:
 
-#### 1. TẠO API ENDPOINTS CHO MISA OPEN API:
-- `POST /api/sapo2misa/amis`:
-  - Nhận danh sách đơn hàng `CentralOrder[]` hoặc đơn hàng được chọn.
-  - Gọi hàm `syncOrderToAmis(order)` từ `amisOpenApiClient.ts`.
-  - Trả về kết quả: `{ success: true, count: N, vouchers: [...] }`.
-- `POST /api/sapo2misa/meinvoice`:
-  - Nhận danh sách đơn hàng `CentralOrder[]`.
-  - Gọi hàm `publishInvoiceFromOrder(order)` từ `meInvoiceBotClient.ts`.
-  - Trả về kết quả: `{ success: true, count: N, invoices: [...] }` kèm mã Cơ quan thuế và link tra cứu hóa đơn.
+#### 1. CHUẨN HÓA DỮ LIỆU KHO THỰC TẾ (`packages/modules/inventory/`):
+- `types.ts`:
+  - `WarehouseCode`: `"KHO_DINH_CONG" | "KHO_YEN_BINH"`.
+  - `StorageTempZone`: `"dong_lanh" | "kho_mat" | "kho_kho"`.
+  - Cột quản lý FEFO: `lot_number`, `expiry_date`, `days_until_expiry`, `is_near_expiry` (cảnh báo nếu < 30 ngày).
+- `mockData.ts`: Thay thế 100% dữ liệu cũ (Q7/Q12, thịt heo xay) bằng 20+ mặt hàng thực tế của Sơn Khang theo 2 kho Định Công & Yên Bình.
+- `inventoryService.ts`:
+  - Lọc theo kho và theo phân vùng nhiệt độ.
+  - Hàm cảnh báo cận hạn sử dụng FEFO.
+  - Tạo phiếu luân chuyển nội bộ (`SK-DC-...`) giữa Kho Định Công và Kho Yên Bình.
 
-#### 2. NÂNG CẤP GIAO DIỆN BẢNG ĐIỀU KHIỂN SAPO2MISA (`app/(shell)/finance/sapo2misa/page.tsx`):
-- **Cột Bảng Dữ Liệu:**
-  - Hiển thị thêm cột **Mã Định Danh (Alias Code)** (hiển thị badge chuẩn `SK-SO-...`, `SK-WEB-...`, `SK-POS-...`).
-  - Hiển thị cột **Kênh Bán (Channel)**: Badge màu phân biệt (Web Order, POS, Quán Ăn HN, Đại Lý Tỉnh).
-- **Thanh Công Cụ Hành Động Trực Tiếp (Action Bar):**
-  - Giữ nguyên nút: **"Đồng bộ Sapo"** (kéo đơn live) và **"Xuất Excel 63 cột"**.
-  - Bổ sung 2 nút hành động MISA OpenAPI:
-    - **Nút "Đẩy AMIS Kế Toán"**: Khi bấm sẽ gọi `POST /api/sapo2misa/amis`, hiển thị spinner loading, ghi log trực tiếp vào màn hình terminal và cập nhật trạng thái bước 4 trên Stepper thành "Đã hạch toán vào AMIS".
-    - **Nút "Phát Hành meInvoice Bot"**: Khi bấm sẽ gọi `POST /api/sapo2misa/meinvoice`, phát hành HĐĐT tự động, mở Dialog thông báo kèm Mã số HĐĐT và mã cấp của Cơ quan thuế.
-- **Terminal Logs:**
-  - Ghi lại chi tiết từng lượt gọi API Sapo, AMIS Kế toán và meInvoice Bot theo thời gian thực.
+#### 2. GIAO DIỆN SHELL & PWA:
+- **Giao diện Web (`app/(shell)/inventory/page.tsx`):**
+  - 4 Thẻ Clay-KPI: Tổng tồn trị giá (VNĐ), Cảnh báo sắp hết hàng, Cảnh báo cận hạn FEFO (<30 ngày - Rose tone), Tồn kho đông & mát.
+  - Tabs phân loại: Tất cả kho | Kho Tổng Định Công (HN) | Kho Yên Bình (Thạch Thất).
+  - Badge nhiệt độ bảo quản trực quan (-18°C, 0–4°C, Thường).
+  - Cột hạn sử dụng & số ngày còn lại (đỏ nếu <30 ngày, vàng nếu <60 ngày, xanh nếu >60 ngày).
+  - Modal tạo phiếu luân chuyển kho & Phiếu kiểm kê kho lạnh (`SK-KK-`).
+- **Cập nhật PWA Thủ kho (`app/pwa/kho/page.tsx`):**
+  - Màn hình quét mã / kiểm đếm nhanh cho Thủ kho Trần Thị Ngọc Thúy.
 
 ---
 
 ### YÊU CẦU NGHIỆM THU:
 1. Chạy `npx tsc --noEmit` đạt 0 lỗi.
-2. TUYỆT ĐỐI KHÔNG chạy lệnh `git commit` hay `git push` (Commander sẽ thực hiện).
-3. Ghi báo cáo hoàn thành vào `.claude/reports/worker-2-misa.md`.
+2. TUYỆT ĐỐI KHÔNG chạy `git commit` hay `git push`.
+3. Ghi báo cáo nghiệm thu vào `.claude/reports/worker-2-inventory.md`.

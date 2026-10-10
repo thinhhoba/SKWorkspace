@@ -1,25 +1,22 @@
 "use client";
 import * as React from "react";
-import {
-  Warehouse,
-  Search,
-  ArrowRightLeft,
-  AlertTriangle,
-  Clock,
-  ThermometerSnowflake,
-  Plus,
-  RefreshCw,
-  CheckCircle2,
-  Filter,
-  TrendingDown,
-  Box,
-  Truck
-} from "lucide-react";
+import { Warehouse, Search, ArrowRightLeft, AlertTriangle, Clock, RefreshCw, CheckCircle2, Truck, Package, Snowflake, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { InventoryItem, StockTransfer, WarehouseMetrics } from "@/packages/modules/inventory/types";
+import type { InventoryItem, StockTransfer, WarehouseMetrics, StorageTempZone } from "@/packages/modules/inventory/types";
+
+const TEMP_BADGE: Record<StorageTempZone, { label: string; cls: string }> = {
+  dong_lanh: { label: "-18°C", cls: "bg-sky-100 text-sky-700 border-sky-200" },
+  kho_mat: { label: "0–4°C", cls: "bg-cyan-100 text-cyan-700 border-cyan-200" },
+  kho_kho: { label: "Thường", cls: "bg-amber-100 text-amber-700 border-amber-200" },
+};
+function expiryBadgeCls(days: number): string {
+  if (days < 30) return "bg-rose-50 border-rose-200 text-rose-600";
+  if (days < 60) return "bg-amber-50 border-amber-200 text-amber-600";
+  return "bg-emerald-50 border-emerald-200 text-emerald-600";
+}
 
 export default function InventoryPage() {
   const [items, setItems] = React.useState<InventoryItem[]>([]);
@@ -27,511 +24,116 @@ export default function InventoryPage() {
   const [transfers, setTransfers] = React.useState<StockTransfer[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
-  const [selectedWarehouse, setSelectedWarehouse] = React.useState<"ALL" | "Q7" | "Q12">("ALL");
-  const [selectedStatus, setSelectedStatus] = React.useState<"ALL" | "thieu" | "sap-thieu" | "can-han">("ALL");
-
-  // State modal điều chuyển
-  const [transferModalOpen, setTransferModalOpen] = React.useState(false);
-  const [transferSku, setTransferSku] = React.useState("");
-  const [transferQty, setTransferQty] = React.useState(20);
-  const [transferFrom, setTransferFrom] = React.useState<"Q12" | "Q7">("Q12");
-  const [transferTo, setTransferTo] = React.useState<"Q12" | "Q7">("Q7");
-  const [transferNote, setTransferNote] = React.useState("");
-  const [isSubmittingTransfer, setIsSubmittingTransfer] = React.useState(false);
+  const [wh, setWh] = React.useState<"ALL" | "KHO_DINH_CONG" | "KHO_YEN_BINH">("ALL");
+  const [tempZone, setTempZone] = React.useState<StorageTempZone | "ALL">("ALL");
+  const [status, setStatus] = React.useState<"ALL" | "thieu" | "sap-thieu" | "can-han">("ALL");
+  const [transferOpen, setTransferOpen] = React.useState(false);
+  const [auditOpen, setAuditOpen] = React.useState(false);
+  const [sku, setSku] = React.useState("");
+  const [qty, setQty] = React.useState(20);
+  const [from, setFrom] = React.useState<"KHO_YEN_BINH" | "KHO_DINH_CONG">("KHO_YEN_BINH");
+  const [to, setTo] = React.useState<"KHO_YEN_BINH" | "KHO_DINH_CONG">("KHO_DINH_CONG");
+  const [note, setNote] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
   const [toast, setToast] = React.useState<string | null>(null);
+  const [auditWh, setAuditWh] = React.useState<"KHO_DINH_CONG" | "KHO_YEN_BINH">("KHO_DINH_CONG");
+  const [auditNote, setAuditNote] = React.useState("");
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const q = new URLSearchParams();
-      if (selectedWarehouse !== "ALL") q.set("warehouse", selectedWarehouse);
-      if (selectedStatus !== "ALL") q.set("status", selectedStatus);
+      if (wh !== "ALL") q.set("warehouse", wh);
+      if (tempZone !== "ALL") q.set("tempZone", tempZone);
+      if (status !== "ALL") q.set("status", status);
       if (search.trim()) q.set("search", search.trim());
-
-      const res = await fetch(`/api/inventory?${q.toString()}`);
-      const data = await res.json();
-      if (data.success) {
-        setItems(data.items || []);
-        setMetrics(data.metrics || null);
-      }
-
-      const resT = await fetch("/api/inventory/transfer");
-      const dataT = await resT.json();
-      if (dataT.success) {
-        setTransfers(dataT.transfers || []);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+      const r = await fetch(`/api/inventory?${q.toString()}`);
+      const d = await r.json();
+      if (d.success) { setItems(d.items || []); setMetrics(d.metrics || null); }
+      const rt = await fetch("/api/inventory/transfer");
+      const dt = await rt.json();
+      if (dt.success) setTransfers(dt.transfers || []);
+    } catch (e) { console.error(e); } finally { setLoading(false); }
   };
+  React.useEffect(() => { fetchData(); }, [wh, tempZone, status, search]);
+  React.useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }, [toast]);
 
-  React.useEffect(() => {
-    fetchData();
-  }, [selectedWarehouse, selectedStatus, search]);
-
-  React.useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(t);
-  }, [toast]);
-
-  const handleCreateTransfer = async (e: React.FormEvent) => {
+  const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!transferSku || transferQty <= 0) {
-      setToast("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ");
-      return;
-    }
-
-    setIsSubmittingTransfer(true);
+    if (!sku || qty <= 0) { setToast("Chọn SKU và số lượng hợp lệ"); return; }
+    setSubmitting(true);
     try {
-      const res = await fetch("/api/inventory/transfer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sku: transferSku,
-          quantity: transferQty,
-          from: transferFrom,
-          to: transferTo,
-          note: transferNote,
-          createdBy: "Giám đốc / Điều phối SK"
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setToast(`Đã tạo phiếu điều chuyển ${data.transfer.code} thành công!`);
-        setTransferModalOpen(false);
-        fetchData();
-      } else {
-        setToast(`Lỗi: ${data.error}`);
-      }
-    } catch (err: any) {
-      setToast(`Lỗi: ${err.message}`);
-    } finally {
-      setIsSubmittingTransfer(false);
-    }
+      const r = await fetch("/api/inventory/transfer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sku, quantity: qty, from, to, note, createdBy: "Trần Thị Ngọc Thúy (Thủ kho)" }) });
+      const d = await r.json();
+      if (d.success) { setToast(d.message); setTransferOpen(false); fetchData(); } else setToast(d.error);
+    } catch (e: any) { setToast(e.message); } finally { setSubmitting(false); }
   };
-
-  const openTransferForItem = (item: InventoryItem) => {
-    setTransferSku(item.sku);
-    setTransferQty(item.min_stock > item.quantity ? item.min_stock - item.quantity : 20);
-    setTransferFrom(item.warehouse === "Q7" ? "Q12" : "Q7");
-    setTransferTo(item.warehouse === "Q7" ? "Q7" : "Q12");
-    setTransferNote(`Điều chuyển bù tồn cho ${item.name}`);
-    setTransferModalOpen(true);
+  const handleAudit = async (e: React.FormEvent) => {
+    e.preventDefault(); setSubmitting(true);
+    try {
+      const r = await fetch("/api/inventory/transfer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ audit: true, warehouse: auditWh, items: [], note: auditNote, createdBy: "Trần Thị Ngọc Thúy" }) });
+      const d = await r.json();
+      if (d.success) { setToast(d.message); setAuditOpen(false); } else setToast(d.error);
+    } catch (e: any) { setToast(e.message); } finally { setSubmitting(false); }
+  };
+  const openFor = (it: InventoryItem) => {
+    setSku(it.sku); setQty(it.min_stock > it.quantity ? it.min_stock - it.quantity : 20);
+    setFrom(it.warehouse === "KHO_DINH_CONG" ? "KHO_YEN_BINH" : "KHO_DINH_CONG");
+    setTo(it.warehouse as typeof to); setNote("Điều chuyển bù tồn " + it.name); setTransferOpen(true);
   };
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            <Warehouse className="w-5 h-5 text-sky-500" /> Quản Lý Kho Lạnh Sơn Khang
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Hệ thống 2 kho lạnh: Kho Q7 (Trung tâm Bán lẻ/Sỉ) & Kho Q12 (Kho tổng Sơ chế/Trữ đông)
-          </p>
+          <h1 className="text-xl font-bold flex items-center gap-2"><Warehouse className="w-5 h-5 text-sky-500" /> Quản Lý Kho Lạnh Sơn Khang</h1>
+          <p className="text-xs text-muted-foreground">Thủ kho: Trần Thị Ngọc Thúy (0942 22 60 60) · 2 kho: Định Công & Yên Bình</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full glossy-pill"
-            onClick={fetchData}
-            disabled={loading}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin text-sky-500" : ""}`} />
-            Làm mới
-          </Button>
-
-          <Dialog open={transferModalOpen} onOpenChange={setTransferModalOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                className="rounded-full shadow-[0_4px_12px_rgba(14,165,233,0.3)] bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white"
-                onClick={() => {
-                  setTransferSku(items[0]?.sku || "HEO-XAY-500");
-                  setTransferQty(30);
-                  setTransferFrom("Q12");
-                  setTransferTo("Q7");
-                  setTransferNote("Xe lạnh SK-02 điều chuyển định kỳ");
-                }}
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" /> Điều chuyển kho
-              </Button>
-            </DialogTrigger>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" size="sm" className="rounded-full" onClick={fetchData} disabled={loading}><RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />Làm mới</Button>
+          <Dialog open={auditOpen} onOpenChange={setAuditOpen}>
+            <DialogTrigger asChild><Button variant="outline" size="sm" className="rounded-full"><ClipboardCheck className="w-3.5 h-3.5 mr-1.5" />Kiểm kê SK-KK</Button></DialogTrigger>
             <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-base flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-sky-500" /> Lập phiếu điều chuyển kho nội bộ
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateTransfer} className="space-y-3 pt-2">
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Sản phẩm điều chuyển</label>
-                  <select
-                    value={transferSku}
-                    onChange={(e) => setTransferSku(e.target.value)}
-                    className="w-full text-xs h-9 rounded-lg border bg-background px-3 mt-1"
-                  >
-                    {items.map((i) => (
-                      <option key={i.id} value={i.sku}>
-                        {i.sku} — {i.name} (Tồn {i.warehouse}: {i.quantity} {i.dvt})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground">Từ kho xuất</label>
-                    <select
-                      value={transferFrom}
-                      onChange={(e) => setTransferFrom(e.target.value as any)}
-                      className="w-full text-xs h-9 rounded-lg border bg-background px-3 mt-1"
-                    >
-                      <option value="Q12">Kho Tổng Q12</option>
-                      <option value="Q7">Kho Lạnh Q7</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground">Đến kho nhận</label>
-                    <select
-                      value={transferTo}
-                      onChange={(e) => setTransferTo(e.target.value as any)}
-                      className="w-full text-xs h-9 rounded-lg border bg-background px-3 mt-1"
-                    >
-                      <option value="Q7">Kho Lạnh Q7</option>
-                      <option value="Q12">Kho Tổng Q12</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Số lượng chuyển</label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={transferQty}
-                    onChange={(e) => setTransferQty(Number(e.target.value))}
-                    className="mt-1 h-9 text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground">Ghi chú điều chuyển</label>
-                  <Input
-                    value={transferNote}
-                    onChange={(e) => setTransferNote(e.target.value)}
-                    placeholder="Vd: Xe lạnh SK-02 điều chuyển ca chiều"
-                    className="mt-1 h-9 text-xs"
-                  />
-                </div>
-
-                <div className="pt-2 flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setTransferModalOpen(false)}
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="rounded-full bg-sky-600 text-white"
-                    disabled={isSubmittingTransfer}
-                  >
-                    {isSubmittingTransfer ? "Đang xử lý…" : "Xác nhận điều chuyển"}
-                  </Button>
-                </div>
+              <DialogHeader><DialogTitle className="text-sm flex items-center gap-2"><ClipboardCheck className="w-4 h-4 text-emerald-600" />Phiếu kiểm kê kho lạnh (SK-KK-...)</DialogTitle></DialogHeader>
+              <form onSubmit={handleAudit} className="space-y-3 pt-2">
+                <div><label className="text-xs font-semibold">Kho kiểm kê</label><select value={auditWh} onChange={(e) => setAuditWh(e.target.value as any)} className="w-full h-9 rounded-lg border px-3 text-xs mt-1"><option value="KHO_DINH_CONG">Kho Tổng Định Công</option><option value="KHO_YEN_BINH">Kho Yên Bình</option></select></div>
+                <div><label className="text-xs font-semibold">Ghi chú</label><Input value={auditNote} onChange={(e) => setAuditNote(e.target.value)} placeholder="Vd: Kiểm kê định kỳ hầm đông" className="h-9 text-xs mt-1" /></div>
+                <div className="flex justify-end gap-2 pt-2"><Button type="button" variant="ghost" size="sm" onClick={() => setAuditOpen(false)}>Hủy</Button><Button type="submit" size="sm" className="rounded-full bg-emerald-600 text-white" disabled={submitting}>{submitting ? "..." : "Lập phiếu SK-KK"}</Button></div>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+            <DialogTrigger asChild><Button size="sm" className="rounded-full bg-sky-600 text-white" onClick={() => { setSku(items[0]?.sku || ""); setQty(30); setFrom("KHO_YEN_BINH"); setTo("KHO_DINH_CONG"); }}><ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" />Luân chuyển SK-DC</Button></DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader><DialogTitle className="text-sm flex items-center gap-2"><Truck className="w-4 h-4 text-sky-500" />Phiếu luân chuyển nội bộ (SK-DC-...)</DialogTitle></DialogHeader>
+              <form onSubmit={handleTransfer} className="space-y-3 pt-2">
+                <div><label className="text-xs font-semibold">SKU</label><select value={sku} onChange={(e) => setSku(e.target.value)} className="w-full h-9 rounded-lg border px-3 text-xs mt-1">{items.map((i) => <option key={i.id} value={i.sku}>{i.sku} — {i.name} ({i.warehouse} {i.quantity}{i.dvt})</option>)}</select></div>
+                <div className="grid grid-cols-2 gap-2"><div><label className="text-xs font-semibold">Từ kho</label><select value={from} onChange={(e) => setFrom(e.target.value as any)} className="w-full h-9 rounded-lg border px-3 text-xs mt-1"><option value="KHO_YEN_BINH">Kho Yên Bình</option><option value="KHO_DINH_CONG">Kho Định Công</option></select></div><div><label className="text-xs font-semibold">Đến kho</label><select value={to} onChange={(e) => setTo(e.target.value as any)} className="w-full h-9 rounded-lg border px-3 text-xs mt-1"><option value="KHO_DINH_CONG">Kho Định Công</option><option value="KHO_YEN_BINH">Kho Yên Bình</option></select></div></div>
+                <div><label className="text-xs font-semibold">Số lượng</label><Input type="number" min={1} value={qty} onChange={(e) => setQty(Number(e.target.value))} className="h-9 text-xs mt-1" /></div>
+                <div><label className="text-xs font-semibold">Ghi chú</label><Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Xe lạnh SK-02..." className="h-9 text-xs mt-1" /></div>
+                <div className="flex justify-end gap-2 pt-2"><Button type="button" variant="ghost" size="sm" onClick={() => setTransferOpen(false)}>Hủy</Button><Button type="submit" size="sm" className="rounded-full bg-sky-600 text-white" disabled={submitting}>{submitting ? "..." : "Tạo SK-DC"}</Button></div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
       </div>
-
-      {/* KPI Bento Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Card 1: Kho Q7 */}
-        <div className="clay-card p-4 space-y-2">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Kho Lạnh Q7 (Bán sỉ & lẻ)</span>
-            <ThermometerSnowflake className="w-4 h-4 text-cyan-500" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black tracking-tight">{metrics?.q7_capacity_pct || 68}%</span>
-            <Badge variant="outline" className="text-[10px] bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 border-cyan-200">
-              -2°C ~ 4°C
-            </Badge>
-          </div>
-          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-cyan-500 to-sky-500 rounded-full"
-              style={{ width: `${metrics?.q7_capacity_pct || 68}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-muted-foreground">Sức chứa: 500 khay/thùng · Vận hành liên tục</p>
-        </div>
-
-        {/* Card 2: Kho Q12 */}
-        <div className="clay-card p-4 space-y-2">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Kho Tổng Q12 (Hầm đông)</span>
-            <ThermometerSnowflake className="w-4 h-4 text-indigo-500" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black tracking-tight">{metrics?.q12_capacity_pct || 42}%</span>
-            <Badge variant="outline" className="text-[10px] bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 border-indigo-200">
-              -18°C Cấp đông
-            </Badge>
-          </div>
-          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
-              style={{ width: `${metrics?.q12_capacity_pct || 42}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-muted-foreground">Hầm trữ đông lớn · Sơ chế & pha lóc sỉ</p>
-        </div>
-
-        {/* Card 3: Thiếu tồn */}
-        <div className="clay-card p-4 space-y-2">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Cảnh Báo Thiếu Hàng</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-rose-500">
-              {(metrics?.out_of_stock_count || 0) + (metrics?.low_stock_count || 0)} <span className="text-xs font-normal text-muted-foreground">mặt hàng</span>
-            </span>
-            <Badge variant="destructive" className="text-[10px]">
-              Cần bù tồn
-            </Badge>
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            Gồm {metrics?.out_of_stock_count || 0} hết hàng và {metrics?.low_stock_count || 0} sắp chạm Min Stock
-          </p>
-        </div>
-
-        {/* Card 4: Tổng giá trị tồn */}
-        <div className="clay-card p-4 space-y-2">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Tổng Giá Trị Tồn Kho</span>
-            <Box className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl font-bold font-mono text-emerald-600">
-              {Number(metrics?.total_value || 0).toLocaleString("vi-VN")} <span className="text-xs font-normal">₫</span>
-            </span>
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            {metrics?.total_skus || 0} danh mục SKU · FEFO quản lý theo hạn dùng
-          </p>
-        </div>
+        <div className="clay-card p-4 space-y-2"><div className="flex justify-between text-muted-foreground"><span className="text-xs font-semibold">Tổng tồn trị giá</span><Package className="w-4 h-4 text-emerald-500" /></div><div className="text-xl font-bold font-mono text-emerald-600">{Number(metrics?.total_value || 0).toLocaleString("vi-VN")} ₫</div><p className="text-[11px] text-muted-foreground">{metrics?.total_skus || 0} SKU · {metrics?.total_quantity || 0} đơn vị</p></div>
+        <div className="clay-card p-4 space-y-2"><div className="flex justify-between text-muted-foreground"><span className="text-xs font-semibold">Sắp hết hàng</span><AlertTriangle className="w-4 h-4 text-amber-500" /></div><div className="text-2xl font-black text-amber-600">{(metrics?.low_stock_count || 0) + (metrics?.out_of_stock_count || 0)} <span className="text-xs font-normal text-muted-foreground">SKU</span></div><p className="text-[11px] text-muted-foreground">{metrics?.out_of_stock_count || 0} thiếu · {metrics?.low_stock_count || 0} sắp thiếu</p></div>
+        <div className="clay-card p-4 space-y-2 border-rose-200"><div className="flex justify-between text-muted-foreground"><span className="text-xs font-semibold">Cận hạn FEFO &lt;30 ngày</span><Clock className="w-4 h-4 text-rose-500" /></div><div className="text-2xl font-black text-rose-600">{metrics?.near_expiry_count || 0} <span className="text-xs font-normal text-muted-foreground">lô</span></div><p className="text-[11px] text-rose-600">Ưu tiên xuất trước (FEFO) — kiểm tra ngay</p></div>
+        <div className="clay-card p-4 space-y-2"><div className="flex justify-between text-muted-foreground"><span className="text-xs font-semibold">Tồn đông &amp; mát</span><Snowflake className="w-4 h-4 text-sky-500" /></div><div className="text-sm font-bold"><span className="text-sky-600">{metrics?.dong_lanh_qty || 0}</span> <span className="text-xs font-normal">đông (-18°C)</span> · <span className="text-cyan-600">{metrics?.kho_mat_qty || 0}</span> <span className="text-xs font-normal">mát (0–4°C)</span></div><p className="text-[11px] text-muted-foreground">Còn lại kho khô thường</p></div>
       </div>
-
-      {/* Bộ lọc và Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {/* Lọc theo Kho */}
-          <div className="glossy-pill p-1 flex gap-1 rounded-full border">
-            {(["ALL", "Q7", "Q12"] as const).map((w) => (
-              <button
-                key={w}
-                onClick={() => setSelectedWarehouse(w)}
-                className={`px-3 py-1 text-xs rounded-full transition-all font-medium ${
-                  selectedWarehouse === w
-                    ? "bg-sky-500 text-white shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {w === "ALL" ? "2 Kho" : `Kho ${w}`}
-              </button>
-            ))}
-          </div>
-
-          {/* Lọc theo trạng thái cảnh báo */}
-          <div className="glossy-pill p-1 flex gap-1 rounded-full border">
-            <button
-              onClick={() => setSelectedStatus("ALL")}
-              className={`px-3 py-1 text-xs rounded-full transition-all font-medium ${
-                selectedStatus === "ALL"
-                  ? "bg-foreground text-background shadow-sm font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Tất cả
-            </button>
-            <button
-              onClick={() => setSelectedStatus("thieu")}
-              className={`px-3 py-1 text-xs rounded-full transition-all font-medium ${
-                selectedStatus === "thieu"
-                  ? "bg-rose-500 text-white font-semibold"
-                  : "text-muted-foreground hover:text-rose-600"
-              }`}
-            >
-              Thiếu tồn
-            </button>
-            <button
-              onClick={() => setSelectedStatus("can-han")}
-              className={`px-3 py-1 text-xs rounded-full transition-all font-medium ${
-                selectedStatus === "can-han"
-                  ? "bg-amber-500 text-white font-semibold"
-                  : "text-muted-foreground hover:text-amber-600"
-              }`}
-            >
-              Cận hạn (FEFO)
-            </button>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-1 flex-wrap">
+          <div className="glossy-pill p-1 flex gap-1 rounded-full border">{(["ALL", "KHO_DINH_CONG", "KHO_YEN_BINH"] as const).map((w) => (<button key={w} onClick={() => setWh(w)} className={`px-3 py-1 text-xs rounded-full font-medium ${wh === w ? "bg-sky-500 text-white" : "text-muted-foreground"}`}>{w === "ALL" ? "Tất cả kho" : w === "KHO_DINH_CONG" ? "Kho Tổng Định Công" : "Kho Yên Bình"}</button>))}</div>
+          <div className="glossy-pill p-1 flex gap-1 rounded-full border">{(["ALL", "dong_lanh", "kho_mat", "kho_kho"] as const).map((z) => (<button key={z} onClick={() => setTempZone(z as any)} className={`px-2.5 py-1 text-xs rounded-full font-medium ${tempZone === z ? "bg-foreground text-background" : "text-muted-foreground"}`}>{z === "ALL" ? "Mọi nhiệt độ" : z === "dong_lanh" ? "-18°C" : z === "kho_mat" ? "0–4°C" : "Thường"}</button>))}</div>
+          <div className="glossy-pill p-1 flex gap-1 rounded-full border"><button onClick={() => setStatus("ALL")} className={`px-3 py-1 text-xs rounded-full ${status === "ALL" ? "bg-foreground text-background" : "text-muted-foreground"}`}>Tất cả</button><button onClick={() => setStatus("can-han")} className={`px-3 py-1 text-xs rounded-full ${status === "can-han" ? "bg-rose-500 text-white" : "text-muted-foreground"}`}>FEFO cận hạn</button></div>
         </div>
-
-        {/* Ô tìm kiếm */}
-        <div className="relative min-w-[220px]">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm SKU, tên sản phẩm, số lô…"
-            className="pl-8 h-9 text-xs rounded-full border-white/80 bg-white/90"
-          />
-        </div>
+        <div className="relative min-w-[220px]"><Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="SKU, tên, số lô..." className="pl-8 h-9 text-xs rounded-full" /></div>
       </div>
-
-      {/* Bảng dữ liệu tồn kho */}
-      <div className="clay-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="bg-muted/70 text-[11px] text-muted-foreground border-b">
-              <tr>
-                <th className="px-3 py-2.5 text-left">SKU & Tên Sản Phẩm</th>
-                <th className="px-3 py-2.5 text-left">Kho & Vị trí</th>
-                <th className="px-3 py-2.5 text-center">Nhiệt độ</th>
-                <th className="px-3 py-2.5 text-right">Tồn / Tồn Min</th>
-                <th className="px-3 py-2.5 text-left">Số Lô & Hạn Dùng</th>
-                <th className="px-3 py-2.5 text-right">Tổng Giá Trị</th>
-                <th className="px-3 py-2.5 text-center">Trạng Thái</th>
-                <th className="px-3 py-2.5 text-right">Hành Động</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
-                    Không tìm thấy sản phẩm nào phù hợp với bộ lọc.
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => (
-                  <tr key={item.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-3 py-2.5">
-                      <div className="font-semibold text-foreground">{item.name}</div>
-                      <div className="font-mono text-[10px] text-muted-foreground">{item.sku} · {item.dvt}</div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <Badge variant="outline" className={`font-mono text-[10px] mr-1.5 ${item.warehouse === "Q7" ? "border-sky-300 text-sky-600 bg-sky-50" : "border-indigo-300 text-indigo-600 bg-indigo-50"}`}>
-                        {item.warehouse}
-                      </Badge>
-                      <span className="text-muted-foreground">{item.location}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-center font-mono text-[11px] text-muted-foreground">
-                      {item.temperature}
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <div className="font-mono font-bold text-sm">
-                        {item.quantity}{" "}
-                        <span className="text-xs font-normal text-muted-foreground">/ {item.min_stock} {item.dvt}</span>
-                      </div>
-                      <div className="w-20 ml-auto h-1 bg-muted rounded-full overflow-hidden mt-1">
-                        <div
-                          className={`h-full ${item.quantity <= item.min_stock ? "bg-rose-500" : "bg-emerald-500"}`}
-                          style={{ width: `${Math.min(100, Math.round((item.quantity / item.min_stock) * 100))}%` }}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="font-mono text-[11px] font-medium">{item.lot_number}</div>
-                      <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5" /> HSD: {item.expiry_date}
-                        {item.days_until_expiry <= 30 && (
-                          <span className="text-rose-500 font-semibold">({item.days_until_expiry} ngày)</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono">
-                      {Number(item.total_value).toLocaleString("vi-VN")} ₫
-                    </td>
-                    <td className="px-3 py-2.5 text-center">
-                      <Badge
-                        variant={
-                          item.status === "du"
-                            ? "success"
-                            : item.status === "can-han"
-                              ? "outline"
-                              : item.status === "sap-thieu"
-                                ? "warning"
-                                : "destructive"
-                        }
-                        className={`text-[10px] rounded-full capitalize ${item.status === "can-han" ? "border-amber-400 text-amber-600 bg-amber-50" : ""}`}
-                      >
-                        {item.status_label}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs rounded-full hover:bg-sky-50 hover:text-sky-600"
-                        onClick={() => openTransferForItem(item)}
-                      >
-                        <ArrowRightLeft className="w-3 h-3 mr-1" /> Chuyển kho
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Lịch sử phiếu điều chuyển gần đây */}
-      {transfers.length > 0 && (
-        <div className="clay-card p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 text-sky-500" /> Phiếu Điều Chuyển Nội Bộ Gần Đây
-            </h3>
-            <span className="text-[11px] text-muted-foreground">{transfers.length} phiếu</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {transfers.slice(0, 4).map((trf) => (
-              <div key={trf.id} className="rounded-xl border p-2.5 bg-white/40 dark:bg-zinc-900/40 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-mono font-bold text-sky-600">{trf.code} · {trf.from_warehouse} ➔ {trf.to_warehouse}</div>
-                  <div className="text-muted-foreground">{trf.item_name} — {trf.quantity} {trf.dvt}</div>
-                  <div className="text-[10px] text-muted-foreground">{trf.created_at} · {trf.created_by}</div>
-                </div>
-                <Badge
-                  variant={trf.status === "completed" ? "success" : "outline"}
-                  className={`text-[10px] ${trf.status === "in_transit" ? "border-sky-300 text-sky-600 bg-sky-50" : ""}`}
-                >
-                  {trf.status_label}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {toast && (
-        <div className="fixed bottom-4 right-4 z-50 bg-foreground text-background text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" /> {toast}
-        </div>
-      )}
+      <div className="clay-card overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-xs"><thead className="bg-muted/70 text-[11px] text-muted-foreground border-b"><tr><th className="px-3 py-2 text-left">SKU &amp; Tên</th><th className="px-3 py-2 text-left">Kho</th><th className="px-3 py-2 text-center">Nhiệt độ</th><th className="px-3 py-2 text-right">Tồn/Min</th><th className="px-3 py-2 text-left">Hạn dùng &amp; Còn lại</th><th className="px-3 py-2 text-right">Giá trị</th><th className="px-3 py-2 text-center">Trạng thái</th><th className="px-3 py-2 text-right"></th></tr></thead><tbody className="divide-y">{items.length === 0 ? <tr><td colSpan={8} className="py-8 text-center text-muted-foreground">Không có dữ liệu.</td></tr> : items.map((it) => (<tr key={it.id} className="hover:bg-muted/30"><td className="px-3 py-2"><div className="font-semibold">{it.name}</div><div className="font-mono text-[10px] text-muted-foreground">{it.sku} · {it.dvt} · {it.location}</div></td><td className="px-3 py-2"><Badge variant="outline" className={`text-[10px] font-mono ${it.warehouse === "KHO_DINH_CONG" ? "border-sky-300 text-sky-600 bg-sky-50" : "border-indigo-300 text-indigo-600 bg-indigo-50"}`}>{it.warehouse === "KHO_DINH_CONG" ? "ĐỊNH CÔNG" : "YÊN BÌNH"}</Badge></td><td className="px-3 py-2 text-center"><Badge variant="outline" className={`text-[10px] ${TEMP_BADGE[it.temp_zone].cls}`}>{TEMP_BADGE[it.temp_zone].label}</Badge></td><td className="px-3 py-2 text-right font-mono font-bold">{it.quantity} <span className="font-normal text-muted-foreground">/ {it.min_stock}</span></td><td className="px-3 py-2"><div className="font-mono text-[11px]">{it.lot_number} · HSD {it.expiry_date}</div><Badge variant="outline" className={`text-[10px] mt-1 ${expiryBadgeCls(it.days_until_expiry)}`}>{it.days_until_expiry > 0 ? "Còn " + it.days_until_expiry + " ngày" : "Quá hạn " + Math.abs(it.days_until_expiry) + " ngày"}</Badge></td><td className="px-3 py-2 text-right font-mono">{Number(it.total_value).toLocaleString("vi-VN")} ₫</td><td className="px-3 py-2 text-center"><Badge variant={it.status === "du" ? "default" : it.status === "can-han" ? "destructive" : "outline"} className={`text-[10px] rounded-full ${it.status === "can-han" ? "bg-rose-500" : ""} ${it.status === "sap-thieu" ? "border-amber-300 text-amber-600 bg-amber-50" : ""}`}>{it.status_label}</Badge></td><td className="px-3 py-2 text-right"><Button variant="ghost" size="sm" className="h-7 text-xs rounded-full" onClick={() => openFor(it)}><ArrowRightLeft className="w-3 h-3 mr-1" />Chuyển</Button></td></tr>))}</tbody></table></div></div>
+      {transfers.length > 0 && (<div className="clay-card p-4 space-y-2"><h3 className="text-xs font-semibold flex items-center gap-1.5"><Truck className="w-3.5 h-3.5 text-sky-500" />Phiếu luân chuyển gần đây (SK-DC-...)</h3><div className="grid md:grid-cols-2 gap-2">{transfers.slice(0, 4).map((t) => (<div key={t.id} className="rounded-xl border p-2.5 bg-white/40 flex justify-between text-xs"><div><div className="font-mono font-bold text-sky-600">{t.code} · {t.from_warehouse === "KHO_DINH_CONG" ? "ĐC" : "YB"} → {t.to_warehouse === "KHO_DINH_CONG" ? "ĐC" : "YB"}</div><div className="text-muted-foreground">{t.item_name} — {t.quantity} {t.dvt} · {t.lot_number}</div><div className="text-[10px] text-muted-foreground">{t.created_at} · {t.created_by}</div></div><Badge variant={t.status === "completed" ? "default" : "outline"} className="text-[10px] h-fit">{t.status_label}</Badge></div>))}</div></div>)}
+      {toast && (<div className="fixed bottom-4 right-4 z-50 bg-foreground text-background text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" />{toast}</div>)}
     </div>
   );
 }

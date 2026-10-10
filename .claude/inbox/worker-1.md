@@ -1,64 +1,55 @@
-# CHỈ THỊ LỆNH PHÂN CÔNG — WORKER 1 (PRICING SQUAD)
+# CHỈ THỊ LỆNH PHÂN CÔNG — WORKER 1 (LOGISTICS & FLEET SQUAD)
 # DỰ ÁN: SK WORKSPACE 2 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
-# NHIỆM VỤ: PHÂN HỆ BẢNG GIÁ ĐA KÊNH & BÁO GIÁ ZALO CHÀNH XE (/pricing)
+# NHIỆM VỤ: PHÂN HỆ GIAO VẬN & ĐIỀU PHỐI CHÀNH XE MIỀN BẮC (/delivery & PWA Giao Vận)
 
 ---
 
 ### PHẠM VI DANH MỤC FILE CHO PHÉP (STRICT BOUNDARY):
-> ⚠️ **NGUYÊN TẮC AN TOÀN:** Worker 1 CHỈ ĐƯỢC PHÉP đọc và ghi trong các file sau. TUYỆT ĐỐI KHÔNG chạm vào thư mục `packages/integrations` hay `finance` để tránh xung đột với Worker 2.
-- `packages/modules/pricing/pricingService.ts` (Tạo mới)
-- `app/api/pricing/route.ts` (Tạo mới)
-- `app/api/pricing/[sku]/route.ts` (Tạo mới)
-- `app/api/pricing/quote/route.ts` (Tạo mới)
-- `app/(shell)/pricing/page.tsx` (Tạo mới)
-- Báo cáo kết quả vào: `.claude/reports/worker-1-pricing.md`
+> ⚠️ **NGUYÊN TẮC AN TOÀN:** Worker 1 CHỈ ĐƯỢC PHÉP tạo và sửa trong các file sau. TUYỆT ĐỐI KHÔNG chạm vào `inventory`, `customers`, hay `finance` để tránh xung đột với Worker 2 và Worker 3.
+- `packages/modules/delivery/**` (Tạo mới `types.ts`, `mockData.ts`, `deliveryService.ts`)
+- `app/api/delivery/**` (Tạo mới `route.ts`, `[id]/route.ts`)
+- `app/(shell)/delivery/page.tsx` (Tạo mới giao diện)
+- `app/pwa/giaovan/page.tsx` (Cập nhật PWA tài xế)
+- Báo cáo kết quả vào: `.claude/reports/worker-1-delivery.md`
 
 ---
 
-### DỮ LIỆU ĐỊNH DANH DOANH NGHIỆP:
-- **Pháp nhân:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
-- **Kho tổng:** Số 96 Ngõ 337 Phố Định Công, P. Định Công, TP. Hà Nội (thông Ngõ 412 Trịnh Đình Cửu)
-- **Tài khoản thanh toán:** Techcombank `22226060` (CONG TY TNHH THUC PHAM SON KHANG)
-- **Hotline:** 0942 22 60 60 | Cố định: (024) 22 60 60 60 | Website: `sonkhang.vn`
+### DỮ LIỆU ĐỊNH DANH VẬN HÀNH:
+- **Tài xế chính:** NGÔ VĂN TÂN (SĐT: `0942 22 60 60`)
+- **Kho xuất phát:** Kho Tổng Định Công (Số 96 Ngõ 337 Phố Định Công, P. Định Công, Hoàng Mai, Hà Nội)
+- **Tài khoản thu hộ (COD/VietQR):** Techcombank `22226060` (CONG TY TNHH THUC PHAM SON KHANG)
+- **Quy tắc giao hàng Sơn Khang:**
+  - *Nội thành HN:* Freeship đơn từ 1tr (<8km) và đơn từ 3tr (<12km). Đơn dưới 500k phụ thu +10%.
+  - *Chành xe tỉnh:* Đóng thùng xốp, gửi bến Giáp Bát, Nước Ngầm, Mỹ Đình, Gia Lâm. Khách CK 100% trước khi xuất kho (Không COD qua xe khách).
 
 ---
 
 ### CHI TIẾT CÁC HẠNG MỤC CẦN LÀM:
 
-#### 1. SERVICE TÍNH TOÁN & BÁO GIÁ (`packages/modules/pricing/pricingService.ts`):
-- Đọc 24 SKUs chuẩn từ `packages/modules/pricing/mockData.ts`.
-- Hỗ trợ lọc theo 4 nhóm hàng: `hang_kho`, `gia_vi`, `hang_mat`, `hang_dong`.
-- Hỗ trợ 6 kênh bán hàng: `quan_an`, `dai_ly`, `bep_an`, `ban_le`, `web_order`, `pos`.
-- Cập nhật giá theo kênh, tự động tính lại % biên lợi nhuận và cảnh báo nếu `newPrice < cost_price`.
-- Hàm `generateZaloQuote(channel, options)`: Tự động format mẫu báo giá gửi Zalo:
-  - Header: CÔNG TY TNHH THỰC PHẨM SƠN KHANG (sonkhang.vn) - Hotline: 0942 22 60 60
-  - STK: Techcombank 22226060 - CONG TY TNHH THUC PHAM SON KHANG
-  - Chính sách: Tối thiểu 500k; Freeship đơn từ 1tr (<8km HN); Gửi chành xe bến Giáp Bát/Nước Ngầm các tỉnh phía Bắc.
-  - Danh sách giá sản phẩm theo kênh đã chọn.
+#### 1. MODULE DỮ LIỆU & SERVICE (`packages/modules/delivery/`):
+- `types.ts`:
+  - `DeliveryTrip`: Mã chuyến `SK-DO-...`, tài xế `Ngô Văn Tân`, biển số xe (vd: `29C-882.60`), loại tuyến (`noi_thanh_hn` | `chanh_xe_tinh`), trạng thái (`cho_xep_xe`, `dang_giao`, `da_giao`, `hoan_tat`).
+  - `DeliveryStop`: Điểm dừng, khách hàng, địa chỉ (Quán ăn nội thành hoặc Bến xe Giáp Bát/Nước Ngầm/Mỹ Đình đi Nam Định, Hải Phòng, Quảng Ninh), số thùng xốp, số tiền thu hộ VietQR, trạng thái.
+- `mockData.ts`: 8–10 vận đơn thực tế của Sơn Khang theo các bến xe và cụm quán ăn Hà Nội.
+- `deliveryService.ts`: Tạo chuyến xe, cập nhật trạng thái trạm dừng, tạo phiếu gửi chành xe.
 
 #### 2. API ENDPOINTS:
-- `GET /api/pricing`: Trả về danh sách SKUs, thống kê KPI và phân loại nhóm.
-- `PATCH /api/pricing/[sku]`: Cập nhật giá bán theo kênh.
-- `POST /api/pricing/quote`: Sinh chuỗi báo giá Zalo 1-chạm.
+- `GET /api/delivery`: Danh sách chuyến xe & thống kê (đang giao, hoàn tất, tiền thu hộ).
+- `POST /api/delivery`: Tạo chuyến giao hàng mới.
+- `PATCH /api/delivery/[id]`: Cập nhật trạng thái chuyến / trạm dừng.
 
-#### 3. GIAO DIỆN 3D CLAYMORPHISM (`app/(shell)/pricing/page.tsx`):
-- **4 Thẻ Clay-KPI:**
-  - Tổng số SKU niêm yết (Sky tone)
-  - Biên lợi nhuận gộp trung bình (~21.4% - Emerald tone)
-  - Sản phẩm bảo quản đông & mát (Cyan tone)
-  - Kênh sỉ chủ lực: Quán ăn & Chành xe tỉnh (Amber tone)
-- **Tabs điều hướng:**
-  - Tabs 6 kênh bán: Tất cả kênh | Quán ăn HN | Đại lý chành xe | Bếp ăn căn tin | Web Order | POS Quầy.
-  - Tabs 4 nhóm hàng: Tất cả | Hàng khô | Gia vị & Xốt | Hàng mát | Hàng đông.
-  - Ô tìm kiếm tức thì theo mã SKU và tên sản phẩm.
-- **Bảng giá chi tiết:**
-  - Cột: Mã SKU, Tên, ĐVT, Nhiệt độ bảo quản, Giá vốn, Giá Quán ăn, Giá Chành xe, Giá Căn tin, Giá Web Order, Giá POS, % Margin, Thao tác.
-- **Modal Cập nhật Giá Nhanh** (Bảo vệ lợi nhuận âm).
-- **Modal Xuất Báo Giá Zalo 1-Chạm** kèm nút Copy văn bản và mở Zalo.
+#### 3. GIAO DIỆN SHELL & PWA:
+- **Giao diện Web (`app/(shell)/delivery/page.tsx`):**
+  - 4 Thẻ Clay-KPI: Chuyến đang lăn bánh, Đơn giao nội thành HN, Kiện gửi chành xe tỉnh, Tổng tiền đối soát.
+  - Tabs lọc tuyến: Tất cả | Tuyến Nội Thành HN | Tuyến Chành Xe Bến Bãi.
+  - Bảng chuyến xe: Mã chuyến (`SK-DO-`), Tài xế, Biển số xe, Lộ trình, Số điểm giao, Trạng thái.
+  - Modal xem chi tiết chuyến & nút **In Phiếu Gửi Chành Xe** (dán lên thùng xốp kèm thông tin nhà xe, người nhận tỉnh, mã QR Techcombank 22226060).
+- **Cập nhật PWA Tài xế (`app/pwa/giaovan/page.tsx`):**
+  - Tích hợp danh sách điểm dừng thực tế của tài xế Ngô Văn Tân với nút "Đã Giao" và "Quét VietQR 22226060".
 
 ---
 
 ### YÊU CẦU NGHIỆM THU:
 1. Chạy `npx tsc --noEmit` đạt 0 lỗi.
-2. TUYỆT ĐỐI KHÔNG chạy lệnh `git commit` hay `git push` (Commander sẽ thực hiện).
-3. Ghi báo cáo hoàn thành vào `.claude/reports/worker-1-pricing.md`.
+2. TUYỆT ĐỐI KHÔNG chạy `git commit` hay `git push`.
+3. Ghi báo cáo nghiệm thu vào `.claude/reports/worker-1-delivery.md`.

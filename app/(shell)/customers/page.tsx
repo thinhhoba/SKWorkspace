@@ -1,12 +1,26 @@
 "use client";
 import * as React from "react";
-import { Search, Copy, CheckCircle2, AlertTriangle, Wallet, Clock3, ShieldCheck, TrendingUp, Eye, FileText, MessageCircle } from "lucide-react";
+import {
+  Search,
+  Copy,
+  CheckCircle2,
+  AlertTriangle,
+  Wallet,
+  ShieldCheck,
+  TrendingUp,
+  Eye,
+  FileText,
+  MessageCircle,
+  ExternalLink,
+  QrCode,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { CustomerB2B, DebtSummary, RiskLevel } from "@/packages/modules/customers/types";
+import type { CustomerB2B, DebtSummary, RiskLevel, CustomerType } from "@/packages/modules/customers/types";
 import { RISK_LABEL } from "@/packages/modules/customers/mockData";
+import { CUSTOMER_TYPE_LABEL } from "@/packages/modules/customers/types";
 
 const vnd = (n: number) => n.toLocaleString("vi-VN") + " ₫";
 
@@ -16,6 +30,16 @@ const RISK_BADGE: Record<RiskLevel, string> = {
   danger: "bg-orange-50 text-orange-700 border-orange-200",
   blocked: "bg-rose-50 text-rose-700 border-rose-300",
 };
+
+type TabKey = "ALL" | CustomerType | "overdue";
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "ALL", label: "Tất cả" },
+  { key: "quan_an_hn", label: "Quán Ăn Vặt / Mì Trộn HN" },
+  { key: "dai_ly_tinh", label: "Đại Lý Chành Xe Tỉnh" },
+  { key: "bep_an_cantin", label: "Bếp Ăn / Căn Tin" },
+  { key: "overdue", label: "Có Nợ Quá Hạn" },
+];
 
 const AGING_OPTS = [
   { v: "ALL", label: "Tất cả" },
@@ -34,7 +58,7 @@ const RISK_OPTS: { v: RiskLevel | "ALL"; label: string }[] = [
 ];
 
 function creditTone(c: CustomerB2B) {
-  if (c.risk_level === "blocked") return { bg: "bg-rose-600", label: "Chặn xuất kho", text: "text-rose-600" };
+  if (c.risk_level === "blocked") return { bg: "bg-rose-600", label: "Khóa bán", text: "text-rose-600" };
   if (c.risk_level === "danger") return { bg: "bg-rose-500", label: "Nguy cơ", text: "text-rose-500" };
   if (c.risk_level === "warning") return { bg: "bg-amber-500", label: "Cảnh báo", text: "text-amber-600" };
   return { bg: "bg-emerald-500", label: "An toàn", text: "text-emerald-600" };
@@ -45,6 +69,7 @@ export default function CustomersPage() {
   const [summary, setSummary] = React.useState<DebtSummary | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
+  const [tab, setTab] = React.useState<TabKey>("ALL");
   const [aging, setAging] = React.useState<string>("ALL");
   const [risk, setRisk] = React.useState<string>("ALL");
   const [expanded, setExpanded] = React.useState<string | null>(null);
@@ -53,6 +78,8 @@ export default function CustomersPage() {
   const [remindOpen, setRemindOpen] = React.useState(false);
   const [remindMsg, setRemindMsg] = React.useState("");
   const [remindCode, setRemindCode] = React.useState("");
+  const [remindZaloUrl, setRemindZaloUrl] = React.useState("");
+  const [remindQrUrl, setRemindQrUrl] = React.useState("");
   const [copied, setCopied] = React.useState(false);
 
   const fetchData = React.useCallback(async () => {
@@ -60,6 +87,8 @@ export default function CustomersPage() {
     try {
       const q = new URLSearchParams();
       if (search.trim()) q.set("search", search.trim());
+      if (tab === "overdue") q.set("overdueOnly", "true");
+      else if (tab !== "ALL") q.set("customer_type", tab);
       if (aging !== "ALL") q.set("aging", aging);
       if (risk !== "ALL") q.set("risk", risk);
       const res = await fetch(`/api/customers?${q.toString()}`);
@@ -68,10 +97,16 @@ export default function CustomersPage() {
         setCustomers(data.customers || []);
         setSummary(data.summary || null);
       }
-    } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [search, aging, risk]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, tab, aging, risk]);
 
-  React.useEffect(() => { fetchData(); }, [fetchData]);
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   React.useEffect(() => {
     if (!toast) return;
@@ -86,9 +121,14 @@ export default function CustomersPage() {
       if (data.success) {
         setRemindMsg(data.message);
         setRemindCode(c.code);
+        setRemindZaloUrl(data.zaloUrl || "");
+        setRemindQrUrl(data.vietQrUrl || "");
         setRemindOpen(true);
       } else setToast(data.error || "Lỗi tạo tin nhắn");
-    } catch (e: any) { setToast(e.message); }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi";
+      setToast(msg);
+    }
   };
 
   const handleCopy = async () => {
@@ -108,21 +148,26 @@ export default function CustomersPage() {
         <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
           <Wallet className="w-5 h-5 text-sky-500" /> Khách hàng B2B &amp; Công nợ
         </h1>
-        <p className="text-xs text-muted-foreground">Theo dõi dư nợ, tuổi nợ và hạn mức tín dụng — nhắc nợ Zalo &amp; đối soát định kỳ</p>
+        <p className="text-xs text-muted-foreground">
+          Theo dõi dư nợ, tuổi nợ và hạn mức tín dụng — nhắc nợ Zalo &amp; đối soát định kỳ · TK thụ hưởng Techcombank 22226060
+        </p>
       </div>
 
-      {/* KPI 4 cards */}
+      {/* KPI 4 cards — Clay */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="clay-kpi clay-kpi--sky p-4 space-y-1 border-l-4 border-l-sky-500">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Tổng dư nợ B2B</span>
+            <span className="text-xs font-semibold">Tổng công nợ B2B phải thu</span>
             <Wallet className="w-4 h-4 text-sky-500" />
           </div>
           <div className="text-xl font-black tracking-tight text-sky-600">{summary ? vnd(summary.total_debt) : "—"}</div>
           <p className="text-[11px] text-muted-foreground">{customers.length} khách hàng B2B</p>
         </div>
 
-        <div className="clay-kpi p-4 space-y-1 border-l-4 border-l-emerald-500" style={{ boxShadow: "0 14px 28px -6px rgba(5,150,105,0.18), inset 0 2px 3px rgba(255,255,255,0.95)" }}>
+        <div
+          className="clay-kpi p-4 space-y-1 border-l-4 border-l-emerald-500"
+          style={{ boxShadow: "0 14px 28px -6px rgba(5,150,105,0.18), inset 0 2px 3px rgba(255,255,255,0.95)" }}
+        >
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-semibold">Nợ trong hạn</span>
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
@@ -131,50 +176,93 @@ export default function CustomersPage() {
           <p className="text-[11px] text-muted-foreground">Chưa đến hạn thanh toán</p>
         </div>
 
-        <div className={`clay-kpi p-4 space-y-1 border-l-4 border-l-rose-500 ${summary && summary.overdue_total > 0 ? "clay-kpi--danger" : ""}`}>
+        <div
+          className={`clay-kpi p-4 space-y-1 border-l-4 border-l-rose-500 ${summary && summary.overdue_total > 0 ? "clay-kpi--danger" : ""}`}
+        >
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Nợ quá hạn</span>
+            <span className="text-xs font-semibold">Nợ quá hạn cần thu hồi</span>
             <AlertTriangle className={`w-4 h-4 text-rose-500 ${summary && summary.overdue_total > 0 ? "animate-pulse" : ""}`} />
           </div>
-          <div className={`text-xl font-black tracking-tight ${summary && summary.overdue_total > 0 ? "text-rose-600 animate-pulse" : "text-slate-600"}`}>{summary ? vnd(summary.overdue_total) : "—"}</div>
+          <div
+            className={`text-xl font-black tracking-tight ${summary && summary.overdue_total > 0 ? "text-rose-600 animate-pulse" : "text-slate-600"}`}
+          >
+            {summary ? vnd(summary.overdue_total) : "—"}
+          </div>
           <p className="text-[11px] text-muted-foreground">
             {summary ? `1-15: ${vnd(summary.overdue_1_15)} · 16-30: ${vnd(summary.overdue_16_30)} · >30: ${vnd(summary.overdue_gt30)}` : ""}
           </p>
         </div>
 
-        <div className="clay-kpi clay-kpi--warning p-4 space-y-1 border-l-4 border-l-amber-500">
+        <div className="clay-kpi p-4 space-y-1 border-l-4 border-l-amber-500">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Tỷ lệ thu hồi</span>
-            <TrendingUp className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-semibold">Tỷ lệ thu hồi nợ</span>
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-2xl font-black tracking-tight text-amber-600">{summary ? `${summary.collection_rate_pct}%` : "—"}</div>
+          <div className="text-2xl font-black tracking-tight text-emerald-600">{summary ? `${summary.collection_rate_pct}%` : "—"}</div>
           <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full" style={{ width: `${summary?.collection_rate_pct || 0}%` }} />
+            <div
+              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full"
+              style={{ width: `${summary?.collection_rate_pct || 0}%` }}
+            />
           </div>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Tabs lọc phân loại */}
+      <div className="flex flex-wrap gap-1.5">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-3.5 py-1.5 text-xs rounded-full font-semibold border transition-all ${
+              tab === t.key
+                ? "bg-sky-600 text-white border-sky-600 shadow-sm"
+                : "bg-white dark:bg-slate-900 text-muted-foreground border-slate-200 dark:border-slate-700 hover:text-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Filters: search + aging + risk */}
       <div className="flex flex-wrap items-center gap-2.5">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm MST / Tên / Mã / SĐT..." className="pl-8 h-9 text-xs rounded-full glossy-pill" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Tìm MST / Tên / Mã / SĐT / Tuyến giao..."
+            className="pl-8 h-9 text-xs rounded-full glossy-pill"
+          />
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
           <div className="glossy-pill p-1 flex gap-1 rounded-full border">
             {AGING_OPTS.map((o) => (
-              <button key={o.v} onClick={() => setAging(o.v)} className={`px-3 py-1 text-xs rounded-full font-medium transition-all ${aging === o.v ? "bg-sky-500 text-white shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}>{o.label}</button>
+              <button
+                key={o.v}
+                onClick={() => setAging(o.v)}
+                className={`px-3 py-1 text-xs rounded-full font-medium transition-all ${aging === o.v ? "bg-sky-500 text-white shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {o.label}
+              </button>
             ))}
           </div>
           <div className="glossy-pill p-1 flex gap-1 rounded-full border">
             {RISK_OPTS.map((o) => (
-              <button key={o.v} onClick={() => setRisk(o.v)} className={`px-2.5 py-1 text-xs rounded-full font-medium transition-all ${risk === o.v ? "bg-foreground text-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}>{o.label}</button>
+              <button
+                key={o.v}
+                onClick={() => setRisk(o.v)}
+                className={`px-2.5 py-1 text-xs rounded-full font-medium transition-all ${risk === o.v ? "bg-foreground text-background shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {o.label}
+              </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* List */}
+      {/* List — grid cards */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[1, 2, 3, 4].map((i) => (
@@ -199,8 +287,15 @@ export default function CustomersPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-xs font-bold text-sky-600">{c.code}</span>
-                      <Badge variant="outline" className={`text-[10px] border ${RISK_BADGE[c.risk_level]}`}>{RISK_LABEL[c.risk_level]}</Badge>
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border text-muted-foreground font-medium">{c.payment_term} ngày</span>
+                      <Badge variant="outline" className={`text-[10px] border ${RISK_BADGE[c.risk_level]}`}>
+                        {RISK_LABEL[c.risk_level]}
+                      </Badge>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 font-medium">
+                        {CUSTOMER_TYPE_LABEL[c.customer_type]}
+                      </span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border text-muted-foreground font-medium">
+                        {c.payment_term} ngày
+                      </span>
                     </div>
                     <div className="font-semibold text-sm leading-tight mt-1 truncate">{c.company_name}</div>
                     <div className="text-[11px] text-muted-foreground font-mono">MST: {c.mst}</div>
@@ -211,57 +306,91 @@ export default function CustomersPage() {
                   <span>{c.contact_name}</span>
                   <span className="font-mono">{c.phone}</span>
                 </div>
+                <div className="text-[11px] text-muted-foreground truncate">Tuyến: {c.delivery_route}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{c.address}</div>
 
                 {/* Credit limit */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Hạn mức tín dụng</span>
-                    <span className={`font-semibold ${tone.text}`}>{tone.label} · {pct}%</span>
+                    <span className="text-muted-foreground">Hạn mức nợ</span>
+                    <span className={`font-semibold ${tone.text}`}>
+                      {tone.label} · {pct}%
+                    </span>
                   </div>
                   <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${tone.bg}`} style={{ width: `${pct}%` }} />
                   </div>
                   <div className="flex justify-between text-[11px] font-mono text-muted-foreground">
-                    <span>{vnd(c.current_debt)}</span>
-                    <span>{vnd(c.credit_limit)}</span>
+                    <span>Dư nợ: {vnd(c.current_debt)}</span>
+                    <span>Hạn mức: {vnd(c.credit_limit)}</span>
                   </div>
+                  {c.overdue_days > 0 && (
+                    <div className="text-[11px] font-medium text-amber-700">Quá hạn: {c.overdue_days} ngày</div>
+                  )}
                   {c.risk_level === "blocked" && (
                     <div className="text-xs font-semibold text-rose-600 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> Chặn xuất kho
+                      <AlertTriangle className="w-3 h-3" /> Khóa bán — chặn xuất kho
                     </div>
                   )}
                 </div>
 
                 {/* Aging 4 boxes */}
                 <div className="grid grid-cols-4 gap-1.5">
-                  {([
-                    ["Trong hạn", c.aging.current, "bg-emerald-50 border-emerald-200 text-emerald-700"],
-                    ["1-15", c.aging.overdue_1_15, "bg-amber-50 border-amber-200 text-amber-700"],
-                    ["16-30", c.aging.overdue_16_30, "bg-orange-50 border-orange-200 text-orange-700"],
-                    [">30", c.aging.overdue_gt30, "bg-rose-50 border-rose-200 text-rose-700"],
-                  ] as const).map(([label, val, cls]) => (
+                  {(
+                    [
+                      ["Trong hạn", c.aging.current, "bg-emerald-50 border-emerald-200 text-emerald-700"],
+                      ["1-15", c.aging.overdue_1_15, "bg-amber-50 border-amber-200 text-amber-700"],
+                      ["16-30", c.aging.overdue_16_30, "bg-orange-50 border-orange-200 text-orange-700"],
+                      [">30", c.aging.overdue_gt30, "bg-rose-50 border-rose-200 text-rose-700"],
+                    ] as const
+                  ).map(([label, val, cls]) => (
                     <div key={label} className={`rounded-xl border p-2 text-center ${cls}`}>
                       <div className="text-[10px] font-semibold opacity-70">{label}</div>
-                      <div className="text-[11px] font-mono font-bold leading-tight">{val === 0 ? "—" : vnd(val).replace(" ₫","")}</div>
+                      <div className="text-[11px] font-mono font-bold leading-tight">
+                        {val === 0 ? "—" : vnd(val).replace(" ₫", "")}
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 {isExpanded && (
                   <div className="rounded-xl bg-muted/50 border p-3 space-y-1 text-xs">
-                    <div><span className="text-muted-foreground">Địa chỉ:</span> {c.address}</div>
-                    <div><span className="text-muted-foreground">Quá hạn:</span> {c.overdue_days} ngày · <span className="text-muted-foreground">Đơn gần nhất:</span> {c.last_order_date || "—"}</div>
+                    <div>
+                      <span className="text-muted-foreground">Địa chỉ:</span> {c.address}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Tuyến giao:</span> {c.delivery_route}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Quá hạn:</span> {c.overdue_days} ngày ·{" "}
+                      <span className="text-muted-foreground">Đơn gần nhất:</span> {c.last_order_date || "—"}
+                    </div>
                   </div>
                 )}
 
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  <Button size="sm" variant="outline" className="h-7 text-xs rounded-full glossy-pill" onClick={() => handleRemind(c)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs rounded-full glossy-pill"
+                    onClick={() => handleRemind(c)}
+                  >
                     <MessageCircle className="w-3 h-3 mr-1" /> Nhắc nợ Zalo
                   </Button>
-                  <Button size="sm" variant="outline" className="h-7 text-xs rounded-full" onClick={() => handleExport(c.code)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs rounded-full"
+                    onClick={() => handleExport(c.code)}
+                  >
                     <FileText className="w-3 h-3 mr-1" /> Xuất biên bản
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs rounded-full ml-auto" onClick={() => setExpanded(isExpanded ? null : c.id)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs rounded-full ml-auto"
+                    onClick={() => setExpanded(isExpanded ? null : c.id)}
+                  >
                     <Eye className="w-3 h-3 mr-1" /> {isExpanded ? "Thu gọn" : "Xem chi tiết"}
                   </Button>
                 </div>
@@ -271,18 +400,42 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* Remind dialog */}
+      {/* Modal Nhắc Nợ Zalo 1-Chạm */}
       <Dialog open={remindOpen} onOpenChange={setRemindOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-auto">
           <DialogHeader>
-            <DialogTitle className="text-sm flex items-center gap-2"><MessageCircle className="w-4 h-4 text-sky-500" /> Tin nhắn nhắc nợ — {remindCode}</DialogTitle>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-sky-500" /> Nhắc nợ Zalo — {remindCode}
+            </DialogTitle>
           </DialogHeader>
-          <pre className="whitespace-pre-wrap text-xs bg-muted/60 border rounded-xl p-3 font-mono leading-relaxed max-h-[320px] overflow-auto">{remindMsg}</pre>
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="outline" className="rounded-full" onClick={() => setRemindOpen(false)}>Đóng</Button>
-            <Button size="sm" className="rounded-full bg-sky-600 text-white" onClick={handleCopy}>
-              {copied ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />} {copied ? "Đã copy" : "Copy"}
+          <pre className="whitespace-pre-wrap text-xs bg-muted/60 border rounded-xl p-3 font-mono leading-relaxed max-h-[360px] overflow-auto">
+            {remindMsg}
+          </pre>
+          {remindQrUrl && (
+            <div className="flex flex-col items-center gap-1.5 p-3 border rounded-xl bg-white">
+              <div className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                <QrCode className="w-3.5 h-3.5" /> VietQR — Techcombank 22226060
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={remindQrUrl} alt="VietQR" className="w-48 h-48 object-contain" />
+              <span className="text-[10px] text-muted-foreground">Quét để chuyển khoản nhanh</span>
+            </div>
+          )}
+          <div className="flex justify-end gap-2 flex-wrap">
+            <Button size="sm" variant="outline" className="rounded-full" onClick={() => setRemindOpen(false)}>
+              Đóng
             </Button>
+            <Button size="sm" variant="outline" className="rounded-full" onClick={handleCopy}>
+              {copied ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}{" "}
+              {copied ? "Đã copy" : "Copy văn bản"}
+            </Button>
+            {remindZaloUrl && (
+              <Button size="sm" className="rounded-full bg-sky-600 text-white hover:bg-sky-700" asChild>
+                <a href={remindZaloUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-3.5 h-3.5 mr-1" /> Mở Zalo
+                </a>
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

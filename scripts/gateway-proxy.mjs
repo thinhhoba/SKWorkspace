@@ -94,8 +94,20 @@ function loadConfig() {
   }
 }
 
-// Initial config load
+// Initial config load & hot-reload watcher
 loadConfig();
+if (fs.existsSync(CONFIG_PATH)) {
+  fs.watch(CONFIG_PATH, (eventType) => {
+    if (eventType === 'change') {
+      try {
+        loadConfig();
+        log('OK', `🔄 [HOT RELOAD] Đã nạp lại proxy-config.json! Hiện có ${config.keys.length} API keys khả dụng.`);
+      } catch (err) {
+        log('WARN', `Lỗi khi reload config: ${err.message}`);
+      }
+    }
+  });
+}
 
 let keyIndex = 0;
 

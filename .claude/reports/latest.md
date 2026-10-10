@@ -1,62 +1,67 @@
-# BÁO CÁO NGHIỆM THU TỔNG THỂ — CHỈ THỊ 14 (COMMANDER QUALITY GATE)
+# BÁO CÁO NGHIỆM THU TỔNG THỂ — 3 WORKER PARALLEL EXECUTION (QUALITY GATE)
 **Dự án:** SK Workspace 2 — Công ty TNHH Thực Phẩm Sơn Khang  
-**Ngày:** 10/10/2026 | **Phiên bản:** Production 2.0  
+**Ngày:** 10/10/2026 | **Phiên bản:** Production 2.1  
 **Chủ trì:** Commander & Architect (Antigravity IDE)  
-**Thực thi:** Multi-Worker Parallel Execution (Worker 1: Pricing Squad & Worker 2: Integration Squad)
+**Thực thi:** 3 Worker Parallel Execution (Worker 1: Delivery, Worker 2: Inventory, Worker 3: Customers)
 
 ---
 
-## 1. KẾT QUẢ ĐIỀU PHỐI SONG SONG (MULTI-WORKER PARALLEL)
-* **Cơ chế:** Phân tách ranh giới tập tin tuyệt đối (Strict File Boundary), khóa Git tập trung (Centralized Git Locking) và cân bằng tải qua AI Gateway Proxy (`http://localhost:3001`).
-* **Hiệu suất:**
-  * Worker 1 (Pricing Squad) và Worker 2 (MISA Squad) chạy đồng thời trên 2 terminal độc lập.
-  * 0% xung đột file (Zero file collision).
+## 1. KẾT QUẢ ĐIỀU PHỐI 3 WORKER SONG SONG
+* **Cơ chế:** Phân tách ranh giới tập tin tuyệt đối (Strict File Boundary), khóa Git tập trung (Centralized Git Locking) và cân bằng tải qua AI Gateway Proxy (`http://localhost:3001` với 3 Keys và Prompt Caching).
+* **Kết quả:**
+  * Cả 3 Worker hoàn thành cùng lúc 3 phân hệ cốt lõi.
+  * 0% xung đột tập tin (Zero file contention).
   * 0% xung đột Git (Zero git race condition).
-  * Tiết kiệm ~90% token nhờ Anthropic Prompt Caching injection.
+  * Tối ưu ~90% chi phí token nhờ Anthropic Prompt Caching injection.
 
 ---
 
-## 2. NỘI DUNG NGHIỆM THU CHI TIẾT
+## 2. NỘI DUNG NGHIỆM THU CHI TIẾT THEO 3 PHÂN HỆ
 
-### PHÂN HỆ BẢNG GIÁ ĐA KÊNH & BÁO GIÁ ZALO (`/pricing`) — WORKER 1
-* **Service & Data:**
-  * `packages/modules/pricing/types.ts`: Chuẩn hóa 6 kênh bán hàng (`quan_an`, `dai_ly`, `bep_an`, `ban_le`, `web_order`, `pos`) và 4 nhóm hàng (`hang_kho`, `gia_vi`, `hang_mat`, `hang_dong`).
-  * `packages/modules/pricing/mockData.ts`: 24 SKUs chuẩn hóa theo danh mục thực tế của Sơn Khang (Indomie, Koreno, Nissin, Tương ớt/cà Sài Gòn, Mayonnaise Kewpie, Gà rán CP, Viên chiên LC Foods, Nem chua rán Đức Minh Phố Cổ...).
-  * `packages/modules/pricing/pricingService.ts`: Tính toán biên lợi nhuận, cảnh báo giá bán < giá vốn, sinh văn bản báo giá Zalo 1-chạm kèm tài khoản Techcombank `22226060` và chính sách freeship/chành xe.
-* **Giao diện 3D Claymorphism (`app/(shell)/pricing/page.tsx`):**
-  * 4 Thẻ Clay-KPI: Tổng SKU (Sky), Biên lợi nhuận TB ~21.4% (Emerald), Hàng đông & mát (Cyan), Kênh chủ lực Quán ăn & Chành xe (Amber).
-  * Tabs lọc 6 kênh bán và 4 nhóm hàng, ô tìm kiếm tức thì.
-  * Modal Cập nhật Giá Nhanh và Modal Xuất Báo Giá Zalo 1-Chạm.
+### 🚚 1. PHÂN HỆ GIAO VẬN & CHÀNH XE MIỀN BẮC (`/delivery` & PWA GIAO VẬN) — WORKER 1
+* **Phạm vi:** `packages/modules/delivery/**`, `app/api/delivery/**`, `app/(shell)/delivery/page.tsx`, `app/pwa/giaovan/page.tsx`.
+* **Kết quả thực hiện:**
+  * **Module nghiệp vụ:** `DeliveryTrip` (`SK-DO-`), quản lý tài xế chính **Ngô Văn Tân** (`0942 22 60 60`), biển số xe `29C-882.60`, lộ trình từ Tổng kho Định Công.
+  * **Phân tuyến thực tế:**
+    * *Tuyến nội thành Hà Nội:* Cụm Cầu Giấy, Đống Đa, Hai Bà Trưng, Bách - Kinh - Xây. Áp dụng chính sách Freeship 1tr (<8km) và 3tr (<12km), phụ thu +10% đơn dưới 500k.
+    * *Tuyến chành xe 4 bến lớn:* Bến Giáp Bát, Nước Ngầm, Mỹ Đình, Gia Lâm đi các tỉnh phía Bắc (Nam Định, Hải Phòng, Quảng Ninh, Bắc Ninh, Hưng Yên, Thái Bình, Ninh Bình).
+  * **Tính năng nổi bật:**
+    * Modal **In Phiếu Gửi Chành Xe** tự động: Định dạng dán thùng xốp, đầy đủ thông tin nhà xe, điểm đến tỉnh, số kiện và mã QR Techcombank `22226060`.
+    * **PWA Tài xế (`app/pwa/giaovan`):** Cập nhật danh sách điểm dừng thật của Ngô Văn Tân, tích hợp nút **Quét VietQR 22226060** và nút **Đã Giao** đồng bộ trực tiếp trạng thái chuyến xe.
 
-### ĐỒNG BỘ SAPO LIVE & MISA OPEN API (`/finance/sapo2misa`) — WORKER 2
-* **Sapo Live Integration:**
-  * Kết nối trực tiếp HTTP Basic Auth tới `https://0166bd3c4bb745edb301413aec771b2b:e2cc59d4ace34a009a0704ab9f72a8b4@sonkhang.mysapo.net/admin/orders.json`.
-  * Kéo thành công đơn hàng thật Sơn Khang (Hoàng Thị Túy - 27 Đại Cồ Việt, Bánh Gà Nét Việt, Nem thịt NGON, Popcorn CP...).
-  * Tự động nhận diện nguồn đơn và sinh mã Alias định danh chuẩn (`SK-SO-...`, `SK-WEB-...`, `SK-POS-...`, `SK-QA-...`, `SK-DL-...`).
-* **MISA Open API Clients & Endpoints:**
-  * `app/api/sapo2misa/amis/route.ts`: Kết nối MISA AMIS Kế toán OpenAPI, hạch toán chứng từ kế toán tự động (Nợ TK 131 / Có TK 5111 / Có TK 3331).
-  * `app/api/sapo2misa/meinvoice/route.ts`: Kết nối MISA meInvoice Bot OpenAPI, phát hành HĐĐT tự động, sinh mã Cơ quan thuế và link tra cứu hóa đơn.
-* **Giao diện Bảng Điều Khiển Sapo2Misa (`app/(shell)/finance/sapo2misa/page.tsx`):**
-  * Tích hợp 2 nút hành động trực tiếp: **"Đẩy AMIS Kế Toán"** và **"Phát Hành meInvoice Bot"**.
-  * Terminal logs thời gian thực với bộ lọc trạng thái (ALL, INFO, OK, WARN, RUN, ERR).
-  * Dialog kết quả hiển thị chi tiết số chứng từ và hóa đơn điện tử.
+### ❄️ 2. PHÂN HỆ KHO LẠNH & HẠN DÙNG FEFO (`/inventory` & PWA KHO) — WORKER 2
+* **Phạm vi:** `packages/modules/inventory/**`, `app/api/inventory/**`, `app/(shell)/inventory/page.tsx`, `app/pwa/kho/page.tsx`.
+* **Kết quả thực hiện:**
+  * **Chuẩn hóa 2 kho thực tế:**
+    * `KHO_DINH_CONG`: Kho Tổng Định Công (96 Ngõ 337 Định Công, Hoàng Mai, HN) — Kho phân phối chính.
+    * `KHO_YEN_BINH`: Kho Yên Bình (Thôn 6 Yên Bình, Thạch Thất, HN) — Kho lưu trữ & đệm nguyên liệu.
+  * **Phân vùng nhiệt độ bảo quản chuẩn:**
+    * *Kho đông lạnh (-18°C):* Viên chiên LC Foods, Gà chiên Popcorn CP, Nem chua rán Đức Minh, Dồi sụn, Khoai tây...
+    * *Kho mát (0–4°C):* Tokbokki bánh gạo, Xúc xích, Kim chi, Sốt mì...
+    * *Kho khô thường:* Mì Indomie/Koreno/Nissin, Tương ớt/cà Sài Gòn, Mayonnaise, Dầu ăn can...
+  * **Cơ chế FEFO (First Expired, First Out):**
+    * Cảnh báo tự động các lô hàng cận hạn sử dụng (<30 ngày gắn badge đỏ, <60 ngày badge vàng).
+    * Modal lập phiếu **Luân chuyển kho (`SK-DC-...`)** và phiếu **Kiểm kê kho lạnh (`SK-KK-...`)**.
+  * **PWA Thủ kho (`app/pwa/kho`):**
+    * Giao diện dành riêng cho Thủ kho **Trần Thị Ngọc Thúy**: Quét mã SKU, kiểm đếm nhanh tồn thực tế và chênh lệch hệ thống.
 
-### HỒ SƠ PHÁP LÝ & BỘ MÁY ĐIỀU HÀNH
-* **Hồ sơ pháp lý số hóa:** Trích xuất 100% từ 5 tệp PDF gốc lưu tại `docs/legal/`:
-  * Mã số doanh nghiệp / MST: `0111252725`
-  * Vốn điều lệ: 2.000.000.000 VNĐ
-  * Đại diện pháp luật / Giám đốc: HỒ BÁ THỊNH (CCCD: 001094016823)
-  * Trụ sở chính: Thôn 6, Xã Yên Xuân, TP. Hà Nội
-  * Địa điểm kinh doanh số 00001: Số 96 Ngõ 337 Phố Định Công, P. Định Công, TP. Hà Nội (thông Ngõ 412 Trịnh Đình Cửu)
-  * Kế toán thuế: TRẦN THỊ LỆ QUYÊN (0988 000 570)
-  * Kế toán trưởng: HOÀNG THỊ NHO
-  * Thủ kho: TRẦN THỊ NGỌC THÚY
-  * Tài xế: NGÔ VĂN TÂN
-* **Tài khoản thanh toán:** Techcombank `22226060` (CONG TY TNHH THUC PHAM SON KHANG)
+### 👥 3. PHÂN HỆ KHÁCH HÀNG B2B & QUẢN LÝ CÔNG NỢ (`/customers`) — WORKER 3
+* **Phạm vi:** `packages/modules/customers/**`, `app/api/customers/**`, `app/(shell)/customers/page.tsx`.
+* **Kết quả thực hiện:**
+  * **Chuẩn hóa danh mục khách hàng B2B thực tế Sơn Khang:**
+    * 5 quán ăn vặt/mì trộn HN (Túy Foods KH0009 MST 0111252725, Mì Trộn Chùa Láng, Xiên Que Tạ Hiện, Phố Huế, Giảng Võ).
+    * 3 bếp ăn/căn tin (ĐH Bách Khoa, KCN Thăng Long, BV Bạch Mai).
+    * 5 đại lý chành xe tỉnh (Hải Hậu - Nam Định bến Giáp Bát, Bãi Cháy - Quảng Ninh, Miền Duyên Hải - Hải Phòng, Tiên Du - Bắc Ninh, Ninh Bình).
+  * **Quản lý công nợ & rủi ro:**
+    * Phân tích tuổi nợ 4 nhóm (Trong hạn, quá hạn 1–15 ngày, 16–30 ngày, >30 ngày).
+    * Đánh giá rủi ro: Safe, Warning, Danger, Blocked.
+  * **Nhắc nợ Zalo 1-Chạm:**
+    * Modal xem trước văn bản nhắc nợ lịch sự, trang trọng kèm bảng kê tuổi nợ, tuyến giao.
+    * Tích hợp mã VietQR động thanh toán về Techcombank `22226060` (CONG TY TNHH THUC PHAM SON KHANG) và liên hệ Kế toán **Hoàng Thị Nho** (`0942 22 60 60`).
 
 ---
 
-## 3. TIÊU CHUẨN NGHIỆM THU KỸ THUẬT (QUALITY GATE)
-* **TypeScript Compilation:** `npx tsc --noEmit` — **0 LỖI (ZERO ERRORS)**.
-* **Production Build:** `npm run build` — **THÀNH CÔNG 100% (30/30 routes)**.
-* **Deploy Status:** Đã đẩy lên GitHub `origin/master`, GitHub Actions đang kích hoạt triển khai tự động lên VPS Nhân Hòa (`103.124.93.145`).
+## 3. TIÊU CHUẨN NGHIỆM THU KỸ THUẬT (COMMANDER QUALITY GATE)
+* **TypeScript:** `npx tsc --noEmit` đạt chuẩn **0 LỖI (Zero Errors)**.
+* **Production Build:** `npm run build` thành công **100% (31/31 routes)**.
+* **Tài nguyên Shell:** Đã đồng bộ đầy đủ các phân hệ mới vào App Launcher, Sidebar, Command Palette và PWA.

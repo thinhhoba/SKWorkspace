@@ -1,8 +1,17 @@
+// Service khách hàng B2B — Sơn Khang
 // Fallback mock: sẽ thay bằng Prisma khi DATABASE_URL khả dụng — xem packages/core/db.ts
-import type { CustomerB2B, DebtSummary, DebtAgingBucket, RiskLevel } from "./types";
+import type { CustomerB2B, DebtSummary, DebtAgingBucket, RiskLevel, CustomerType } from "./types";
 import { MOCK_CUSTOMERS } from "./mockData";
 
 let customerStore: CustomerB2B[] = [...MOCK_CUSTOMERS];
+
+// ---------------------------------------------------------------------------
+// Hằng số vận hành Sơn Khang
+// ---------------------------------------------------------------------------
+export const TECHCOMBANK_ACCOUNT = "22226060";
+export const TECHCOMBANK_NAME = "CONG TY TNHH THUC PHAM SON KHANG";
+export const ACCOUNTANT_NAME = "Hoàng Thị Nho";
+export const ACCOUNTANT_PHONE = "0942 22 60 60";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -18,10 +27,14 @@ function formatDate(d: Date): string {
   return d.toLocaleDateString("vi-VN"); // dd/mm/yyyy
 }
 
-function addDays(date: Date, days: number): Date {
-  const r = new Date(date);
-  r.setDate(r.getDate() + days);
-  return r;
+function buildVietQRNote(c: CustomerB2B): string {
+  return `Thanh toan cong no ${c.code} - ${c.company_name} - MST ${c.mst}`;
+}
+
+function buildVietQRUrl(amount: number, note: string): string {
+  // VietQR quick-link: https://vietqr.io — Techcombank 970407
+  const encoded = encodeURIComponent(note);
+  return `https://img.vietqr.io/image/970407-${TECHCOMBANK_ACCOUNT}-compact.png?amount=${amount}&addInfo=${encoded}&accountName=${encodeURIComponent(TECHCOMBANK_NAME)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -30,8 +43,10 @@ function addDays(date: Date, days: number): Date {
 
 export function getCustomers(opts?: {
   search?: string;
+  customer_type?: CustomerType | "ALL";
   aging?: DebtAgingBucket | "ALL";
   risk?: RiskLevel | "ALL";
+  overdueOnly?: boolean;
 }): CustomerB2B[] {
   let list = [...customerStore];
 
@@ -43,8 +58,17 @@ export function getCustomers(opts?: {
         c.name.toLowerCase().includes(q) ||
         c.company_name.toLowerCase().includes(q) ||
         c.mst.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q)
+        c.phone.toLowerCase().includes(q) ||
+        c.delivery_route.toLowerCase().includes(q)
     );
+  }
+
+  if (opts?.customer_type && opts.customer_type !== "ALL") {
+    list = list.filter((c) => c.customer_type === opts.customer_type);
+  }
+
+  if (opts?.overdueOnly) {
+    list = list.filter((c) => c.overdue_days > 0);
   }
 
   if (opts?.aging && opts.aging !== "ALL") {
@@ -98,23 +122,68 @@ export function getRiskLevel(c: CustomerB2B): RiskLevel {
   return "safe";
 }
 
+/**
+ * Sinh văn bản nhắc nợ Zalo trang trọng kèm bảng kê quá hạn + VietQR Techcombank 22226060.
+ * Dùng cho POST /api/customers/[id]/remind — "Nhắc nợ Zalo 1-chạm".
+ */
+export function generateZaloDebtReminder(customerId: string): {
+  customer: CustomerB2B;
+  message: string;
+  zaloUrl: string;
+  vietQrUrl: string;
+  vietQrNote: string;
+} | null {
+  const c = getCustomerById(customerId);
+  if (!c) return null;
+  return {
+    customer: c,
+    message: buildZaloRemindMessage(c),
+    zaloUrl: `https://zalo.me/${c.phone}`,
+    vietQrUrl: buildVietQRUrl(
+      c.aging.overdue_1_15 + c.aging.overdue_16_30 + c.aging.overdue_gt30 || c.current_debt,
+      buildVietQRNote(c)
+    ),
+    vietQrNote: buildVietQRNote(c),
+  };
+}
+
 export function buildZaloRemindMessage(c: CustomerB2B): string {
-  const today = new Date();
-  const todayStr = formatDate(today);
-  const dueDate = addDays(today, c.payment_term);
-  const dueDateStr = formatDate(dueDate);
-  const overdueTotal =
-    c.aging.overdue_1_15 + c.aging.overdue_16_30 + c.aging.overdue_gt30;
+  const todayStr = formatDate(new Date());
+  const overdueTotal = c.aging.overdue_1_15 + c.aging.overdue_16_30 + c.aging.overdue_gt30;
+
+  const agingLines: string[] = [];
+  if (c.aging.current > 0) agingLines.push(`  • Trong hạn: ${formatVND(c.aging.current)}`);
+  if (c.aging.overdue_1_15 > 0) agingLines.push(`  • Quá hạn 1–15 ngày: ${formatVND(c.aging.overdue_1_15)}`);
+  if (c.aging.overdue_16_30 > 0) agingLines.push(`  • Quá hạn 16–30 ngày: ${formatVND(c.aging.overdue_16_30)}`);
+  if (c.aging.overdue_gt30 > 0) agingLines.push(`  • Quá hạn >30 ngày: ${formatVND(c.aging.overdue_gt30)}`);
+
+  const header =
+    overdueTotal > 0
+      ? `Kính gửi Quý khách ${c.company_name} (${c.code}) — MST ${c.mst}`
+      : `Kính gửi Quý khách ${c.company_name} (${c.code}) — MST ${c.mst}`;
+
+  const body =
+    overdueTotal > 0
+      ? `Sơn Khang kính nhắc đối soát công nợ tính đến ${todayStr}:\n` +
+        `— Tổng dư nợ: ${formatVND(c.current_debt)} / Hạn mức: ${formatVND(c.credit_limit)}\n` +
+        `— Chi tiết tuổi nợ:\n${agingLines.join("\n")}\n` +
+        `— Tổng quá hạn cần thanh toán: ${formatVND(overdueTotal)} (quá hạn ${c.overdue_days} ngày)\n` +
+        `— Tuyến giao: ${c.delivery_route}`
+      : `Sơn Khang kính gửi bảng đối soát công nợ tính đến ${todayStr}:\n` +
+        `— Dư nợ hiện tại: ${formatVND(c.current_debt)} (trong hạn)\n` +
+        `— Hạn mức: ${formatVND(c.credit_limit)} | Kỳ hạn: ${c.payment_term} ngày`;
 
   return (
-    `Kính gửi ${c.company_name} (${c.code}) — MST ${c.mst}. ` +
-    `Sơn Khang kính nhắc đối soát công nợ tính đến ${todayStr}: ` +
-    `Tổng dư nợ ${formatVND(c.current_debt)}, ` +
-    `trong hạn ${formatVND(c.aging.current)}, ` +
-    `quá hạn ${formatVND(overdueTotal)} (${c.overdue_days} ngày). ` +
-    `Hạn mức ${formatVND(c.credit_limit)}. ` +
-    `Vui lòng thanh toán trước ${dueDateStr}. ` +
-    `Chi tiết liên hệ 0909.xxx.xxx. Cảm ơn Quý khách!`
+    `${header}\n\n` +
+    `${body}\n\n` +
+    `Quý khách vui lòng thanh toán về:\n` +
+    `  Techcombank — STK ${TECHCOMBANK_ACCOUNT}\n` +
+    `  Chủ TK: ${TECHCOMBANK_NAME}\n` +
+    `  Nội dung: ${buildVietQRNote(c)}\n` +
+    `  (Quét mã VietQR đính kèm để chuyển khoản nhanh)\n\n` +
+    `Mọi thắc mắc xin liên hệ Kế toán ${ACCOUNTANT_NAME} — ${ACCOUNTANT_PHONE}.\n` +
+    `Sơn Khang chân thành cảm ơn Quý khách đã đồng hành!\n` +
+    `— CT TNHH Thực Phẩm Sơn Khang`
   );
 }
 

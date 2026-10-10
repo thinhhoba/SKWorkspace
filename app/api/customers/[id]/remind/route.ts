@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCustomerById, buildZaloRemindMessage } from "@/packages/modules/customers/customerService";
+import { generateZaloDebtReminder } from "@/packages/modules/customers/customerService";
 
 export async function POST(
   _req: NextRequest,
@@ -7,22 +7,22 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const customer = getCustomerById(id);
+    const result = generateZaloDebtReminder(id);
 
-    if (!customer) {
+    if (!result) {
       return NextResponse.json(
         { success: false, error: "Không tìm thấy khách hàng" },
         { status: 404 }
       );
     }
 
-    const message = buildZaloRemindMessage(customer);
-
     return NextResponse.json({
       success: true,
-      customer,
-      message,
-      zaloUrl: `https://zalo.me/${customer.phone}`,
+      customer: result.customer,
+      message: result.message,
+      zaloUrl: result.zaloUrl,
+      vietQrUrl: result.vietQrUrl,
+      vietQrNote: result.vietQrNote,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi tạo tin nhắn nhắc nợ";
