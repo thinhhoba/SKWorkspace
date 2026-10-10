@@ -1,96 +1,79 @@
-# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 14
-# DỰ ÁN: SK WORKSPACE 2 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
-# MỤC TIÊU: 
-# 1. PHÂN HỆ BẢNG GIÁ ĐA KÊNH & BÁO GIÁ ZALO CHÀNH XE (/pricing)
-# 2. ĐỒNG BỘ ĐƠN HÀNG LIVE SAPO API (WEB ORDER, POS, QUÁN ĂN, ĐẠI LÝ)
-# 3. CHUẨN HÓA HỆ THỐNG ALIAS ĐỊNH DANH NGHIỆP VỤ (SK-*)
-# 4. TÍCH HỢP MISA OPEN API (AMIS KẾ TOÁN & MEINVOICE BOT)
+# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 15
+# DỰ ÁN: SK WORKSPACE 2.0 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
+# MỤC TIÊU CỐT LÕI:
+# 1. TỰ ĐỘNG HÓA CHU TRÌNH ĐƠN HÀNG KHÉP KÍN 2 CHIỀU (MULTI-CHANNEL FULFILLMENT)
+# 2. VẬN HÀNH TOÀN DIỆN 3 SUBDOMAIN TRÊN PRODUCTION VPS 103.124.93.145 (WORKSPACE, POS, DATHANG)
+# 3. GIÁM SÁT CHUỖI CUNG ỨNG LẠNH IOT XE TẢI ISUZU 29C-882.60 & PWA TÀI XẾ NGÔ VĂN TÂN
+# 4. KÍCH HOẠT ĐỐI SOÁT TỰ ĐỘNG VIETQR TECHCOMBANK 22226060 & CRON EOD 18:00 MISA AMIS 63 CỘT
 
 ---
 
-### DỮ LIỆU ĐỊNH DANH DOANH NGHIỆP CHÍNH THỨC (CẬP NHẬT PHÁP LÝ 02/10/2026):
-1. **Pháp nhân & Hồ sơ pháp lý:**
-   - **Tên doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (SON KHANG FOODS CO., LTD)
-   - **Mã số thuế / Mã số doanh nghiệp:** `0111252725` (Sở Tài chính TP. Hà Nội cấp, ĐKKD lần đầu: 16/10/2025)
-   - **Vốn điều lệ:** 2.000.000.000 VNĐ (Hai tỷ đồng chẵn)
+### I. CĂN CỨ PHÁP LÝ & DỮ LIỆU ĐỊNH DANH DOANH NGHIỆP:
+1. **Pháp nhân thực thi:**
+   - **Tên công ty:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (SON KHANG FOODS CO., LTD)
+   - **Mã số thuế:** `0111252725` (Sở Tài chính TP. Hà Nội cấp)
+   - **Vốn điều lệ:** 2.000.000.000 VNĐ
    - **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH (CCCD: 001094016823, Sinh 20/11/1994)
-   - **Trụ sở chính:** Thôn 6, Xã Yên Xuân, Thành phố Hà Nội, Việt Nam
-   - **Địa điểm kinh doanh số 00001 (Kho tổng & Phân phối):** Số 96 Ngõ 337 Phố Định Công, P. Định Công, TP. Hà Nội (thông Ngõ 412 Trịnh Đình Cửu, Q. Hoàng Mai)
-   - **Cơ quan thuế quản lý trực tiếp:** Thuế cơ sở 22 thành phố Hà Nội
-   - **Kế toán thuế đăng ký:** TRẦN THỊ LỆ QUYÊN (SĐT: 0988 000 570)
-   - **Kế toán trưởng nội bộ:** HOÀNG THỊ NHO
+   - **Kho Tổng & Trung tâm Phân phối:** Số 96 Ngõ 337 Phố Định Công, P. Định Công, TP. Hà Nội (thông Ngõ 412 Trịnh Đình Cửu, Q. Hoàng Mai)
+   - **Kho Vệ Tinh:** Thôn 6, Yên Bình, Thạch Thất, Hà Nội
+   - **Kế toán trưởng:** HOÀNG THỊ NHO
    - **Thủ kho trung tâm:** TRẦN THỊ NGỌC THÚY
-   - **Tài xế giao nhận:** NGÔ VĂN TÂN
-   - **Hotline / Zalo:** 0942 22 60 60 | CSKH cố định: (024) 22 60 60 60
-   - **Email:** thucpham@sonkhang.vn | Email thuế: thucphamsonkhang@gmail.com
-   - **Tài khoản thanh toán chính thức:** Techcombank (Mã BIN: 970407) — STK: `22226060` — Chủ TK: CÔNG TY TNHH THỰC PHẨM SƠN KHANG
+   - **Tài xế giao nhận:** NGÔ VĂN TÂN (SĐT: 0942 22 60 60)
+   - **Tài khoản thụ hưởng duy nhất:** Techcombank (Mã BIN: 970407) — STK: `22226060` — Chủ TK: CÔNG TY TNHH THỰC PHẨM SƠN KHANG
 
 ---
 
-### HỆ THỐNG KÊNH BÁN HÀNG CHUẨN HÓA (CHANNELS):
-1. `web_order`: Đơn đặt hàng từ website chính thức `https://sonkhang.vn`
-2. `pos`: Bán lẻ và khách quán ăn bốc hàng trực tiếp tại quầy kho Định Công / Yên Bình
-3. `quan_an`: Quán ăn vặt, xiên bẩn, mì trộn Indomie nội thành Hà Nội (Cầu Giấy, Đống Đa, Hai Bà Trưng, Bách - Kinh - Xây...)
-4. `dai_ly`: Khách sỉ, đại lý tỉnh gửi chành xe phía Bắc (Bến Giáp Bát, Nước Ngầm, Mỹ Đình đi Nam Định, Hải Phòng, Quảng Ninh, Bắc Ninh...)
-5. `bep_an`: Căn tin trường học, bếp ăn doanh nghiệp/khu công nghiệp
-6. `ban_le`: Khách mua lẻ theo niêm yết
+### II. NỘI DUNG MỆNH LỆNH CHỈ THỊ 15:
+
+#### NHIỆM VỤ 1: KHÉP KÍN CHU TRÌNH ĐƠN HÀNG ĐA KÊNH THỜI GIAN THỰC (ZERO MOCK)
+1. **Tiếp nhận & Định danh:**
+   - Đơn hàng phát sinh từ bất kỳ nguồn nào:
+     - Cổng B2B: `https://dathang.sonkhang.vn` (`SK-WEB-*`)
+     - Quầy POS Kho Định Công: `https://pos.sonkhang.vn` (`SK-POS-*`)
+     - Quán ăn nội thành & Đại lý chành xe Sapo Open API (`SK-QA-*`, `SK-DL-*`)
+   - Tự động gán mã định danh duy nhất `{PREFIX}-{YYMMDD}-{SEQUENCE}` và bắn thông báo real-time vào Chat nội bộ `#dieu-kho`.
+2. **Kiểm đếm & Soạn kho FEFO 100%:**
+   - Thủ kho TRẦN THỊ NGỌC THÚY thực hiện xác nhận soạn hàng tại URL tác vụ: `/sales/[id]/pick`.
+   - Bắt buộc kiểm đếm 100% dòng sản phẩm theo nguyên tắc Hạn dùng trước - Xuất trước (FEFO). Có phản hồi âm thanh (audio chime) và rung (haptic feedback).
+   - Tự động sinh Phiếu xuất kho `SK-PXK-*` và trừ tồn kho khả dụng tại kho tương ứng (Định Công / Yên Bình).
+3. **Điều phối Giao vận & Chuỗi lạnh Isuzu 29C-882.60:**
+   - Tạo chuyến giao hàng `SK-DO-*`, phân bổ cho Tài xế NGÔ VĂN TÂN (`0942 22 60 60`).
+   - Tài xế thao tác trên PWA 1-chạm `/pwa/giaovan`, hỗ trợ hiển thị tuyến bến xe Giáp Bát / Nước Ngầm.
+   - Khi giao thành công, trạng thái đơn tự động đẩy ngược lên Sapo chuyển sang `fulfilled`.
+
+#### NHIỆM VỤ 2: ĐỐI SOÁT DÒNG TIỀN TỰ ĐỘNG & KẾ TOÁN EOD 18:00
+1. **Tự động gạch nợ VietQR:**
+   - Khách quét mã VietQR Techcombank `22226060` theo cú pháp `SK-[Mã đơn]` hoặc `TT DH [Mã]`.
+   - Webhook `/api/finance/vietqr` nhận biến động số dư, tự động tạo Phiếu thu `SK-PT-*` (Tài khoản 1121/TK Techcombank) và chuyển trạng thái đơn hàng sang `hoan_tat` (Đã thanh toán).
+2. **Kế toán EOD MISA AMIS 63 cột:**
+   - Cron tự động chạy lúc 18:00 hàng ngày (`/api/sapo/cron/eod-accounting`).
+   - Tổng hợp toàn bộ đơn hàng trong ngày, đối soát chống trùng lặp qua Ledger, tự động sinh chứng từ kế toán MISA AMIS (`SK-CTGS-*`) và xuất file Excel chuẩn 63 cột.
+   - Sẵn sàng phát hành HĐĐT meInvoice Bot (`C26TSK`) có mã xác thực của Cơ quan Thuế.
+
+#### NHIỆM VỤ 3: GIÁM SÁT CHUỖI LẠNH HACCP & IOT TELEMETRY XE 29C-882.60
+1. **Tiếp nhận & Cảnh báo Telemetry:**
+   - Cổng API `/api/fleet/telemetry` tiếp nhận dữ liệu thời gian thực từ cảm biến thùng lạnh Isuzu QKR 270.
+   - Dải nhiệt độ an toàn: `-18°C ~ -22°C`.
+   - **Quy tắc cảnh báo đỏ:** Nếu nhiệt độ tăng vượt `-15°C` hoặc cửa thùng mở quá 10 phút, hệ thống kích hoạt còi cảnh báo, gửi thông báo khẩn vào Chat `#dieu-xe` và hiển thị cảnh báo đỏ trên màn hình PWA tài xế.
+2. **Nhật ký hành trình:**
+   - Lưu trữ lịch sử nhiệt độ mỗi chuyến hàng để xuất biên bản nghiệm thu chất lượng HACCP bàn giao cho các siêu thị, bếp ăn trường học và chành xe.
+
+#### NHIỆM VỤ 4: PHÂN BỔ 6 WORKER SQUAD TRIỂN KHAI PRODUCTION
+Opus chịu trách nhiệm làm Tổng Chỉ Huy điều phối 6 Worker theo ranh giới tệp nghiêm ngặt:
+- **Worker 1 (Infrastructure & Edge):** Hoàn thiện SSL Certbot cho `workspace.sonkhang.vn`, `pos.sonkhang.vn`, `dathang.sonkhang.vn` trên VPS `103.124.93.145`.
+- **Worker 2 (Sapo Realtime Engine):** Giám sát Webhook HMAC-SHA256, đồng bộ tồn kho 2 kho Định Công & Yên Bình.
+- **Worker 3 (Finance & MISA OpenAPI):** Đối soát VietQR Techcombank `22226060`, xuất Excel 63 cột MISA AMIS.
+- **Worker 4 (Cold Chain IoT & Fleet PWA):** Tối ưu giao diện PWA giao hàng cho Tài xế Ngô Văn Tân, giám sát cảm biến -18°C.
+- **Worker 5 (Commerce Channels):** Tối ưu tốc độ phục vụ quầy POS (<5s/đơn) và tra cứu tiến độ đơn hàng trên `dathang.sonkhang.vn`.
+- **Worker 6 (Security & RBAC QA):** Kiểm soát phân quyền nhân sự, chạy kiểm thử tự động toàn diện.
 
 ---
 
-### CHUẨN ALIAS ĐỊNH DANH NGHIỆP VỤ (`packages/core/aliases.ts`):
-Format chuẩn: `{PREFIX}-{YYMMDD}-{SEQUENCE}` (Ví dụ: `SK-WEB-261010-0001`, `SK-POS-261010-0002`):
-- `SK-SO-`: Đơn bán buôn chung (Sales Order)
-- `SK-WEB-`: Đơn hàng Web order
-- `SK-POS-`: Đơn bán quầy POS
-- `SK-QA-`: Đơn quán ăn / xiên bẩn Hà Nội
-- `SK-DL-`: Đơn đại lý chành xe tỉnh
-- `SK-BA-`: Đơn căn tin / bếp ăn
-- `SK-PO-`: Đơn đặt hàng nhà cung cấp (CP, Kewpie, Cholimex...)
-- `SK-PXK-` / `SK-PNK-`: Phiếu xuất kho / Nhập kho
-- `SK-DO-`: Vận đơn điều phối giao hàng / chành xe
-- `SK-BG-`: Bản báo giá Zalo / Báo giá kênh
-- `SK-INV-`: Hóa đơn điện tử MISA meInvoice
-- `SK-CTGS-`: Chứng từ ghi sổ MISA AMIS
+### III. TIÊU CHUẨN NGHIỆM THU (QUALITY GATE):
+1. **Mã nguồn:** `npx tsc --noEmit` = **0 lỗi** tuyệt đối.
+2. **Build hệ thống:** `npm run build` = **Tạo đủ 66+ routes thành công**, không có lỗi hydration hay thiếu dynamic params.
+3. **Dữ liệu thực nghiệm:** 100% luồng đơn hàng chạy thông suốt từ Đặt hàng -> Soạn hàng FEFO -> Giao vận -> Thu tiền VietQR -> Hạch toán MISA.
+4. **Báo cáo:** Ghi nhận biên bản nghiệm thu vào `.claude/reports/directive-15.md` trước khi bàn giao cho Ban Giám Đốc.
 
----
-
-### TÍCH HỢP HỆ THỐNG (INTEGRATIONS):
-1. **Sapo Live API:**
-   - Endpoint: `https://0166bd3c4bb745edb301413aec771b2b:e2cc59d4ace34a009a0704ab9f72a8b4@sonkhang.mysapo.net/admin/orders.json`
-   - Đã tích hợp Basic Auth vào `packages/integrations/sapo/sapoClient.ts`.
-   - Tự động nhận diện nguồn đơn (admin, zalo, web, pos) và sinh mã alias chuẩn tương ứng.
-
-2. **MISA AMIS Kế Toán OpenAPI (`packages/integrations/misa/amisOpenApiClient.ts`):**
-   - Tài liệu: `https://developer.misa.vn/products-openapi/AMISKT?firstApi=1`
-   - Chức năng: Đẩy chứng từ bán hàng (TK 131/5111/3331) từ đơn hàng đã hoàn tất vào sổ kế toán MISA AMIS.
-
-3. **MISA meInvoice Bot OpenAPI (`packages/integrations/misa/meInvoiceBotClient.ts`):**
-   - Tài liệu: `https://developer.misa.vn/products-openapi/MEINVOICEBOT?firstApi=1`
-   - Chức năng: 
-     - Phát hành HĐĐT tự động (eInvoice) từ đơn hàng hoàn tất, lấy mã Cơ quan thuế cấp.
-     - Bot tự động cào và kiểm tra hóa đơn đầu vào từ nhà cung cấp (CP, Cholimex, Kewpie...).
-
----
-
-### NHIỆM VỤ THỰC THI CHO CLAUDE CODE (`/next`):
-
-#### TASK 1: HOÀN THIỆN PHÂN HỆ /pricing
-- File service: `packages/modules/pricing/pricingService.ts` (lọc 4 nhóm hàng, 6 kênh bán gồm cả `web_order` và `pos`, tính biên lợi nhuận, hàm `generateZaloQuote` theo format chuẩn Sơn Khang).
-- API routes: `app/api/pricing/route.ts`, `app/api/pricing/[sku]/route.ts`, `app/api/pricing/quote/route.ts`.
-- Giao diện: `app/(shell)/pricing/page.tsx` (3D Claymorphism, 4 KPI cards, tabs 6 kênh bán hàng, modal cập nhật giá nhanh, modal xuất báo giá Zalo 1-chạm).
-
-#### TASK 2: NÂNG CẤP TRANG SAPO2MISA (`app/(shell)/finance/sapo2misa/page.tsx`)
-- Hiển thị đầy đủ cột **Mã Nghiệp Vụ (Alias Code)** và **Kênh Bán (Channel)** trên bảng dữ liệu đơn hàng.
-- Bổ sung 2 nút hành động trực tiếp:
-  - **"Đẩy AMIS Kế Toán (OpenAPI)"**: Gọi API hạch toán chứng từ sang MISA AMIS.
-  - **"Phát Hành HĐĐT meInvoice Bot"**: Phát hành HĐĐT và hiển thị mã CQT.
-- Tạo API endpoints tương ứng:
-  - `POST /api/sapo2misa/amis`: Gọi `syncOrderToAmis()`.
-  - `POST /api/sapo2misa/meinvoice`: Gọi `publishInvoiceFromOrder()`.
-
----
-
-### TIÊU CHUẨN NGHIỆM THU (QUALITY GATE):
-1. `npx tsc --noEmit` đạt 0 lỗi.
-2. `npm run build` thành công 100%.
-3. Ghi báo cáo nghiệm thu vào `.claude/reports/latest.md`.
+**BAN HÀNH BỞI: COMMANDER & CHỦ TỊCH HỒ BÁ THỊNH**  
+*Mệnh lệnh có hiệu lực thi hành ngay lập tức.*
