@@ -40,6 +40,53 @@ let config = {
 // Key state tracking (quota, rate-limits, error cooldowns)
 const keyStates = new Map();
 
+// Upstream quota & usage tracking (synced from genzshop / upstream)
+const upstreamUsageMap = new Map();
+
+async function fetchUpstreamUsage(apiKey) {
+  if (!apiKey || apiKey.includes('DÁN_KEY')) return null;
+  try {
+    const res = await fetch('https://genzshop.vn/api/check-usage.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'SK-Workspace-Gateway/1.0'
+      },
+      body: JSON.stringify({ apiKey }),
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.success && data.usage) {
+      upstreamUsageMap.set(apiKey, {
+        ...data.usage,
+        daily: data.daily || [],
+        overage: data.overage || {},
+        updatedAt: new Date().toISOString()
+      });
+      return data;
+    }
+  } catch (err) {
+    // Network timeout or temporary failure - do not break proxy
+  }
+  return null;
+}
+
+let isSyncingUpstream = false;
+async function syncAllKeysUpstream() {
+  if (isSyncingUpstream) return;
+  isSyncingUpstream = true;
+  try {
+    const activeKeys = config.keys.filter(k => k && !k.includes('DÁN_KEY'));
+    for (const k of activeKeys) {
+      await fetchUpstreamUsage(k);
+    }
+    broadcastStats();
+  } finally {
+    isSyncingUpstream = false;
+  }
+}
+
 // Telemetry & stats tracking
 const telemetry = {
   startedAt: new Date(),
@@ -423,21 +470,39 @@ function getStatsPayload() {
   const hitRate = totalInputs > 0 ? ((telemetry.tokensCachedRead / totalInputs) * 100).toFixed(1) : '0.0';
 
   const totalDailyQuotaUsd = config.keys.reduce((sum, k, idx) => sum + getKeyLimit(k, idx), 0);
+  let totalDailyUsedUsd = 0;
 
   const keys = config.keys.map((k, idx) => {
     const st = keyStates.get(k) || {};
     const limit = getKeyLimit(k, idx);
-    const isQuotaExceeded = !!(st.quotaExceededUntil && st.quotaExceededUntil > Date.now());
+    const upstream = upstreamUsageMap.get(k) || null;
+    const dailyUsed = upstream ? upstream.dailyCostUsed : null;
+    if (dailyUsed !== null) totalDailyUsedUsd += dailyUsed;
+    const dailyPercent = upstream ? (upstream.dailyCostPercent ?? (dailyUsed ? (dailyUsed / limit) * 100 : 0)) : null;
+    const dailyRemaining = upstream && dailyUsed !== null ? Math.max(0, limit - dailyUsed) : null;
+    const isQuotaExceeded = !!(st.quotaExceededUntil && st.quotaExceededUntil > Date.now()) || (dailyRemaining !== null && dailyRemaining <= 0);
+
     return {
       index: idx + 1,
       label: `Key #${idx + 1}`,
       masked: maskKey(k),
       dailyLimitUsd: limit,
+      dailyUsedUsd: dailyUsed !== null ? parseFloat(dailyUsed.toFixed(2)) : null,
+      dailyRemainingUsd: dailyRemaining !== null ? parseFloat(dailyRemaining.toFixed(2)) : null,
+      dailyPercent: dailyPercent !== null ? parseFloat(dailyPercent.toFixed(1)) : null,
+      totalCostUsd: upstream ? parseFloat(upstream.totalCost.toFixed(2)) : null,
+      totalTokens: upstream ? upstream.totalTokens : null,
+      expiresAt: upstream?.expiresAt || null,
+      overageDays: upstream?.overage?.total_days || 0,
+      upstreamRequests: upstream?.daily?.[0]?.daily_requests || upstream?.totalRequests || 0,
       status: isQuotaExceeded ? 'quota_exceeded' : 'active',
       statusText: isQuotaExceeded ? `Hết hạn mức ($${limit}) - Reset 07:00 VN` : `Sẵn sàng hoạt động`,
       requests: st.totalRequests || 0
     };
   });
+
+  const totalDailyRemainingUsd = Math.max(0, totalDailyQuotaUsd - totalDailyUsedUsd);
+  const totalDailyPercent = totalDailyQuotaUsd > 0 ? parseFloat(((totalDailyUsedUsd / totalDailyQuotaUsd) * 100).toFixed(1)) : 0;
 
   return {
     serverTime: new Date().toISOString(),
@@ -467,7 +532,10 @@ function getStatsPayload() {
       enablePromptCaching: config.enablePromptCaching,
       enableLocalResponseCache: config.enableLocalResponseCache,
       activeKeysCount: config.keys.length,
-      totalDailyQuotaUsd
+      totalDailyQuotaUsd,
+      totalDailyUsedUsd: parseFloat(totalDailyUsedUsd.toFixed(2)),
+      totalDailyRemainingUsd: parseFloat(totalDailyRemainingUsd.toFixed(2)),
+      totalDailyPercent
     },
     keys,
     recentRequests: [...recentRequests]
@@ -748,6 +816,7 @@ function renderHtmlDashboard() {
         </select>
         <button class="btn" id="btn-toggle" onclick="toggleAutoUpdate()">⏸️ Tạm dừng</button>
         <button class="btn" onclick="fetchImmediate()">🔄 Làm mới</button>
+        <button class="btn" onclick="syncQuotaUpstream()">☁️ Đồng bộ Quota</button>
         <button class="btn btn-primary" onclick="testPing()">⚡ Test Ping</button>
         <button class="btn btn-danger" onclick="resetTelemetry()">🗑️ Reset</button>
       </div>
@@ -803,25 +872,51 @@ function renderHtmlDashboard() {
 
     <!-- Active API Keys Table -->
     <div class="card" style="margin-bottom: 24px;">
-      <h3 style="margin: 0 0 4px 0; font-size: 17px; display: flex; align-items: center; justify-content: space-between;">
-        <span>🔑 Trạng Thái Các API Keys (<span id="key-count">${config.keys.length}</span> keys active • Quota Pool: <span id="total-quota" style="color: #38bdf8; font-weight: 700;">$600</span>/ngày)</span>
-        <span style="font-size: 12px; font-weight: normal; color: var(--text-dim);">Hạn mức: Key 1 ($150) • Key 2 ($150) • Key 3 ($300) • Reset 07:00 VN</span>
+      <h3 style="margin: 0 0 4px 0; font-size: 17px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <span>🔑 Trạng Thái Các API Keys (<span id="key-count">${config.keys.length}</span> keys active)</span>
+        <span id="total-quota-info" style="font-size: 13px; font-weight: normal; color: var(--text-dim);">
+          Quota Pool: <b style="color: #38bdf8;">$600</b>/ngày • Đang đồng bộ...
+        </span>
       </h3>
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th style="width: 100px;">Số thứ tự</th>
+              <th style="width: 80px;">Key</th>
               <th>API Key</th>
-              <th style="width: 130px;">Hạn mức ngày</th>
+              <th style="width: 110px;">Hạn mức</th>
+              <th style="width: 180px;">Đã dùng hôm nay</th>
+              <th style="width: 110px;">Còn lại</th>
+              <th style="width: 110px;">Hết hạn</th>
               <th>Trạng thái</th>
-              <th style="width: 160px; text-align: right;">Số yêu cầu đã gửi</th>
+              <th style="width: 90px; text-align: right;">Requests</th>
             </tr>
           </thead>
           <tbody id="keys-tbody">
             <!-- Rendered dynamically -->
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Quick Checker Tool (GenzShop API Key Checker) -->
+    <div class="card" style="margin-bottom: 24px; border: 1px solid rgba(56, 189, 248, 0.25);">
+      <h3 style="margin: 0 0 10px 0; font-size: 17px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <span>🔍 Tra Cứu Nhanh Quota / Usage / Overage Claude API Key</span>
+        <span style="font-size: 12px; font-weight: normal; color: var(--text-dim);">Kiểm tra tức thì không cần đăng nhập • Trực tiếp từ GenzShop API</span>
+      </h3>
+      <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px; position: relative;">
+          <input type="password" id="custom-api-key" placeholder="Dán API Key Claude vào đây (sk-ant-api03-...)" style="width: 100%; box-sizing: border-box; background: #0b1120; border: 1px solid var(--border); color: #f8fafc; padding: 10px 42px 10px 14px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 13px;" />
+          <button type="button" onclick="toggleCustomKeyVis()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px;">👁️</button>
+        </div>
+        <button class="btn btn-primary" id="btn-custom-check" onclick="checkCustomKey()">🚀 Kiểm Tra Ngay</button>
+        <button class="btn" onclick="checkActiveKey(1)">Key #1</button>
+        <button class="btn" onclick="checkActiveKey(2)">Key #2</button>
+        <button class="btn" onclick="checkActiveKey(3)">Key #3</button>
+      </div>
+      <div id="custom-check-result" style="display: none; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-top: 12px;">
+        <!-- Rendered dynamically -->
       </div>
     </div>
 
@@ -913,18 +1008,42 @@ function renderHtmlDashboard() {
       if (Array.isArray(data.keys)) {
         document.getElementById('key-count').textContent = data.keys.length;
         if (data.config?.totalDailyQuotaUsd) {
-          document.getElementById('total-quota').textContent = '$' + data.config.totalDailyQuotaUsd;
+          const totalQ = data.config.totalDailyQuotaUsd;
+          const totalU = data.config.totalDailyUsedUsd || 0;
+          const totalR = data.config.totalDailyRemainingUsd || (totalQ - totalU);
+          const totalP = data.config.totalDailyPercent || (totalQ > 0 ? ((totalU / totalQ) * 100).toFixed(1) : 0);
+          const poolElem = document.getElementById('total-quota-info');
+          if (poolElem) {
+            poolElem.innerHTML = \`
+              Quota Pool: <b style="color: #38bdf8;">$\${totalQ}</b>/ngày • Đã dùng: <b style="color: #fbbf24;">$\${totalU}</b> (\${totalP}%) • Còn lại: <b style="color: #4ade80;">$\${totalR}</b>
+            \`;
+          }
         }
         const keysHtml = data.keys.map(k => {
           const isQuota = k.status === 'quota_exceeded';
           const badgeClass = isQuota ? 'badge-error' : 'badge-success';
+          const percent = k.dailyPercent !== null ? k.dailyPercent : 0;
+          const barColor = percent > 90 ? '#f87171' : percent > 60 ? '#fbbf24' : '#38bdf8';
+          const usedStr = k.dailyUsedUsd !== null ? \`$\${k.dailyUsedUsd} (\${percent}%)\` : '<span style="color:var(--text-dim);">Đang sync...</span>';
+          const remainStr = k.dailyRemainingUsd !== null ? \`$\${k.dailyRemainingUsd}\` : '--';
+          const expiryStr = k.expiresAt ? new Date(k.expiresAt).toLocaleDateString('vi-VN') : '--';
+          const reqsCount = k.upstreamRequests || k.requests || 0;
+
           return \`
             <tr>
-              <td style="font-weight: 600;">\${k.label}</td>
+              <td style="font-weight: 700; color: #f1f5f9;">\${k.label}</td>
               <td class="mono">\${k.masked}</td>
               <td style="font-weight: 700; color: #38bdf8;">$\${k.dailyLimitUsd}/ngày</td>
+              <td>
+                <div style="font-size: 12.5px; font-weight: 600; margin-bottom: 4px;">\${usedStr}</div>
+                <div style="background: rgba(255,255,255,0.08); border-radius: 4px; height: 5px; overflow: hidden; width: 100%;">
+                  <div style="background: \${barColor}; width: \${Math.min(100, percent)}%; height: 100%; border-radius: 4px; transition: width 0.3s ease;"></div>
+                </div>
+              </td>
+              <td style="font-weight: 700; color: #4ade80;">\${remainStr}</td>
+              <td style="font-size: 12px; color: var(--text-dim);">\${expiryStr}</td>
               <td><span class="badge \${badgeClass}">\${k.statusText}</span></td>
-              <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono';">\${k.requests || 0}</td>
+              <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono';">\${reqsCount}</td>
             </tr>
           \`;
         }).join('');
@@ -1104,6 +1223,108 @@ function renderHtmlDashboard() {
       }
     }
 
+    async function syncQuotaUpstream() {
+      showToast('☁️ Đang đồng bộ Quota và Usage thực tế từ Upstream...');
+      try {
+        const res = await fetch('/stats/sync-quota', { method: 'POST' });
+        if (res.ok) {
+          showToast('✅ Đã đồng bộ Quota thành công!');
+          setTimeout(fetchImmediate, 100);
+        } else {
+          showToast('⚠️ Đồng bộ Quota trả về lỗi');
+        }
+      } catch (err) {
+        showToast('❌ Đồng bộ thất bại: ' + err.message);
+      }
+    }
+
+    function toggleCustomKeyVis() {
+      const inp = document.getElementById('custom-api-key');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    async function checkActiveKey(idx) {
+      showToast('Đang lấy API Key #' + idx + '...');
+      try {
+        const res = await fetch('/api/active-key?idx=' + idx);
+        const data = await res.json();
+        if (data.key) {
+          document.getElementById('custom-api-key').value = data.key;
+          checkCustomKey();
+        }
+      } catch (err) {
+        showToast('Lỗi: ' + err.message);
+      }
+    }
+
+    async function checkCustomKey() {
+      const inp = document.getElementById('custom-api-key');
+      const key = inp.value.trim();
+      if (!key) {
+        showToast('⚠️ Vui lòng nhập API Key');
+        return;
+      }
+
+      const resBox = document.getElementById('custom-check-result');
+      const btn = document.getElementById('btn-custom-check');
+      resBox.style.display = 'block';
+      resBox.innerHTML = '<div style="color: #38bdf8; text-align: center; padding: 20px;">⏳ Đang kiểm tra Usage, Daily Usage và Overage...</div>';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/check-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: key })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Kiểm tra thất bại');
+        }
+
+        const u = data.usage || {};
+        const daily = data.daily || [];
+        const overage = data.overage || {};
+        const dailyLimit = u.dailyCostLimit || 0;
+        const dailyUsed = u.dailyCostUsed || 0;
+        const dailyRem = dailyLimit > 0 ? Math.max(0, dailyLimit - dailyUsed) : null;
+        const dailyPercent = dailyLimit > 0 ? ((dailyUsed / dailyLimit) * 100).toFixed(1) : (u.dailyCostPercent ? Number(u.dailyCostPercent).toFixed(1) : 0);
+
+        resBox.innerHTML = \`
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            <div style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Đã dùng hôm nay</div>
+              <div style="font-size: 20px; font-weight: 800; color: #fbbf24; margin: 4px 0;">$\${dailyUsed.toFixed(2)} <span style="font-size: 13px; font-weight: 600; color: #94a3b8;">/ $\${dailyLimit} (\${dailyPercent}%)</span></div>
+              <div style="font-size: 12px; color: #4ade80;">Còn lại: $\${dailyRem !== null ? dailyRem.toFixed(2) : '--'}</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Tổng chi phí tích lũy</div>
+              <div style="font-size: 20px; font-weight: 800; color: #4ade80; margin: 4px 0;">$\${(u.totalCost || 0).toFixed(2)}</div>
+              <div style="font-size: 12px; color: var(--text-dim);">Tổng Tokens: \${formatNumber(u.totalTokens || 0)}</div>
+            </div>
+            <div style="background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.2); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Hết hạn & Reset</div>
+              <div style="font-size: 14px; font-weight: 700; color: #f1f5f9; margin: 4px 0;">\${u.expiresAt ? new Date(u.expiresAt).toLocaleDateString('vi-VN') : '--'}</div>
+              <div style="font-size: 12px; color: var(--text-dim);">Reset quota: 07:00 sáng VN</div>
+            </div>
+            <div style="background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); padding: 12px; border-radius: 8px;">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Tình trạng Overage</div>
+              <div style="font-size: 16px; font-weight: 800; color: \${overage.total_days > 0 ? '#fca5a5' : '#4ade80'}; margin: 4px 0;">
+                \${overage.total_days > 0 ? (overage.total_days + ' ngày vượt mức nhẹ ($' + Number(overage.total_overage || 0).toFixed(2) + ')') : 'Không overage (An toàn)'}
+              </div>
+              <div style="font-size: 12px; color: var(--text-dim);">Số requests: \${u.totalRequests || 0}</div>
+            </div>
+          </div>
+        \`;
+        showToast('✅ Kiểm tra thành công!');
+      } catch (err) {
+        resBox.innerHTML = '<div style="color: #f87171; padding: 12px;">❌ ' + err.message + '</div>';
+        showToast('❌ ' + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
     // Initialize on load
     window.addEventListener('DOMContentLoaded', () => {
       fetchImmediate();
@@ -1199,6 +1420,63 @@ const server = http.createServer(async (req, res) => {
     broadcastStats();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ ok: true, message: 'Đã reset thống kê thành công' }));
+    return;
+  }
+
+  // Sync Quota from Upstream
+  if (req.url === '/stats/sync-quota' && req.method === 'POST') {
+    await syncAllKeysUpstream();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, message: 'Đã đồng bộ hạn mức thành công' }));
+    return;
+  }
+
+  // Active key retrieval for quick test (by index)
+  if (req.url.startsWith('/api/active-key')) {
+    const u = new URL(req.url, 'http://127.0.0.1');
+    const idx = parseInt(u.searchParams.get('idx') || '1', 10) - 1;
+    const activeKeys = config.keys.filter(k => k && !k.includes('DÁN_KEY'));
+    const targetKey = activeKeys[idx] || activeKeys[0] || '';
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ key: targetKey }));
+    return;
+  }
+
+  // Custom key usage check
+  if (req.url.startsWith('/api/check-key')) {
+    let keyToCheck = '';
+    if (req.method === 'POST') {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      try {
+        const parsed = JSON.parse(Buffer.concat(chunks).toString('utf-8'));
+        keyToCheck = parsed.apiKey || parsed.key || '';
+      } catch {}
+    } else {
+      const u = new URL(req.url, 'http://127.0.0.1');
+      keyToCheck = u.searchParams.get('key') || '';
+    }
+
+    if (!keyToCheck) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: 'Vui lòng cung cấp apiKey' }));
+      return;
+    }
+
+    try {
+      const upstreamRes = await fetch('https://genzshop.vn/api/check-usage.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: keyToCheck }),
+        signal: AbortSignal.timeout(10000)
+      });
+      const data = await upstreamRes.json();
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(data));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
     return;
   }
 
@@ -1448,4 +1726,11 @@ server.listen(config.port, config.host, () => {
   console.log('👉 Base URL cho Claude Code / IDE:');
   console.log(`   http://localhost:${config.port}/v1`);
   console.log('=============================================================\n');
+
+  // Initial upstream sync on boot
+  syncAllKeysUpstream().catch(() => {});
+  // Periodic background quota sync every 3 minutes
+  setInterval(() => {
+    syncAllKeysUpstream().catch(() => {});
+  }, 180000);
 });
