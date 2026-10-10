@@ -1,0 +1,13 @@
+{
+  "port": 3001,
+  "host": "127.0.0.1",
+  "target": "https://1gw.gwai.cloud",
+  "timeoutMs": 100000,
+  "strategy": "round-robin",
+  "enablePromptCaching": true,
+  "enableLocalResponseCache": true,
+  "keys": [
+    "sk-ant-api03-DAN_KEY_1_VAO_DAY",
+    "sk-ant-api03-DAN_KEY_2_VAO_DAY"
+  ]
+}

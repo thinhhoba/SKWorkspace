@@ -14,10 +14,10 @@ type RolePreset = {
 };
 
 const PRESETS: RolePreset[] = [
-  { key: "ADMIN", label: "Admin", icon: "👑", username: "admin", password: "sk@123456" },
-  { key: "ACCOUNTANT", label: "Kế toán", icon: "📊", username: "ketoan", password: "sk@123456" },
-  { key: "WAREHOUSE", label: "Thủ kho", icon: "❄️", username: "thukho", password: "sk@123456" },
-  { key: "DRIVER", label: "Tài xế", icon: "🚚", username: "taixe", password: "sk@123456" },
+  { key: "ADMIN", label: "GĐ: Hồ Bá Thịnh", icon: "👑", username: "admin", password: "sk@123456" },
+  { key: "ACCOUNTANT", label: "KT: Hoàng Thị Nho", icon: "📊", username: "ketoan", password: "sk@123456" },
+  { key: "WAREHOUSE", label: "Kho: Trần Thị Ngọc Thúy", icon: "📦", username: "thukho", password: "sk@123456" },
+  { key: "DRIVER", label: "Tài xế: Ngô Văn Tân", icon: "🚚", username: "taixe", password: "sk@123456" },
 ];
 
 const ROLE_REDIRECT: Record<string, string> = {

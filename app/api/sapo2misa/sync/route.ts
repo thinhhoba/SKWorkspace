@@ -58,6 +58,7 @@ async function handleSync() {
       orders_count: sapoOrders.length,
       rows_count: rows.length,
       rows,
+      centralOrders,
       validation,
       logs
     });

@@ -135,10 +135,10 @@ export async function signToken(payload: string): Promise<string> {
 // Default users
 // ---------------------------------------------------------------------------
 export const DEFAULT_USERS: Array<AuthUser & { password: string; full_name: string }> = [
-  { id: "u1", username: "admin", password: "sk@123456", name: "Vũ Như Sơn", full_name: "Vũ Như Sơn", role: "ADMIN", warehouse: null },
-  { id: "u2", username: "ketoan", password: "sk@123456", name: "Trần Thị Thu Thảo", full_name: "Trần Thị Thu Thảo", role: "ACCOUNTANT", warehouse: null },
-  { id: "u3", username: "thukho", password: "sk@123456", name: "Lê Văn Đạt", full_name: "Lê Văn Đạt", role: "WAREHOUSE", warehouse: "Q12" },
-  { id: "u4", username: "taixe", password: "sk@123456", name: "Nguyễn Văn Hùng", full_name: "Nguyễn Văn Hùng", role: "DRIVER", warehouse: null },
+  { id: "u1", username: "admin", password: "sk@123456", name: "Hồ Bá Thịnh", full_name: "Hồ Bá Thịnh", role: "ADMIN", warehouse: null },
+  { id: "u2", username: "ketoan", password: "sk@123456", name: "Hoàng Thị Nho", full_name: "Hoàng Thị Nho", role: "ACCOUNTANT", warehouse: null },
+  { id: "u3", username: "thukho", password: "sk@123456", name: "Trần Thị Ngọc Thúy", full_name: "Trần Thị Ngọc Thúy", role: "WAREHOUSE", warehouse: "Hà Nội" },
+  { id: "u4", username: "taixe", password: "sk@123456", name: "Ngô Văn Tân", full_name: "Ngô Văn Tân", role: "DRIVER", warehouse: null },
 ];
 
 // ---------------------------------------------------------------------------

@@ -5,8 +5,8 @@ export interface VietQrConfig {
 }
 
 export const SK_VIETQR_CONFIG: VietQrConfig = {
-  bankId: "970422",
-  accountNo: "0123456789",
+  bankId: "970407", // Techcombank (TCB)
+  accountNo: "22226060",
   accountName: "CONG TY TNHH THUC PHAM SON KHANG",
 };
 

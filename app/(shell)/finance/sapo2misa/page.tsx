@@ -15,7 +15,11 @@ import {
   Search,
   RefreshCw,
   History,
-  AlertCircle
+  AlertCircle,
+  Send,
+  FilePlus2,
+  Loader2,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -138,6 +142,13 @@ export default function Sapo2MisaPage() {
   const [isExporting, setIsExporting] = React.useState(false);
   const [ledgerModalOpen, setLedgerModalOpen] = React.useState(false);
   const [ledgerItems, setLedgerItems] = React.useState<any[]>([]);
+  const [centralOrders, setCentralOrders] = React.useState<any[] | null>(null);
+  const [isPushingAmis, setIsPushingAmis] = React.useState(false);
+  const [isPublishingInvoice, setIsPublishingInvoice] = React.useState(false);
+  const [amisResult, setAmisResult] = React.useState<any | null>(null);
+  const [invoiceResult, setInvoiceResult] = React.useState<any | null>(null);
+  const [amisDialogOpen, setAmisDialogOpen] = React.useState(false);
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = React.useState(false);
 
   const logRef = React.useRef<HTMLDivElement>(null);
 
@@ -165,6 +176,7 @@ export default function Sapo2MisaPage() {
     try {
       const res = await fetch("/api/sapo2misa/sync", { method: "POST" });
       const data = await res.json();
+      if (data.centralOrders) setCentralOrders(data.centralOrders);
 
       if (data.success && data.rows) {
         setRows(data.rows);
@@ -260,6 +272,42 @@ export default function Sapo2MisaPage() {
     }
   };
 
+  const handlePushAmis = async () => {
+    setIsPushingAmis(true); setTermOpen(true);
+    const n = new Date().toLocaleTimeString("vi-VN");
+    const cnt = centralOrders ? centralOrders.length : (rows ? rows.length : 0);
+    setLogs((prev) => [...prev, { level: "RUN", text: "[" + n + "] [RUN] Dang day " + cnt + " don sang MISA AMIS..." }]);
+    try {
+      const payload = centralOrders ? { orders: centralOrders } : { rows };
+      const res = await fetch("/api/sapo2misa/amis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Loi day AMIS");
+      setAmisResult(data); setAmisDialogOpen(true);
+      const ts = new Date().toLocaleTimeString("vi-VN");
+      setLogs((prev) => [...prev, { level: "OK", text: "[" + ts + "] [OK] Da hach toan " + data.count + "/" + data.total + " chung tu vao AMIS" }]);
+      setSteps((prev) => prev.map(function(s,idx){ return idx===3 ? { ...s, status: "done", desc: "Da hach toan vao AMIS" } : s; }));
+      setToast("Da day " + data.count + " chung tu vao AMIS Ke Toan");
+    } catch (err: any) { setLogs((prev) => [...prev, { level: "ERR", text: "[LOI AMIS] " + err.message }]); setToast("Loi AMIS: " + (err as any).message); }
+    finally { setIsPushingAmis(false); }
+  };
+  const handlePublishInvoice = async () => {
+    setIsPublishingInvoice(true); setTermOpen(true);
+    const n2 = new Date().toLocaleTimeString("vi-VN");
+    const cnt2 = centralOrders ? centralOrders.length : (rows ? rows.length : 0);
+    setLogs((prev) => [...prev, { level: "RUN", text: "[" + n2 + "] [RUN] Dang phat hanh HDDT meInvoice cho " + cnt2 + " don..." }]);
+    try {
+      const payload = centralOrders ? { orders: centralOrders } : { rows };
+      const res = await fetch("/api/sapo2misa/meinvoice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Loi meInvoice");
+      setInvoiceResult(data); setInvoiceDialogOpen(true);
+      const ts2 = new Date().toLocaleTimeString("vi-VN");
+      setLogs((prev) => [...prev, { level: "OK", text: "[" + ts2 + "] [OK] Da phat hanh " + data.count + "/" + data.total + " HDDT" }]);
+      setSteps((prev) => prev.map(function(s,idx){ return idx===3 ? { ...s, status: "done", desc: "Da phat hanh HDDT" } : s; }));
+      setToast("Da phat hanh " + data.count + " HDDT qua meInvoice Bot");
+    } catch (err: any) { setLogs((prev) => [...prev, { level: "ERR", text: "[LOI meInvoice] " + err.message }]); setToast("Loi meInvoice: " + (err as any).message); }
+    finally { setIsPublishingInvoice(false); }
+  };
   const filteredLogs = logs.filter((l) => termFilter === "ALL" || l.level === termFilter);
 
   return (
@@ -327,6 +375,8 @@ export default function Sapo2MisaPage() {
             </DialogContent>
           </Dialog>
 
+          <Button size="sm" variant="outline" className="rounded-full glossy-pill border-sky-200 text-sky-700 hover:bg-sky-50" onClick={handlePushAmis} disabled={isPushingAmis || (!rows && !centralOrders)}>{isPushingAmis ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}{isPushingAmis ? "Đang đẩy AMIS…" : "Đẩy AMIS Kế Toán"}</Button>
+          <Button size="sm" variant="outline" className="rounded-full glossy-pill border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={handlePublishInvoice} disabled={isPublishingInvoice || (!rows && !centralOrders)}>{isPublishingInvoice ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <FilePlus2 className="w-3.5 h-3.5 mr-1.5" />}{isPublishingInvoice ? "Đang phát hành…" : "Phát Hành meInvoice Bot"}</Button>
           {/* Nút Xuất Excel thật */}
           <Button
             size="sm"
@@ -492,7 +542,7 @@ export default function Sapo2MisaPage() {
         </DialogContent>
       </Dialog>
 
-      {toast && (
+      <Dialog open={amisDialogOpen} onOpenChange={setAmisDialogOpen}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="text-sm flex items-center gap-2"><Send className="w-4 h-4 text-sky-500" /> Ket qua day AMIS Ke Toan</DialogTitle></DialogHeader>{amisResult ? (<div className="space-y-3"><p className="text-xs text-muted-foreground">Da hach toan <b>{amisResult.count}/{amisResult.total}</b> chung tu vao so AMIS.</p><div className="rounded-lg border overflow-auto max-h-[40vh]"><table className="w-full text-xs"><thead className="bg-muted text-[11px]"><tr><th className="px-2 py-1.5 text-left border-b">Alias</th><th className="px-2 py-1.5 text-left border-b">So CT</th><th className="px-2 py-1.5 text-center border-b">Trang thai</th></tr></thead><tbody>{amisResult.vouchers?.map(function(v: any,i: number){ return (<tr key={i} className="border-b last:border-0"><td className="px-2 py-1.5 font-mono text-sky-600">{v.aliasCode}</td><td className="px-2 py-1.5 font-mono">{v.refNo}</td><td className="px-2 py-1.5 text-center">{v.success ? <Badge variant="default" className="text-[10px]">OK</Badge> : <Badge variant="destructive" className="text-[10px]">Loi</Badge>}</td></tr>); })}</tbody></table></div><p className="mono text-[11px] text-muted-foreground">MST 0111252725 - AMIS OpenAPI - SK-CTGS-...</p></div>) : <p className="text-xs text-muted-foreground">Chua co du lieu.</p>}</DialogContent></Dialog><Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="text-sm flex items-center gap-2"><FilePlus2 className="w-4 h-4 text-emerald-600" /> Ket qua phat hanh meInvoice Bot</DialogTitle></DialogHeader>{invoiceResult ? (<div className="space-y-3"><p className="text-xs text-muted-foreground">Da phat hanh <b>{invoiceResult.count}/{invoiceResult.total}</b> HDDT - MST 0111252725 - Ky hieu C26TSK.</p><div className="rounded-lg border overflow-auto max-h-[40vh]"><table className="w-full text-xs"><thead className="bg-muted text-[11px]"><tr><th className="px-2 py-1.5 text-left border-b">Alias</th><th className="px-2 py-1.5 text-left border-b">So HD</th><th className="px-2 py-1.5 text-left border-b">Ma CQT</th></tr></thead><tbody>{invoiceResult.invoices?.map(function(inv: any,i: number){ return (<tr key={i} className="border-b last:border-0"><td className="px-2 py-1.5 font-mono text-sky-600">{inv.aliasCode}</td><td className="px-2 py-1.5 font-mono font-bold">{inv.invoiceNo || "-"}</td><td className="px-2 py-1.5 mono text-[11px]">{inv.taxAuthorityCode || "-"}{!inv.success ? " ("+inv.errorMessage+")" : ""}</td></tr>); })}</tbody></table></div>{invoiceResult.invoices?.[0]?.viewUrl && (<a href={invoiceResult.invoices[0].viewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-sky-600 hover:underline"><ExternalLink className="w-3 h-3" /> Tra cuu HDDT tai meInvoice.vn</a>)}</div>) : <p className="text-xs text-muted-foreground">Chua co du lieu.</p>}</DialogContent></Dialog>      {toast && (
         <div className="fixed bottom-4 right-4 z-50 bg-foreground text-background text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
           <Check className="w-4 h-4" /> {toast}
         </div>

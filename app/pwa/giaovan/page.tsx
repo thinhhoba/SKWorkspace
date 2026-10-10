@@ -15,9 +15,9 @@ type GiaoOrder = {
 };
 
 const MOCK_ORDERS: GiaoOrder[] = [
-  { code: "DH-2024-001", customer: "Nhà hàng Lẩu Bò Q7", address: "Q7 · 12 Nguyễn Thị Thập", amount: 12500000, tel: "0901111222" },
-  { code: "DH-2024-002", customer: "Quán Bún Bò Huế 138", address: "Q1 · 138 Lý Tự Trọng", amount: 8200000, tel: "0902222333" },
-  { code: "DH-2024-003", customer: "Siêu thị Mini Mart Q12", address: "Q12 · 45 Tô Ký", amount: 25000000, tel: "0903333444" },
+  { code: "DH-2026-001", customer: "Tiệm Mì Cay & Ăn Vặt Bách Khoa", address: "Hai Bà Trưng · 45 Tạ Quang Bửu, Hà Nội", amount: 4850000, tel: "0982111222" },
+  { code: "DH-2026-002", customer: "Quán Mì Trộn Indomie & Xiên Que Cầu Giấy", address: "Cầu Giấy · 128 Cầu Giấy, Hà Nội", amount: 2650000, tel: "0973222333" },
+  { code: "DH-2026-003", customer: "Đại lý Sỉ Minh Quân (Gửi Chành xe Giáp Bát)", address: "Bến xe Giáp Bát · Đi TP. Nam Định", amount: 15800000, tel: "0912333444" },
 ];
 
 export default function PwaGiaoVanPage() {
@@ -132,7 +132,7 @@ export default function PwaGiaoVanPage() {
 
             <p className="mono mt-3 text-center text-2xl font-extrabold">{vnd(active.amount)}</p>
             <p className="mt-1 text-center text-[11px] text-muted-foreground">
-              Nội dung CK: <span className="mono font-bold text-foreground">{active.code}</span> · STK demo 0123456789 MB 970422
+              Nội dung CK: <span className="mono font-bold text-foreground">{active.code}</span> · Techcombank 22226060 (Sơn Khang Food)
             </p>
 
             {/* eslint-disable-next-line @next/next/no-img-element */}

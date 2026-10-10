@@ -65,10 +65,10 @@ async function main() {
 
   // 1) Upsert 4 users — password_hash = "hashed_" + username (demo)
   const users = [
-    { username: "admin",  password_hash: "hashed_admin",  role: "ADMIN",     name: "Quản trị viên" },
-    { username: "ketoan", password_hash: "hashed_ketoan", role: "ACCOUNTANT", name: "Kế toán" },
-    { username: "thukho", password_hash: "hashed_thukho", role: "WAREHOUSE", name: "Thủ kho Q12" },
-    { username: "taixe",  password_hash: "hashed_taixe",  role: "DRIVER",    name: "Tài xế" },
+    { username: "admin",  password_hash: "hashed_admin",  role: "ADMIN",     name: "Hồ Bá Thịnh (Admin/GĐ)" },
+    { username: "ketoan", password_hash: "hashed_ketoan", role: "ACCOUNTANT", name: "Hoàng Thị Nho (Kế toán)" },
+    { username: "thukho", password_hash: "hashed_thukho", role: "WAREHOUSE", name: "Trần Thị Ngọc Thúy (Thủ kho)" },
+    { username: "taixe",  password_hash: "hashed_taixe",  role: "DRIVER",    name: "Ngô Văn Tân (Tài xế)" },
   ];
 
   for (const u of users) {

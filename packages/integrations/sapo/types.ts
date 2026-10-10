@@ -1,18 +1,32 @@
+import { BusinessScope } from "@/packages/core/aliases";
+
+export type SapoOrderChannel = "web_order" | "pos" | "quan_an" | "dai_ly" | "bep_an" | "ban_le";
+
 export interface SapoCustomer {
   id: number;
-  code: string;
+  code?: string;
   name: string;
   phone?: string;
   address?: string;
   tax_number?: string;
+  first_name?: string;
+  last_name?: string;
+  default_address?: {
+    address1?: string;
+    address2?: string;
+    city?: string;
+    province?: string;
+    phone?: string;
+  };
 }
 
 export interface SapoOrderLineItem {
   id: number;
-  product_id: number;
-  variant_id: number;
+  product_id?: number;
+  variant_id?: number;
   sku: string;
-  product_name: string;
+  name?: string;
+  product_name?: string;
   variant_name?: string;
   quantity: number;
   price: number;
@@ -22,14 +36,21 @@ export interface SapoOrderLineItem {
 
 export interface SapoOrder {
   id: number;
-  code: string; // e.g. "SP-0841"
-  created_on: string; // ISO date or "YYYY-MM-DDTHH:mm:ss"
-  customer: SapoCustomer;
+  code?: string; // e.g. "13537" or "SP-13537"
+  order_number?: number;
+  name?: string;
+  created_on?: string;
+  created_at?: string;
+  customer?: SapoCustomer;
   line_items: SapoOrderLineItem[];
-  branch_name: string; // e.g. "Kho Q7", "Kho Q12"
+  branch_name?: string;
   total_price: number;
   note?: string;
-  status: "completed" | "pending" | "processing";
+  status?: string;
+  financial_status?: string;
+  fulfillment_status?: string;
+  source_name?: string; // "admin", "zalo", "web", "pos"
+  channel?: string;
 }
 
 export interface CentralOrderItem {
@@ -44,18 +65,23 @@ export interface CentralOrderItem {
 }
 
 export interface CentralOrder {
-  id: string; // external_id e.g. "SP-0841"
+  id: string; // external_id e.g. "SAPO-13537"
   order_code: string;
+  alias_code: string; // Mã nghiệp vụ chuẩn: SK-SO-..., SK-WEB-..., SK-POS-...
+  business_scope: BusinessScope;
+  channel: SapoOrderChannel;
   created_date: string;
   accounting_date: string;
   customer_code: string;
   customer_name: string;
   customer_tax_code: string;
   customer_address: string;
-  branch: string;
+  customer_phone?: string;
+  branch: string; // "Kho Định Công (HN)" | "Kho Thạch Thất"
   items: CentralOrderItem[];
   total_amount: number;
   note?: string;
-  source: "Sapo";
+  source: "Sapo" | "Web" | "POS" | "Manual";
+  sync_status: "pending" | "synced_amis" | "synced_einvoice" | "error";
   last_synced_at: string;
 }

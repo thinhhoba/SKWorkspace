@@ -1,72 +1,96 @@
-# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH: THIẾT LẬP HỆ THỐNG DEPLOY VPS TỰ ĐỘNG QUA GITHUB (CÁCH 2: GITHUB ACTIONS + GHCR)
-# DỰ ÁN: SK WORKSPACE — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
-# CĂN CỨ PHÊ DUYỆT: Quyết định Chủ tịch ngày 08/10/2026 — Phê duyệt triển khai theo Mô hình Cách 2
-
-Chủ tịch và Commander đã **CHÍNH THỨC PHÊ DUYỆT MÔ HÌNH DEPLOY CÁCH 2**:
-Thiết lập toàn bộ cơ chế triển khai tự động lên VPS thông qua **GitHub Actions CI/CD kết hợp GitHub Container Registry (GHCR)**. Build Docker image siêu nhẹ trên hạ tầng mây của GitHub, sau đó đẩy sang VPS kéo về chạy trong 5-10 giây, bảo đảm VPS không bị chiếm dụng CPU/RAM và duy trì hệ thống liên tục (*Zero-Downtime*).
-
-Kích hoạt **Agent Code (Model: Claude Sonnet 5.5)** triển khai trọn gói bộ tệp tin triển khai sau:
-
----
-
-### 1. CẤU HÌNH NEXT.JS STANDALONE (`next.config.mjs`):
-- Thêm cấu hình `output: "standalone"` vào `nextConfig` để Next.js 15 tự động đóng gói toàn bộ server chạy độc lập không phụ thuộc thư mục `node_modules` nặng nề.
+# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 14
+# DỰ ÁN: SK WORKSPACE 2 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
+# MỤC TIÊU: 
+# 1. PHÂN HỆ BẢNG GIÁ ĐA KÊNH & BÁO GIÁ ZALO CHÀNH XE (/pricing)
+# 2. ĐỒNG BỘ ĐƠN HÀNG LIVE SAPO API (WEB ORDER, POS, QUÁN ĂN, ĐẠI LÝ)
+# 3. CHUẨN HÓA HỆ THỐNG ALIAS ĐỊNH DANH NGHIỆP VỤ (SK-*)
+# 4. TÍCH HỢP MISA OPEN API (AMIS KẾ TOÁN & MEINVOICE BOT)
 
 ---
 
-### 2. DOCKERFILE MULTI-STAGE TỐI ƯU SIÊU NHẸ (`Dockerfile`):
-- Sử dụng `node:20-alpine` làm base.
-- Xây dựng 3 stages:
-  1. `deps`: Cài đặt dependencies với `npm ci`.
-  2. `builder`: Build Next.js (`npm run build`).
-  3. `runner`: Chỉ copy `.next/standalone`, `.next/static` và thư mục `public/`.
-- Dung lượng image thành phẩm `< 150MB`, khởi động container cực nhanh (~2 giây).
+### DỮ LIỆU ĐỊNH DANH DOANH NGHIỆP CHÍNH THỨC (CẬP NHẬT PHÁP LÝ 02/10/2026):
+1. **Pháp nhân & Hồ sơ pháp lý:**
+   - **Tên doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (SON KHANG FOODS CO., LTD)
+   - **Mã số thuế / Mã số doanh nghiệp:** `0111252725` (Sở Tài chính TP. Hà Nội cấp, ĐKKD lần đầu: 16/10/2025)
+   - **Vốn điều lệ:** 2.000.000.000 VNĐ (Hai tỷ đồng chẵn)
+   - **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH (CCCD: 001094016823, Sinh 20/11/1994)
+   - **Trụ sở chính:** Thôn 6, Xã Yên Xuân, Thành phố Hà Nội, Việt Nam
+   - **Địa điểm kinh doanh số 00001 (Kho tổng & Phân phối):** Số 96 Ngõ 337 Phố Định Công, P. Định Công, TP. Hà Nội (thông Ngõ 412 Trịnh Đình Cửu, Q. Hoàng Mai)
+   - **Cơ quan thuế quản lý trực tiếp:** Thuế cơ sở 22 thành phố Hà Nội
+   - **Kế toán thuế đăng ký:** TRẦN THỊ LỆ QUYÊN (SĐT: 0988 000 570)
+   - **Kế toán trưởng nội bộ:** HOÀNG THỊ NHO
+   - **Thủ kho trung tâm:** TRẦN THỊ NGỌC THÚY
+   - **Tài xế giao nhận:** NGÔ VĂN TÂN
+   - **Hotline / Zalo:** 0942 22 60 60 | CSKH cố định: (024) 22 60 60 60
+   - **Email:** thucpham@sonkhang.vn | Email thuế: thucphamsonkhang@gmail.com
+   - **Tài khoản thanh toán chính thức:** Techcombank (Mã BIN: 970407) — STK: `22226060` — Chủ TK: CÔNG TY TNHH THỰC PHẨM SƠN KHANG
 
 ---
 
-### 3. DOCKER COMPOSE TRỌN GÓI 1 VPS (`docker-compose.yml`):
-- **`app`**: Chạy image từ GHCR (hoặc fallback build local), port nội bộ `3000:3000`, tự khởi động lại `restart: always`.
-- **`postgres`**: PostgreSQL 16 Alpine, volume gắn ngoài `postgres_data`, bảo vệ mật khẩu qua `.env`.
-- **`redis`**: Redis 7 Alpine phục vụ hàng đợi xử lý ngầm (BullMQ) kéo đơn từ Sapo và đẩy sang MISA.
-- **`nginx`**: Cổng ngoài `80:80` và `443:443`, bọc reverse proxy, kết nối thư mục cấu hình `./nginx` và chứng chỉ SSL Let's Encrypt.
+### HỆ THỐNG KÊNH BÁN HÀNG CHUẨN HÓA (CHANNELS):
+1. `web_order`: Đơn đặt hàng từ website chính thức `https://sonkhang.vn`
+2. `pos`: Bán lẻ và khách quán ăn bốc hàng trực tiếp tại quầy kho Định Công / Yên Bình
+3. `quan_an`: Quán ăn vặt, xiên bẩn, mì trộn Indomie nội thành Hà Nội (Cầu Giấy, Đống Đa, Hai Bà Trưng, Bách - Kinh - Xây...)
+4. `dai_ly`: Khách sỉ, đại lý tỉnh gửi chành xe phía Bắc (Bến Giáp Bát, Nước Ngầm, Mỹ Đình đi Nam Định, Hải Phòng, Quảng Ninh, Bắc Ninh...)
+5. `bep_an`: Căn tin trường học, bếp ăn doanh nghiệp/khu công nghiệp
+6. `ban_le`: Khách mua lẻ theo niêm yết
 
 ---
 
-### 4. CẤU HÌNH NGINX REVERSE PROXY CHUẨN PWA (`nginx/nginx.conf`):
-- Tối ưu hóa nén `gzip` và `brotli`.
-- **Chống lỗi Excel Kế toán:** Cấu hình `client_max_body_size 50M;` để upload file bảng kê 63 cột MISA dung lượng lớn mượt mà.
-- **Tối ưu Cache PWA:**
-  - File `/sw.js` và `manifest.json`: Header `Cache-Control "no-cache, no-store, must-revalidate";` (để điện thoại nhân viên luôn tự động cập nhật app mới nhất).
-  - Thư mục `/_next/static/`: Header `Cache-Control "public, max-age=31536000, immutable";` (tăng tốc độ tải trang tức thì).
-- Cấu hình proxy_pass sang `http://app:3000`.
+### CHUẨN ALIAS ĐỊNH DANH NGHIỆP VỤ (`packages/core/aliases.ts`):
+Format chuẩn: `{PREFIX}-{YYMMDD}-{SEQUENCE}` (Ví dụ: `SK-WEB-261010-0001`, `SK-POS-261010-0002`):
+- `SK-SO-`: Đơn bán buôn chung (Sales Order)
+- `SK-WEB-`: Đơn hàng Web order
+- `SK-POS-`: Đơn bán quầy POS
+- `SK-QA-`: Đơn quán ăn / xiên bẩn Hà Nội
+- `SK-DL-`: Đơn đại lý chành xe tỉnh
+- `SK-BA-`: Đơn căn tin / bếp ăn
+- `SK-PO-`: Đơn đặt hàng nhà cung cấp (CP, Kewpie, Cholimex...)
+- `SK-PXK-` / `SK-PNK-`: Phiếu xuất kho / Nhập kho
+- `SK-DO-`: Vận đơn điều phối giao hàng / chành xe
+- `SK-BG-`: Bản báo giá Zalo / Báo giá kênh
+- `SK-INV-`: Hóa đơn điện tử MISA meInvoice
+- `SK-CTGS-`: Chứng từ ghi sổ MISA AMIS
 
 ---
 
-### 5. WORKFLOW GITHUB ACTIONS CI/CD (`.github/workflows/deploy.yml`):
-- Kích hoạt tự động mỗi khi có commit đẩy lên nhánh `main` hoặc `master`.
-- **Job 1 (Test & Build):**
-  - Chạy `npx tsc --noEmit` kiểm tra type.
-  - Đăng nhập vào GitHub Container Registry (`ghcr.io`).
-  - Build Docker image bằng Docker Buildx và đẩy lên `ghcr.io/${{ github.repository }}:latest`.
-- **Job 2 (Deploy sang VPS):**
-  - Kết nối SSH vào VPS qua `appleboy/ssh-action` sử dụng các biến Secrets (`VPS_HOST`, `VPS_SSH_KEY`, `VPS_USER`).
-  - Chạy các lệnh tự động trên VPS:
-    ```bash
-    cd /opt/sk-workspace
-    docker compose pull app
-    docker compose up -d --remove-orphans
-    docker system prune -f
-    ```
+### TÍCH HỢP HỆ THỐNG (INTEGRATIONS):
+1. **Sapo Live API:**
+   - Endpoint: `https://0166bd3c4bb745edb301413aec771b2b:e2cc59d4ace34a009a0704ab9f72a8b4@sonkhang.mysapo.net/admin/orders.json`
+   - Đã tích hợp Basic Auth vào `packages/integrations/sapo/sapoClient.ts`.
+   - Tự động nhận diện nguồn đơn (admin, zalo, web, pos) và sinh mã alias chuẩn tương ứng.
+
+2. **MISA AMIS Kế Toán OpenAPI (`packages/integrations/misa/amisOpenApiClient.ts`):**
+   - Tài liệu: `https://developer.misa.vn/products-openapi/AMISKT?firstApi=1`
+   - Chức năng: Đẩy chứng từ bán hàng (TK 131/5111/3331) từ đơn hàng đã hoàn tất vào sổ kế toán MISA AMIS.
+
+3. **MISA meInvoice Bot OpenAPI (`packages/integrations/misa/meInvoiceBotClient.ts`):**
+   - Tài liệu: `https://developer.misa.vn/products-openapi/MEINVOICEBOT?firstApi=1`
+   - Chức năng: 
+     - Phát hành HĐĐT tự động (eInvoice) từ đơn hàng hoàn tất, lấy mã Cơ quan thuế cấp.
+     - Bot tự động cào và kiểm tra hóa đơn đầu vào từ nhà cung cấp (CP, Cholimex, Kewpie...).
 
 ---
 
-### 6. CÁC TỆP TIỆN ÍCH HỖ TRỢ:
-- `.env.production.example`: Mẫu các biến môi trường cấu hình cho server production.
-- `scripts/setup-vps.sh`: Script cài đặt 1 chạm cho VPS mới (cài Docker, Docker Compose, tạo thư mục `/opt/sk-workspace`, mở tường lửa UFW 80/443).
-- Cập nhật `.gitignore` để không commit các file nhạy cảm (`.env.production`, chứng chỉ ssl, dữ liệu postgres).
+### NHIỆM VỤ THỰC THI CHO CLAUDE CODE (`/next`):
+
+#### TASK 1: HOÀN THIỆN PHÂN HỆ /pricing
+- File service: `packages/modules/pricing/pricingService.ts` (lọc 4 nhóm hàng, 6 kênh bán gồm cả `web_order` và `pos`, tính biên lợi nhuận, hàm `generateZaloQuote` theo format chuẩn Sơn Khang).
+- API routes: `app/api/pricing/route.ts`, `app/api/pricing/[sku]/route.ts`, `app/api/pricing/quote/route.ts`.
+- Giao diện: `app/(shell)/pricing/page.tsx` (3D Claymorphism, 4 KPI cards, tabs 6 kênh bán hàng, modal cập nhật giá nhanh, modal xuất báo giá Zalo 1-chạm).
+
+#### TASK 2: NÂNG CẤP TRANG SAPO2MISA (`app/(shell)/finance/sapo2misa/page.tsx`)
+- Hiển thị đầy đủ cột **Mã Nghiệp Vụ (Alias Code)** và **Kênh Bán (Channel)** trên bảng dữ liệu đơn hàng.
+- Bổ sung 2 nút hành động trực tiếp:
+  - **"Đẩy AMIS Kế Toán (OpenAPI)"**: Gọi API hạch toán chứng từ sang MISA AMIS.
+  - **"Phát Hành HĐĐT meInvoice Bot"**: Phát hành HĐĐT và hiển thị mã CQT.
+- Tạo API endpoints tương ứng:
+  - `POST /api/sapo2misa/amis`: Gọi `syncOrderToAmis()`.
+  - `POST /api/sapo2misa/meinvoice`: Gọi `publishInvoiceFromOrder()`.
 
 ---
 
-### 7. QUY TẮC KIỂM THỬ:
-- Chạy `npx tsc --noEmit` và `npm run build` kiểm tra tính tương thích `output: 'standalone'`.
-- Cập nhật báo cáo nghiệm thu vào `.claude/reports/latest.md`.
+### TIÊU CHUẨN NGHIỆM THU (QUALITY GATE):
+1. `npx tsc --noEmit` đạt 0 lỗi.
+2. `npm run build` thành công 100%.
+3. Ghi báo cáo nghiệm thu vào `.claude/reports/latest.md`.

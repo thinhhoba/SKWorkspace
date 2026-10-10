@@ -20,7 +20,7 @@ import type { PwaTabId } from "./roleNav";
 const vnd = (n: number) => `${n.toLocaleString("vi-VN")} ₫`;
 
 const VIETQR_URL =
-  "https://img.vietqr.io/image/970422-0123456789-compact2.png?amount=42800000&addInfo=SP-0841%20Son%20Khang&accountName=CONG%20TY%20SON%20KHANG";
+  "https://img.vietqr.io/image/970407-22226060-compact2.png?amount=42800000&addInfo=SP-0841%20Son%20Khang&accountName=CONG%20TY%20TNHH%20THUC%20PHAM%20SON%20KHANG";
 
 type ApprovalState = "pending" | "approved" | "rejected";
 
