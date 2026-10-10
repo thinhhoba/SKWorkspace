@@ -8,11 +8,12 @@ export async function GET(req: NextRequest) {
     const status = (searchParams.get("status") || "ALL") as OrderStatus | "ALL";
     const warehouse = (searchParams.get("warehouse") || "ALL") as "Q7" | "Q12" | "ALL";
     const search = searchParams.get("search") || undefined;
+    const phone = searchParams.get("phone") || undefined;
     const forceRefresh = searchParams.get("refresh") === "1" || searchParams.get("sync") === "1";
 
     await ensureSalesSynced(forceRefresh);
 
-    const orders = getSalesOrders({ status, warehouse, search });
+    const orders = getSalesOrders({ status, warehouse, search, phone });
     const stats = getSalesStats();
 
     return NextResponse.json({ success: true, stats, count: orders.length, orders });
@@ -25,21 +26,28 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const headerChannel = req.headers.get("x-channel") || undefined;
     const {
       customer_name,
+      customer_phone,
       warehouse,
       items,
       payment_method,
       delivery_address,
       notes,
+      channel: bodyChannel,
     } = body as {
       customer_name?: string;
+      customer_phone?: string;
       warehouse?: string;
       items?: { sku: string; name: string; quantity: number; unit_price: number; dvt: string; category?: string }[];
       payment_method?: string;
       delivery_address?: string;
       notes?: string;
+      channel?: string;
     };
+
+    const channel = bodyChannel || headerChannel;
 
     if (!customer_name || !warehouse || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -81,6 +89,7 @@ export async function POST(req: NextRequest) {
       code: "",
       customer_id: "KH-B2B-NEW",
       customer_name: String(customer_name),
+      customer_phone: customer_phone ? String(customer_phone) : undefined,
       warehouse: warehouse as "Q7" | "Q12",
       total_amount: 0,
       paid_amount: 0,
@@ -91,9 +100,10 @@ export async function POST(req: NextRequest) {
       delivery_address: delivery_address ? String(delivery_address) : undefined,
       notes: notes ? String(notes) : undefined,
       items: mappedItems,
-    });
+      channel: channel || "web_order",
+    } as Parameters<typeof createSalesOrder>[0]);
 
-    return NextResponse.json({ success: true, order }, { status: 201 });
+    return NextResponse.json({ success: true, order, alias_code: order.code }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Lỗi tạo đơn hàng";
     return NextResponse.json({ success: false, error: message }, { status: 400 });

@@ -150,7 +150,7 @@ export default function FastWebOrderPage() {
     if (!phone) return;
     setLookupLoading(true);
     try {
-      const res = await fetch(`/api/sales?search=${encodeURIComponent(phone)}`);
+      const res = await fetch(`/api/sales?phone=${encodeURIComponent(phone)}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.orders)) {
         setLookupOrders(data.orders);
@@ -209,8 +209,9 @@ export default function FastWebOrderPage() {
 
       const res = await fetch("/api/sales", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-channel": "web_order" },
         body: JSON.stringify({
+          channel: "web_order",
           customer_name: customerName.trim(),
           customer_phone: customerPhone.trim(),
           delivery_address: customerAddress.trim() || "Nhận tại bến xe",
@@ -226,8 +227,10 @@ export default function FastWebOrderPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Không thể đặt hàng");
 
+      const aliasCode: string = data.alias_code || data.order?.code || data.order?.alias_code || "";
       setOrderResult({
-        orderCode: data.order.code,
+        orderCode: aliasCode,
+        alias_code: aliasCode,
         sapoId: data.order.sapo_order_id,
         customerName,
         customerPhone,

@@ -3,8 +3,17 @@ import { MISA_COLS } from "@/constants/misaColumns";
 import { MisaRowData } from "./misaTransformer";
 import { recordExportedOrders } from "./ledgerDb";
 
+// Verify 63 cột tại build-time / runtime
+if (MISA_COLS.length !== 63) {
+  console.warn(`[MISA EXCEL] Cảnh báo: MISA_COLS có ${MISA_COLS.length} cột, kỳ vọng 63 cột`);
+}
+
 export function generateMisaExcelBuffer(rows: MisaRowData[], fileName?: string): Uint8Array {
-  // Chuẩn bị dữ liệu mảng 2 chiều với dòng đầu là label của 63 cột
+  // Verify runtime: đảm bảo đủ 63 cột
+  if (MISA_COLS.length !== 63) {
+    throw new Error(`MISA_COLS phải có đúng 63 cột, hiện có ${MISA_COLS.length} cột`);
+  }
+
   const headers = MISA_COLS.map((col) => col.label);
   const data: (string | number)[][] = [headers];
 
@@ -17,17 +26,11 @@ export function generateMisaExcelBuffer(rows: MisaRowData[], fileName?: string):
     data.push(rowValues);
   }
 
-  // Tạo Worksheet và Workbook SheetJS
   const ws = XLSX.utils.aoa_to_sheet(data);
 
-  // Đặt độ rộng cột mặc định phù hợp
   const colWidths = MISA_COLS.map((col) => {
-    if (col.key === "ten_kh" || col.key === "dia_chi" || col.key === "ten_hang") {
-      return { wch: 30 };
-    }
-    if (col.key === "so_ct" || col.key === "mst" || col.key === "ma_hang") {
-      return { wch: 18 };
-    }
+    if (col.key === "ten_kh" || col.key === "dia_chi" || col.key === "ten_hang") return { wch: 30 };
+    if (col.key === "so_ct" || col.key === "mst" || col.key === "ma_hang") return { wch: 18 };
     return { wch: 15 };
   });
   ws["!cols"] = colWidths;
@@ -38,9 +41,7 @@ export function generateMisaExcelBuffer(rows: MisaRowData[], fileName?: string):
   // Ghi nhận vào Ledger DB để chống trùng lặp trong tương lai
   const uniqueOrders = new Map<string, MisaRowData>();
   for (const r of rows) {
-    if (!uniqueOrders.has(r.external_id)) {
-      uniqueOrders.set(r.external_id, r);
-    }
+    if (!uniqueOrders.has(r.external_id)) uniqueOrders.set(r.external_id, r);
   }
 
   const ledgerEntries = Array.from(uniqueOrders.values()).map((r) => ({
@@ -50,12 +51,11 @@ export function generateMisaExcelBuffer(rows: MisaRowData[], fileName?: string):
     total_amount: Number(r.tong_tt || 0),
     exported_at: new Date().toISOString(),
     file_name: fileName || `MISA_63COT_${Date.now()}.xlsx`,
-    exported_by: "Kế toán SK Workspace"
+    exported_by: "Kế toán SK Workspace",
   }));
 
-  recordExportedOrders(ledgerEntries);
+  if (ledgerEntries.length > 0) recordExportedOrders(ledgerEntries);
 
-  // Xuất ra buffer binary xlsx
   const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
   return buffer;
 }

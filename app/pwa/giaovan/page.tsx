@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Phone, MapPin, Copy, Check, X, Truck, Package, QrCode } from "lucide-react";
 import { buildOrderVietQr } from "@/packages/modules/payment/vietqr";
 import type { DeliveryTrip, DeliveryStop } from "@/packages/modules/delivery/types";
@@ -15,6 +15,8 @@ export default function PwaGiaoVanPage() {
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [telemetryAlerts, setTelemetryAlerts] = useState<string[]>([]);
+  const [telemetryTemp, setTelemetryTemp] = useState<number | null>(null);
 
   const fetchTrips = useCallback(async () => {
     setLoading(true);
@@ -27,6 +29,35 @@ export default function PwaGiaoVanPage() {
 
   useEffect(() => { fetchTrips(); }, [fetchTrips]);
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 2500); return () => clearTimeout(t); }, [toast]);
+
+  // Telemetry WARNING polling — overlay + vibrate + toast
+  const prevAlertsRef = useRef<string[]>([]);
+  useEffect(() => {
+    let alive = true;
+    const poll = async () => {
+      try {
+        const r = await fetch("/api/fleet/telemetry");
+        const d = await r.json();
+        if (!alive || !d.success) return;
+        const al: string[] = d.telemetry?.alerts || d.alerts || [];
+        setTelemetryAlerts(al);
+        if (d.telemetry?.temperature != null) setTelemetryTemp(d.telemetry.temperature);
+        const wasEmpty = prevAlertsRef.current.length === 0;
+        const nowHas = al.length > 0;
+        if (wasEmpty && nowHas) {
+          try { navigator.vibrate?.([200, 100, 200]); } catch {}
+          const msg = al.includes("WARNING_HIGH_TEMP") && al.includes("WARNING_DOOR_OPEN")
+            ? "CẢNH BÁO KÉP: Nhiệt độ vượt -15°C & cửa mở quá 10 phút!"
+            : al.includes("WARNING_HIGH_TEMP") ? `CẢNH BÁO: Nhiệt độ ${d.telemetry.temperature}°C vượt -15°C!` : "CẢNH BÁO: Cửa thùng mở quá 10 phút!";
+          setToast(msg);
+        }
+        prevAlertsRef.current = al;
+      } catch {}
+    };
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
 
   // Flatten stops of trips that are not hoan_tat — prioritize dang_giao then cho_xep_xe
   const activeTrips = trips.filter((t) => t.status === "dang_giao" || t.status === "cho_xep_xe" || t.status === "da_giao");
@@ -120,6 +151,20 @@ export default function PwaGiaoVanPage() {
             })}
           </div>
         ))
+      )}
+
+      {/* Cold-chain WARNING overlay */}
+      {telemetryAlerts.length > 0 && (
+        <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-red-600/95 text-white p-6 text-center animate-pulse" role="alert">
+          <div className="text-5xl mb-3">⚠️</div>
+          <div className="text-lg font-black">CẢNH BÁO CHUỖI LẠNH</div>
+          <div className="mt-2 text-sm font-bold">
+            {telemetryAlerts.includes("WARNING_HIGH_TEMP") && <div>Nhiệt độ {telemetryTemp}°C vượt -15°C</div>}
+            {telemetryAlerts.includes("WARNING_DOOR_OPEN") && <div>Cửa thùng MỞ quá 10 phút</div>}
+          </div>
+          <div className="mt-1 text-xs opacity-90">29C-882.60 · Kiểm tra thùng lạnh ngay!</div>
+          <div className="mt-4 text-[11px] opacity-75">Tự ẩn khi nhiệt độ & cửa trở lại an toàn</div>
+        </div>
       )}
 
       {/* Clock card */}

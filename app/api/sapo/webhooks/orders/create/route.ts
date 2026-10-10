@@ -3,7 +3,7 @@ import { verifySapoWebhook, processWebhookPayload } from "@/packages/integration
 
 /**
  * POST /api/sapo/webhooks/orders/create
- * Nhận payload đơn mới từ Sapo, xác thực HMAC, chuẩn hóa → CentralOrder
+ * Nhận payload đơn mới từ Sapo, xác thực HMAC trên rawBody, chuẩn hóa → CentralOrder
  */
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
@@ -22,8 +22,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Body không phải JSON hợp lệ" }, { status: 400 });
   }
 
-  const central = processWebhookPayload(topic, payload as Parameters<typeof processWebhookPayload>[1]);
+  const central = processWebhookPayload(topic, payload as Parameters<typeof processWebhookPayload>[1], rawBody);
   if (!central) {
+    const maybe = payload as Record<string, unknown>;
+    const hasOrderId = typeof (maybe?.order as Record<string, unknown>)?.id === "number" || typeof maybe?.id === "number";
+    if (hasOrderId) {
+      return NextResponse.json({ success: true, topic, duplicate: true, message: "Webhook đã xử lý trước đó" }, { status: 200 });
+    }
     return NextResponse.json({ success: false, error: "Payload không chứa SapoOrder hợp lệ" }, { status: 422 });
   }
 

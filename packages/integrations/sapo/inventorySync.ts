@@ -2,6 +2,7 @@
  * inventorySync.ts — Sapo Inventory 2-Way Sync
  * Kho Tổng Định Công & Kho Yên Bình ↔ Sapo API
  * Thủ kho phụ trách: TRẦN THỊ NGỌC THÚY
+ * Worker 2: syncInventoryToSapo / syncInventoryFromSapo + deduction on picking
  */
 
 const SAPO_VARIANTS_ENDPOINT = "https://sonkhang.mysapo.net/admin/variants.json";
@@ -46,6 +47,14 @@ export interface PushStockResult {
   mocked: boolean;
 }
 
+export interface SyncInventoryResult {
+  success: boolean;
+  synced: number;
+  failed: number;
+  mocked: number;
+  details: PushStockResult[];
+}
+
 // Kho vật lý Sơn Khang
 export const WAREHOUSES = {
   KHO_DINH_CONG: {
@@ -59,6 +68,59 @@ export const WAREHOUSES = {
     address: "Thôn 6 Yên Bình, Thạch Thất, Hà Nội",
   },
 } as const;
+
+/**
+ * Mapping giữa mã kho nội bộ (Q7/Q12) và mã kho Sapo/logic.
+ * Q7 = KHO_DINH_CONG, Q12 = KHO_YEN_BINH
+ */
+export const WAREHOUSE_SAPO_MAP = {
+  Q7: WAREHOUSES.KHO_DINH_CONG.code,
+  Q12: WAREHOUSES.KHO_YEN_BINH.code,
+} as const;
+
+export const SAPO_WAREHOUSE_MAP: Record<string, "Q7" | "Q12"> = {
+  [WAREHOUSES.KHO_DINH_CONG.code]: "Q7",
+  [WAREHOUSES.KHO_YEN_BINH.code]: "Q12",
+  "Q7": "Q7",
+  "Q12": "Q12",
+};
+
+export function resolveWarehouseCode(input: string): "Q7" | "Q12" | null {
+  if (!input) return null;
+  const key = input.trim().toUpperCase();
+  if (key === "Q7" || key === "KHO_DINH_CONG") return "Q7";
+  if (key === "Q12" || key === "KHO_YEN_BINH") return "Q12";
+  return SAPO_WAREHOUSE_MAP[key] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// In-memory physical inventory mirror (dùng khi chưa có DB Prisma)
+// ---------------------------------------------------------------------------
+const physicalInventoryStore = new Map<string, number>(); // key: `${warehouse}:${skuUpper}`
+
+function physicalKey(warehouse: string, sku: string): string {
+  return `${warehouse}:${sku.toUpperCase()}`;
+}
+
+export function setPhysicalQty(warehouse: string, sku: string, qty: number): void {
+  physicalInventoryStore.set(physicalKey(warehouse, sku), Math.max(0, Math.floor(qty)));
+}
+
+export function getPhysicalQty(warehouse: string, sku: string): number {
+  return physicalInventoryStore.get(physicalKey(warehouse, sku)) ?? 0;
+}
+
+export function deductPhysicalQty(warehouse: string, sku: string, qty: number): number {
+  const key = physicalKey(warehouse, sku);
+  const current = physicalInventoryStore.get(key) ?? 0;
+  const next = Math.max(0, current - Math.max(0, Math.floor(qty)));
+  physicalInventoryStore.set(key, next);
+  return next;
+}
+
+export function clearPhysicalStore(): void {
+  physicalInventoryStore.clear();
+}
 
 // ---------------------------------------------------------------------------
 // Mock variants — fallback khi offline / Sapo API không phản hồi
@@ -299,6 +361,112 @@ export async function pushStockToSapo(
       mocked: true,
     };
   }
+}
+
+// ---------------------------------------------------------------------------
+// 4. syncInventoryToSapo — đẩy tồn vật lý lên Sapo (2 chiều: local → Sapo)
+// ---------------------------------------------------------------------------
+
+/**
+ * Đồng bộ tồn kho từ hệ thống nội bộ lên Sapo.
+ * @param items - danh sách sku + tồn vật lý + kho (Q7/Q12)
+ */
+export async function syncInventoryToSapo(
+  items: Array<{ sku: string; physicalQty: number; warehouse?: string }>
+): Promise<SyncInventoryResult> {
+  const details: PushStockResult[] = [];
+  let failed = 0;
+  let mocked = 0;
+
+  for (const item of items) {
+    const result = await pushStockToSapo(item.sku, item.physicalQty);
+    details.push(result);
+    if (!result.success) failed++;
+    if (result.mocked) mocked++;
+    // Mirror vào physical store nếu có warehouse
+    if (item.warehouse) {
+      const wh = resolveWarehouseCode(item.warehouse) ?? item.warehouse;
+      setPhysicalQty(wh, item.sku, item.physicalQty);
+    }
+  }
+
+  return {
+    success: failed === 0,
+    synced: details.length - failed,
+    failed,
+    mocked,
+    details,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 5. syncInventoryFromSapo — kéo tồn Sapo về hệ thống nội bộ (Sapo → local)
+// ---------------------------------------------------------------------------
+
+export async function syncInventoryFromSapo(warehouse?: string): Promise<SyncInventoryResult> {
+  const variants = await fetchSapoVariants(250);
+  const wh = warehouse ? (resolveWarehouseCode(warehouse) ?? warehouse) : "Q7";
+  const details: PushStockResult[] = [];
+
+  for (const v of variants) {
+    setPhysicalQty(wh, v.sku, v.inventory_quantity);
+    details.push({
+      success: true,
+      sku: v.sku,
+      requestedQty: v.inventory_quantity,
+      message: `Đã kéo tồn Sapo về ${wh}: ${v.sku} → ${v.inventory_quantity}`,
+      mocked: false,
+    });
+  }
+
+  return {
+    success: true,
+    synced: details.length,
+    failed: 0,
+    mocked: 0,
+    details,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 6. Trừ tồn khi completeOrderPicking — gọi từ sales flow
+// ---------------------------------------------------------------------------
+
+export interface DeductPickingResult {
+  orderId: string;
+  warehouse: string;
+  deducted: Array<{ sku: string; qty: number; remaining: number }>;
+  sapoSync: SyncInventoryResult | null;
+}
+
+/**
+ * Trừ tồn vật lý và đồng bộ lên Sapo khi hoàn tất soạn hàng.
+ * Được gọi sau khi completeOrderPicking xác nhận 100% picked.
+ * Không throw — trả về kết quả để caller log.
+ */
+export async function deductStockOnPickingComplete(
+  orderId: string,
+  warehouse: string,
+  items: Array<{ sku: string; quantity: number }>
+): Promise<DeductPickingResult> {
+  const wh = resolveWarehouseCode(warehouse) ?? warehouse;
+  const deducted: Array<{ sku: string; qty: number; remaining: number }> = [];
+
+  for (const item of items) {
+    const remaining = deductPhysicalQty(wh, item.sku, item.quantity);
+    deducted.push({ sku: item.sku, qty: item.quantity, remaining });
+  }
+
+  // Đồng bộ các SKU vừa trừ lên Sapo (best-effort, không block)
+  let sapoSync: SyncInventoryResult | null = null;
+  try {
+    const syncItems = deducted.map((d) => ({ sku: d.sku, physicalQty: d.remaining, warehouse: wh }));
+    sapoSync = await syncInventoryToSapo(syncItems);
+  } catch (err) {
+    console.warn("[SapoInventory] deductStockOnPickingComplete sapoSync failed:", err);
+  }
+
+  return { orderId, warehouse: wh, deducted, sapoSync };
 }
 
 // ---------------------------------------------------------------------------

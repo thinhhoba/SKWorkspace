@@ -43,3 +43,18 @@ export function buildOrderVietQr(
     accountName: cfg?.accountName,
   });
 }
+
+// ── VietQR webhook helpers (client-safe — không chứa node:crypto) ──
+/** Regex tìm alias SK-* trong nội dung chuyển khoản (addInfo/description) */
+export const SK_ALIAS_REGEX = /SK-(?:SO|WEB|POS|QA|DL|BA|PT|PC)-\S*/gi;
+
+export function parseSkAliases(text: string): string[] {
+  if (!text) return [];
+  const matches = text.match(SK_ALIAS_REGEX);
+  return matches ? matches.map((m) => m.toUpperCase()) : [];
+}
+
+export function parseFirstSkAlias(text: string): string | null {
+  const aliases = parseSkAliases(text);
+  return aliases.length > 0 ? aliases[0] : null;
+}

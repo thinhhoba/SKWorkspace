@@ -5,6 +5,19 @@ let financeStore: FinanceTransaction[] = MOCK_FINANCE_TRANSACTIONS.map((t) => ({
 let ptSeq = 115;
 let pcSeq = 115;
 
+// Idempotency: transactionId đã xử lý (VietQR webhook)
+const processedVietQrIds = new Set<string>();
+const txIdToTxnMap = new Map<string, FinanceTransaction>();
+
+export function isVietQrTxProcessed(transactionId: string): boolean {
+  if (!transactionId) return false;
+  return processedVietQrIds.has(transactionId);
+}
+
+export function getTxnByVietQrId(transactionId: string): FinanceTransaction | undefined {
+  return txIdToTxnMap.get(transactionId);
+}
+
 export function getFinanceTransactions(filters?: { type?: string; category?: string; search?: string }): FinanceTransaction[] {
   let list = [...financeStore];
   if (filters?.type && filters.type !== "ALL") list = list.filter((t) => t.type === filters.type);
@@ -17,7 +30,6 @@ export function getFinanceTransactions(filters?: { type?: string; category?: str
 }
 
 export function getFinanceStats(): FinanceStats {
-  // Opening balances (mock)
   const OPENING_TECHCOMBANK = 125000000;
   const OPENING_CASH = 28000000;
   let thu = 0;
@@ -76,9 +88,19 @@ export function createFinanceTransaction(input: {
   return txn;
 }
 
-export function autoReconcileVietQr(orderCode: string, amount: number, senderText: string): FinanceTransaction {
+export function autoReconcileVietQr(
+  orderCode: string,
+  amount: number,
+  senderText: string,
+  transactionId?: string
+): FinanceTransaction {
+  // Idempotency: nếu transactionId đã xử lý thì trả về txn cũ
+  if (transactionId && processedVietQrIds.has(transactionId)) {
+    const existing = txIdToTxnMap.get(transactionId);
+    if (existing) return existing;
+  }
   const code = orderCode.replace(/^#/, "");
-  return createFinanceTransaction({
+  const txn = createFinanceTransaction({
     type: "THU",
     category: "BAN_HANG",
     amount,
@@ -86,11 +108,17 @@ export function autoReconcileVietQr(orderCode: string, amount: number, senderTex
     description: `Khớp tự động VietQR Techcombank: Đơn #${code} - ${senderText}`,
     performer: "Hệ thống VietQR Auto-Reconcile",
   });
+  if (transactionId) {
+    processedVietQrIds.add(transactionId);
+    txIdToTxnMap.set(transactionId, txn);
+  }
+  return txn;
 }
-
 
 export function __resetFinanceStore(): void {
   financeStore = MOCK_FINANCE_TRANSACTIONS.map((t) => ({ ...t }));
   ptSeq = 115;
   pcSeq = 115;
+  processedVietQrIds.clear();
+  txIdToTxnMap.clear();
 }

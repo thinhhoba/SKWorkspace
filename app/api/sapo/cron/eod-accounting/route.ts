@@ -1,34 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runEndOfDayAccounting } from "@/packages/integrations/sapo/sapoHubService";
 
-/**
- * POST /api/sapo/cron/eod-accounting
- * Hach toan cuoi ngay 18:00 — gom don Sapo thanh 63 cot MISA AMIS
- * Co the duoc goi boi cron (Vercel Cron / BullMQ) hoac nut "Doi soat MISA ngay"
- */
-export async function POST(req: NextRequest) {
-  try {
-    const authHeader = req.headers.get("authorization");
-    const cronSecret = process.env.CRON_SECRET;
-    // Neu CRON_SECRET duoc cau hinh thi yeu cau Bearer token (cho cron job), nhung van cho phep goi tu UI neu khong co secret
-    if (cronSecret && authHeader && authHeader !== `Bearer ${cronSecret}`) {
-      // van cho qua neu la goi tu UI (khong co cron header) — chi chan khi gui sai secret
-      const isCronCall = req.headers.get("x-cron-trigger") === "true";
-      if (isCronCall) {
-        return NextResponse.json({ success: false, error: "Unauthorized cron trigger" }, { status: 401 });
-      }
-    }
+export const dynamic = "force-dynamic";
 
+/**
+ * /api/sapo/cron/eod-accounting
+ * Hạch toán cuối ngày 18:00 — gom đơn Sapo thành 63 cột MISA AMIS
+ * - GET: Vercel Cron (header x-cron-secret hoặc Authorization Bearer)
+ * - POST: Manual trigger từ UI (cho phép nếu không có CRON_SECRET, hoặc check header nếu có)
+ */
+
+function isAuthorized(req: NextRequest): boolean {
+  const cronSecret = process.env.CRON_SECRET;
+  // Nếu chưa cấu hình CRON_SECRET thì từ chối (tránh mở EOD cho bất kỳ ai)
+  if (!cronSecret) return false;
+  const headerSecret = req.headers.get("x-cron-secret");
+  if (headerSecret && headerSecret === cronSecret) return true;
+  const auth = req.headers.get("authorization");
+  if (auth === `Bearer ${cronSecret}`) return true;
+  // Vercel Cron gửi x-vercel-cron: 1 — chỉ chấp nhận giá trị "1" hoặc "true"
+  const vercelCron = req.headers.get("x-vercel-cron");
+  if (vercelCron === "1" || vercelCron === "true") return true;
+  return false;
+}
+
+async function handleEod(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ success: false, error: "Unauthorized — thiếu CRON_SECRET hợp lệ" }, { status: 401 });
+  }
+  try {
     const result = await runEndOfDayAccounting();
     const status = result.success ? 200 : 422;
     return NextResponse.json({ ...result, executed_at: new Date().toISOString() }, { status });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Loi hach toan cuoi ngay";
+    const message = err instanceof Error ? err.message : "Lỗi hạch toán cuối ngày";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
-// Cho phep GET de cron don gian (vercel cron mac dinh GET)
+export async function POST(req: NextRequest) {
+  return handleEod(req);
+}
+
 export async function GET(req: NextRequest) {
-  return POST(req);
+  return handleEod(req);
 }

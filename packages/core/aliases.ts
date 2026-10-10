@@ -190,6 +190,27 @@ export function generateBusinessCode(scope: BusinessScope, sequence: number, dat
 }
 
 /**
+ * Sinh mã kế tiếp dựa trên sequence tự tăng (dùng cho in-memory store / mock)
+ * Alias cho generateBusinessCode để nhất quán với spec W5
+ */
+export function nextBusinessCode(scope: BusinessScope, sequence: number, date: Date = new Date()): string {
+  return generateBusinessCode(scope, sequence, date);
+}
+
+/**
+ * Map channel string (API) -> BusinessScope
+ */
+export function channelToScope(channel?: string): BusinessScope {
+  const c = (channel || "").toLowerCase().trim();
+  if (c === "web_order" || c === "web" || c === "sonkhang.vn") return "SALES_WEB";
+  if (c === "pos" || c === "retail") return "SALES_POS";
+  if (c === "quan_an" || c === "qa" || c === "xien_ban") return "SALES_QUAN_AN";
+  if (c === "dai_ly" || c === "dl" || c === "chanh_xe") return "SALES_DAI_LY";
+  if (c === "bep_an" || c === "ba" || c === "can_tin") return "SALES_BEP_AN";
+  return "SALES_GENERAL";
+}
+
+/**
  * Nhận diện loại nghiệp vụ từ chuỗi mã
  */
 export function identifyBusinessScope(code: string): BusinessScope | null {
