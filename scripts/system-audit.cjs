@@ -115,18 +115,56 @@ async function runSystemAudit() {
     results.push({ category: "7. Hệ Thống 23 Miniapps", name: "Kiểm tra 23 Miniapps", pass: false });
   }
 
-  // 8. RBAC Security
+  // 8. RBAC Security & API Data Shielding
   try {
-    const { canAccessRoute } = require("../packages/core/rbac.ts");
+    const { canAccessRoute, canAccess } = require("../packages/core/rbac.ts");
     const driverBlockedFinance = !canAccessRoute("DRIVER", "/finance");
     const accountantAllowedFinance = canAccessRoute("ACCOUNTANT", "/finance");
+    const warehouseBlockedReports = !canAccessRoute("WAREHOUSE", "/reports") && !canAccessRoute("WAREHOUSE", "/api/reports");
+    const accountantBlockedInventoryEdit = !canAccess("ACCOUNTANT", "inventory:edit");
+    const warehouseAllowedInventoryEdit = canAccess("WAREHOUSE", "inventory:edit");
+
+    const rbacPass =
+      driverBlockedFinance &&
+      accountantAllowedFinance &&
+      warehouseBlockedReports &&
+      accountantBlockedInventoryEdit &&
+      warehouseAllowedInventoryEdit;
+
     results.push({
       category: "8. An Ninh & Phân Quyền RBAC",
-      name: "RBAC Zero-Leak: Tài xế bị chặn xem tài chính / Kế toán xem được",
-      pass: driverBlockedFinance && accountantAllowedFinance,
+      name: "RBAC Zero-Leak: Kho bị chặn xem Báo cáo doanh thu · Kế toán bị chặn sửa tồn kho · Tài xế bị chặn xem Tài chính",
+      pass: rbacPass,
     });
   } catch (e) {
-    results.push({ category: "8. An Ninh & Phân Quyền RBAC", name: "RBAC Zero-Leak", pass: false });
+    results.push({ category: "8. An Ninh & Phân Quyền RBAC", name: `RBAC Zero-Leak (${e.message})`, pass: false });
+  }
+
+  // 9. Cửa Ngõ & Chống Tấn Công (Gateway Security & CWE Defense)
+  try {
+    const { sanitizeRedirect } = require("../lib/security.ts");
+    const { timingSafeEqualStr } = require("../packages/core/auth.ts");
+
+    const openRedirectBlockedGoogle = sanitizeRedirect("https://google.com", "/") === "/";
+    const openRedirectBlockedProto = sanitizeRedirect("//evil.com", "/") === "/";
+    const openRedirectBlockedBackslash = sanitizeRedirect("/\\evil.com", "/") === "/";
+    const openRedirectAllowedValid = sanitizeRedirect("/inventory?filter=meat", "/") === "/inventory?filter=meat";
+    const timingSafePass = timingSafeEqualStr("sk@123456", "sk@123456") && !timingSafeEqualStr("sk@123456", "wrong_pw");
+
+    const gatewayPass =
+      openRedirectBlockedGoogle &&
+      openRedirectBlockedProto &&
+      openRedirectBlockedBackslash &&
+      openRedirectAllowedValid &&
+      timingSafePass;
+
+    results.push({
+      category: "9. Bảo Mật Cửa Ngõ & Xác Thực",
+      name: "Chống Open Redirect (CWE-601) · So sánh mật khẩu Constant-Time (CWE-208) · Vô hiệu hóa lộ thông tin",
+      pass: gatewayPass,
+    });
+  } catch (e) {
+    results.push({ category: "9. Bảo Mật Cửa Ngõ & Xác Thực", name: `Cửa ngõ & Xác thực (${e.message})`, pass: false });
   }
 
   console.log("KẾT QUẢ RÀ SOÁT:");

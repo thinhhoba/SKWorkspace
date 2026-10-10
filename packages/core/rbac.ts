@@ -147,6 +147,9 @@ export const ROUTE_RULES: RouteRule[] = [
   { pattern: /^\/pwa\/giaovan(\/|$)/, resource: "pwa:giaovan", route: "/pwa/giaovan" },
   { pattern: /^\/pwa(\/|$)/, resource: "pwa:giaovan", route: "/pwa" },
   // API routes
+  { pattern: /^\/api\/reports(\/|$)/, resource: "reports", route: "/api/reports" },
+  { pattern: /^\/api\/pricing(\/|$)/, resource: "pricing:view", route: "/api/pricing" },
+  { pattern: /^\/api\/inventory(\/|$)/, resource: "inventory:view", route: "/api/inventory" },
   { pattern: /^\/api\/finance\/vietqr(\/|$)/, resource: "finance:vietqr", route: "/api/finance/vietqr" },
   { pattern: /^\/api\/finance(\/|$)/, resource: "finance", route: "/api/finance" },
   { pattern: /^\/api\/fleet\/telemetry(\/|$)/, resource: "fleet:telemetry:write", route: "/api/fleet/telemetry" },
@@ -162,7 +165,6 @@ export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
   /^\/pos(\/|$)/,
   /^\/api\/auth(\/|$)/,
   /^\/api\/health(\/|$)/,
-  /^\/api\/sales(\/|$)/, // public for POS/web order
   /^\/api\/sapo\/products(\/|$)/,
   /^\/favicon\.ico$/,
   /^\/manifest\.json$/,

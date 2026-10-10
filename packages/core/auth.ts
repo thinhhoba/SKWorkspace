@@ -100,8 +100,8 @@ async function hmacSha256(data: string, secret: string): Promise<string> {
 // ---------------------------------------------------------------------------
 // Session token: payload(sig payload = base64url JSON).sig(HMAC)
 // ---------------------------------------------------------------------------
-export async function createSessionToken(user: AuthUser): Promise<string> {
-  const raw = JSON.stringify({ ...user, exp: Date.now() + 7 * 24 * 3600 * 1000 });
+export async function createSessionToken(user: AuthUser, expiresInSeconds: number = 7 * 24 * 3600): Promise<string> {
+  const raw = JSON.stringify({ ...user, exp: Date.now() + expiresInSeconds * 1000 });
   const payload = b64urlEncode(raw);
   const sig = await hmacSha256(payload, AUTH_SECRET);
   return payload + "." + sig;
@@ -141,6 +141,21 @@ export const DEFAULT_USERS: Array<AuthUser & { password: string; full_name: stri
   { id: "u4", username: "taixe", password: "sk@123456", name: "Ngô Văn Tân", full_name: "Ngô Văn Tân", role: "DRIVER", warehouse: null },
 ];
 
+/**
+ * Constant-time string comparison to prevent Timing Attacks (CWE-208) on authentication.
+ */
+export function timingSafeEqualStr(a: string, b: string): boolean {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const maxLen = Math.max(a.length, b.length);
+  let diff = a.length === b.length ? 0 : 1;
+  for (let i = 0; i < maxLen; i++) {
+    const charA = i < a.length ? a.charCodeAt(i) : 0;
+    const charB = i < b.length ? b.charCodeAt(i) : 0;
+    diff |= charA ^ charB;
+  }
+  return diff === 0;
+}
+
 // ---------------------------------------------------------------------------
 // authenticate — thử Prisma trước, fallback DEFAULT_USERS
 // ---------------------------------------------------------------------------
@@ -153,7 +168,9 @@ export async function authenticate(username: string, password: string): Promise<
       const row = await (prisma as any).user.findUnique({ where: { username } });
       if (row) {
         const hash: string | null | undefined = row.password_hash ?? row.passwordHash ?? row.password;
-        const ok = hash === password || hash === "hashed_" + password;
+        const ok =
+          timingSafeEqualStr(hash || "", password) ||
+          timingSafeEqualStr(hash || "", "hashed_" + password);
         if (ok) {
           const u: AuthUser = {
             id: String(row.id),
@@ -171,7 +188,9 @@ export async function authenticate(username: string, password: string): Promise<
     }
   }
 
-  const found = DEFAULT_USERS.find((u) => u.username === username && u.password === password);
+  const found = DEFAULT_USERS.find(
+    (u) => u.username === username && timingSafeEqualStr(u.password, password)
+  );
   if (!found) return null;
   const { password: _pw, full_name: _fn, ...user } = found;
   void _pw;

@@ -14,7 +14,18 @@ export async function GET(req: NextRequest) {
     await ensureSalesSynced(forceRefresh);
 
     const orders = getSalesOrders({ status, warehouse, search, phone });
-    const stats = getSalesStats();
+    const rawStats = getSalesStats();
+
+    // RBAC Data Shielding: Thủ kho và tài xế không được xem tổng doanh thu công ty
+    const role = req.headers.get("x-user-role");
+    const isFinancialRole = role === "ADMIN" || role === "ACCOUNTANT";
+
+    const stats = isFinancialRole
+      ? rawStats
+      : {
+          ...rawStats,
+          revenueToday: 0, // Che giấu doanh thu đối với thủ kho và tài xế
+        };
 
     return NextResponse.json({ success: true, stats, count: orders.length, orders });
   } catch (err: unknown) {

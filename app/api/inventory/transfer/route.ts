@@ -11,6 +11,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const role = req.headers.get("x-user-role");
+    if (role && role !== "ADMIN" && role !== "WAREHOUSE") {
+      return NextResponse.json(
+        { success: false, error: "Chỉ thủ kho và ban giám đốc mới có quyền lập phiếu điều chuyển hoặc kiểm kê kho" },
+        { status: 403 }
+      );
+    }
     const body = await req.json();
     // Support audit: { audit: true, warehouse, items, note }
     if (body.audit) {

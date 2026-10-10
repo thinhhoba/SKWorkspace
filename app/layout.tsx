@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { IdleSessionWatcher } from "@/components/IdleSessionWatcher";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,7 +46,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-background text-foreground`}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <IdleSessionWatcher />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
