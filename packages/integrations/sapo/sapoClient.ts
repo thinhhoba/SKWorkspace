@@ -312,3 +312,84 @@ export function normalizeToCentralOrders(sapoOrders: SapoOrder[]): CentralOrder[
     };
   });
 }
+
+function getSapoAuthHeaders() {
+  const apiKey = process.env.SAPO_API_KEY || DEFAULT_SAPO_API_KEY;
+  const apiSecret = process.env.SAPO_API_SECRET || DEFAULT_SAPO_API_SECRET;
+  return {
+    Authorization: "Basic " + Buffer.from(`${apiKey}:${apiSecret}`).toString("base64"),
+    "Content-Type": "application/json",
+  };
+}
+
+/**
+ * Tạo mới đơn hàng trực tiếp trên Sapo API (Đồng bộ 2 chiều)
+ */
+export async function createSapoOrder(orderPayload: any): Promise<{ success: boolean; order?: SapoOrder; error?: string }> {
+  const baseUrl = process.env.SAPO_API_URL || DEFAULT_SAPO_ENDPOINT;
+  const url = `${baseUrl.replace(/\/admin\/.*$/, "")}/admin/orders.json`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getSapoAuthHeaders(),
+      body: JSON.stringify({ order: orderPayload }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.order) {
+      return { success: true, order: data.order };
+    }
+    return { success: false, error: data.error || data.errors || `Sapo HTTP ${res.status}` };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Lỗi kết nối Sapo API" };
+  }
+}
+
+/**
+ * Cập nhật đơn hàng trên Sapo API (Đồng bộ 2 chiều)
+ */
+export async function updateSapoOrder(orderId: number, orderPayload: any): Promise<{ success: boolean; order?: SapoOrder; error?: string }> {
+  const baseUrl = process.env.SAPO_API_URL || DEFAULT_SAPO_ENDPOINT;
+  const url = `${baseUrl.replace(/\/admin\/.*$/, "")}/admin/orders/${orderId}.json`;
+
+  try {
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: getSapoAuthHeaders(),
+      body: JSON.stringify({ order: orderPayload }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.order) {
+      return { success: true, order: data.order };
+    }
+    return { success: false, error: data.error || data.errors || `Sapo HTTP ${res.status}` };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Lỗi kết nối Sapo API" };
+  }
+}
+
+/**
+ * Hủy đơn hàng trên Sapo API (Đồng bộ 2 chiều)
+ */
+export async function cancelSapoOrder(orderId: number, reason: string = "customer"): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = process.env.SAPO_API_URL || DEFAULT_SAPO_ENDPOINT;
+  const url = `${baseUrl.replace(/\/admin\/.*$/, "")}/admin/orders/${orderId}/cancel.json`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getSapoAuthHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return { success: true };
+    }
+    return { success: false, error: data.error || data.errors || `Sapo HTTP ${res.status}` };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Lỗi kết nối Sapo API" };
+  }
+}

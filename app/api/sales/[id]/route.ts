@@ -57,7 +57,7 @@ export async function PATCH(
       }
     }
 
-    // 3) status -> updateOrderStatus (support { status } and { newStatus } and { action:"status", status })
+    // 3) status -> updateOrderStatus
     const rawStatus: string | undefined = body?.status ?? body?.newStatus;
     if (typeof rawStatus === "string") {
       const valid: OrderStatus[] = ["cho_duyet", "cho_soan", "dang_soan", "da_soan", "dang_giao", "hoan_tat", "huy"];
@@ -74,12 +74,35 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json(
-      { success: false, error: "Body phai chua status | itemId+picked | action:'complete'" },
-      { status: 400 },
-    );
+    // 4) Full field updates (customer_name, delivery_address, notes, items...)
+    const { updateSalesOrder } = await import("@/packages/modules/sales/salesService");
+    try {
+      const order = updateSalesOrder(id, body);
+      return NextResponse.json({ success: true, order });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Lỗi cập nhật đơn hàng";
+      return NextResponse.json({ success: false, error: msg }, { status: 400 });
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Lỗi cập nhật đơn hàng";
     return NextResponse.json({ success: false, error: message }, { status: 400 });
+  }
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const { deleteSalesOrder } = await import("@/packages/modules/sales/salesService");
+    const ok = deleteSalesOrder(id);
+    if (!ok) {
+      return NextResponse.json({ success: false, error: "Không tìm thấy đơn hàng để xóa" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, message: "Đã xóa đơn hàng và đồng bộ hủy Sapo thành công" });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Lỗi xóa đơn hàng";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

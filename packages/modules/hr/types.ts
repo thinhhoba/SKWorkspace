@@ -62,7 +62,7 @@ export const SHIFT_DEFS: ShiftDefinition[] = [
 /** Hồ sơ nhân sự */
 export interface HrEmployee {
   id: string;
-  code: string; // VD NV001
+  code?: string; // VD NV001
   name: string;
   title: string; // chức danh
   role: HrRole;
@@ -70,11 +70,13 @@ export interface HrEmployee {
   email: string;
   avatar: string; // initials
   status: HrStatus;
-  shift: WorkShift;
-  joinedAt: string; // ISO date
+  shift?: WorkShift;
+  joinedAt?: string; // ISO date
   apps: string[]; // cached from HR_ROLE_APPS[role]
   warehouse?: string; // cho thủ kho
   deliveryZones?: string[]; // cho tài xế
+  hourlyRate?: number;
+  contractType?: string;
 }
 
 /** Một dòng chấm công trong ngày */

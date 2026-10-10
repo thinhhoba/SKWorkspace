@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSalesOrders, getSalesStats, createSalesOrder } from "@/packages/modules/sales/salesService";
+import { getSalesOrders, getSalesStats, createSalesOrder, ensureSalesSynced } from "@/packages/modules/sales/salesService";
 import type { OrderStatus } from "@/packages/modules/sales/types";
 
 export async function GET(req: NextRequest) {
@@ -8,6 +8,9 @@ export async function GET(req: NextRequest) {
     const status = (searchParams.get("status") || "ALL") as OrderStatus | "ALL";
     const warehouse = (searchParams.get("warehouse") || "ALL") as "Q7" | "Q12" | "ALL";
     const search = searchParams.get("search") || undefined;
+    const forceRefresh = searchParams.get("refresh") === "1" || searchParams.get("sync") === "1";
+
+    await ensureSalesSynced(forceRefresh);
 
     const orders = getSalesOrders({ status, warehouse, search });
     const stats = getSalesStats();

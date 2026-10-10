@@ -51,6 +51,7 @@ const GROUP_ICON_GRADIENT: Record<AppGroup, string> = {
   "ban-hang": "from-emerald-400 to-teal-500",
   "van-hanh": "from-amber-400 to-orange-500",
   "tai-chinh": "from-sky-400 to-sky-600",
+  "tien-ich": "from-purple-400 to-pink-500",
   "he-thong": "from-slate-400 to-slate-600",
 };
 

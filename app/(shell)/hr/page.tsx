@@ -1,9 +1,9 @@
 "use client";
 import * as React from "react";
-import { Users, UserCheck, Truck, ShieldCheck, Clock3, Eye, Settings2 } from "lucide-react";
+import Link from "next/link";
+import { Users, UserCheck, Truck, ShieldCheck, Clock3, Eye, Settings2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { HrEmployee, HrSummary, AttendanceRecord } from "@/packages/modules/hr/types";
 import { HR_ROLE_LABEL, HR_ROLE_COLOR, SHIFT_DEFS } from "@/packages/modules/hr/types";
 
@@ -62,11 +62,18 @@ export default function HrPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-          <Users className="w-5 h-5 text-sky-500" /> Nhân sự &amp; Phân quyền
-        </h1>
-        <p className="text-xs text-muted-foreground">4 nhân sự chính thức · Ca làm 08:00–12:00 &amp; 13:30–17:30 (T2–T7) · RBAC theo vai trò</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+            <Users className="w-5 h-5 text-sky-500" /> Nhân sự &amp; Phân quyền
+          </h1>
+          <p className="text-xs text-muted-foreground">Nhân sự chính thức · Ca làm 08:00–12:00 &amp; 13:30–17:30 (T2–T7) · Tùy biến phân quyền RBAC</p>
+        </div>
+        <Link href="/hr/new">
+          <Button size="sm" className="rounded-full bg-sky-600 hover:bg-sky-700 text-white font-semibold">
+            <Plus className="w-4 h-4 mr-1.5" /> Thêm nhân sự mới
+          </Button>
+        </Link>
       </div>
 
       {/* 4 Clay KPI */}
@@ -167,9 +174,11 @@ export default function HrPage() {
                     </Badge>
                   </td>
                   <td className="px-3 py-3">
-                    <Button size="sm" variant="ghost" className="h-7 text-xs rounded-full" onClick={() => setSelected(e)}>
-                      <Eye className="w-3 h-3 mr-1" /> Chi tiết
-                    </Button>
+                    <Link href={`/hr/${e.id}`}>
+                      <Button size="sm" variant="outline" className="h-7 text-xs rounded-full">
+                        <Eye className="w-3 h-3 mr-1" /> Chi tiết &amp; Phân quyền
+                      </Button>
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -251,52 +260,6 @@ export default function HrPage() {
         </div>
       </div>
 
-      {/* Modal chi tiết hồ sơ & cấp quyền */}
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="text-sm flex items-center gap-2">
-              <Settings2 className="w-4 h-4 text-sky-500" /> Hồ sơ &amp; phân quyền — {selected?.name}
-            </DialogTitle>
-          </DialogHeader>
-          {selected && (
-            <div className="space-y-4 text-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center text-sm font-bold">{selected.avatar}</div>
-                <div>
-                  <div className="font-bold">{selected.name}</div>
-                  <div className="text-xs text-muted-foreground">{selected.title}</div>
-                  <Badge variant="outline" className={`mt-1 text-[11px] border ${HR_ROLE_COLOR[selected.role]}`}>{HR_ROLE_LABEL[selected.role]}</Badge>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div><span className="text-muted-foreground">Mã NV:</span> <span className="font-mono font-semibold">{selected.code}</span></div>
-                <div><span className="text-muted-foreground">Trạng thái:</span> {STATUS_LABEL[selected.status]}</div>
-                <div><span className="text-muted-foreground">SĐT:</span> <span className="font-mono">{selected.phone}</span></div>
-                <div><span className="text-muted-foreground">Email:</span> {selected.email}</div>
-                <div><span className="text-muted-foreground">Ca làm:</span> {selected.shift === "ca_ngay" ? "Cả ngày (08:00–12:00 & 13:30–17:30)" : selected.shift}</div>
-                <div><span className="text-muted-foreground">Ngày vào:</span> {new Date(selected.joinedAt).toLocaleDateString("vi-VN")}</div>
-                {selected.warehouse && <div className="col-span-2"><span className="text-muted-foreground">Kho phụ trách:</span> {selected.warehouse}</div>}
-                {selected.deliveryZones && <div className="col-span-2"><span className="text-muted-foreground">Khu vực giao:</span> {selected.deliveryZones.join(" · ")}</div>}
-              </div>
-              <div>
-                <div className="text-xs font-semibold mb-1.5">Ứng dụng được truy cập ({selected.apps.length})</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {selected.apps.map((a) => (
-                    <span key={a} className="text-xs px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-950 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 font-medium">
-                      {a}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-2">Phân quyền theo role · Chỉ admin được sửa RBAC (mô phỏng — chưa ghi DB).</p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" className="rounded-full" onClick={() => setSelected(null)}>Đóng</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

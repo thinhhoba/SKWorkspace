@@ -1,11 +1,83 @@
 // Fallback mock: sẽ thay bằng Prisma khi DATABASE_URL khả dụng — xem packages/core/db.ts
 import type { SalesOrder, SalesOrderItem, OrderStatus } from "./types";
 import { MOCK_SALES_ORDERS } from "./mockData";
+import { fetchSapoOrders, createSapoOrder, updateSapoOrder, cancelSapoOrder } from "@/packages/integrations/sapo/sapoClient";
+import type { SapoOrder } from "@/packages/integrations/sapo/types";
 
-let salesStore: SalesOrder[] = MOCK_SALES_ORDERS.map((o) => ({
-  ...o,
-  items: o.items.map((it) => ({ ...it })),
-}));
+let salesStore: SalesOrder[] = [];
+let isInitialSyncDone = false;
+
+// Chuyển đổi đơn hàng thực tế từ Sapo Open API sang SalesOrder
+export function convertSapoOrderToSalesOrder(so: SapoOrder): SalesOrder {
+  const code = String(so.order_number || so.code || so.name || so.id);
+  const sapoId = String(so.id);
+  const items: SalesOrderItem[] = (so.line_items || []).map((li, idx) => ({
+    id: `SO-SAPO-${code}-I${idx + 1}`,
+    sku: li.sku || `SKU-${li.id}`,
+    name: li.product_name || li.name || "Sản phẩm Sơn Khang",
+    category: "Thực phẩm đông lạnh",
+    dvt: li.unit || "Gói",
+    quantity: li.quantity || 1,
+    unit_price: li.price || 0,
+    total_price: (li.quantity || 1) * (li.price || 0),
+    lot_number: `L${code}`,
+    picked: false,
+  }));
+
+  const total_amount = so.total_price || items.reduce((s, it) => s + it.total_price, 0);
+  const isPaid = so.financial_status === "paid";
+
+  let status: OrderStatus = "cho_soan";
+  if (so.fulfillment_status === "fulfilled") status = "hoan_tat";
+  else if (so.status === "cancelled") status = "huy";
+
+  return {
+    id: `SO-SAPO-${code}`,
+    code: `#${code}`,
+    sapo_order_id: sapoId,
+    customer_id: String(so.customer?.id ? `KH-SAPO-${so.customer.id}` : "KH-LE-SAPO"),
+    customer_name: so.customer?.name || `${so.customer?.first_name || ""} ${so.customer?.last_name || ""}`.trim() || "Khách mua Sapo",
+    customer_phone: so.customer?.phone || so.customer?.default_address?.phone,
+    delivery_address: so.customer?.address || so.customer?.default_address?.address1 || "Hà Nội",
+    warehouse: "Q7",
+    items,
+    total_amount,
+    paid_amount: isPaid ? total_amount : 0,
+    payment_method: "COD_VIETQR",
+    status,
+    created_at: so.created_on || so.created_at ? new Date(so.created_on || so.created_at!).toLocaleDateString("vi-VN") : new Date().toLocaleDateString("vi-VN"),
+    notes: so.note || `Đơn hàng Sapo live #${code}`,
+  };
+}
+
+// Đồng bộ đơn hàng thực tế từ Sapo Open API
+export async function syncSalesOrdersFromSapo(): Promise<number> {
+  try {
+    const sapoOrders = await fetchSapoOrders({ limit: 50 });
+    if (Array.isArray(sapoOrders) && sapoOrders.length > 0) {
+      const liveOrders = sapoOrders.map(convertSapoOrderToSalesOrder);
+      const localOnly = salesStore.filter(o => !o.sapo_order_id && !liveOrders.some(lo => lo.id === o.id));
+      salesStore = [...liveOrders, ...localOnly];
+      return liveOrders.length;
+    }
+    return 0;
+  } catch (err) {
+    console.warn("Failed to sync sales orders from Sapo:", err);
+    return 0;
+  }
+}
+
+export async function ensureSalesSynced(force = false): Promise<void> {
+  if (force || !isInitialSyncDone || salesStore.length === 0) {
+    await syncSalesOrdersFromSapo();
+    isInitialSyncDone = true;
+  }
+}
+
+// Tự động khởi chạy sync đơn thực từ Sapo khi module load
+if (typeof process !== "undefined") {
+  ensureSalesSynced().catch(() => {});
+}
 
 export function getSalesOrders(filters?: {
   status?: OrderStatus | "ALL";
@@ -122,7 +194,64 @@ export function createSalesOrder(
   };
 
   salesStore.push(newOrder);
+
+  // Đẩy 2 chiều lên Sapo API nếu không phải đơn từ Sapo đổ về
+  if (!newOrder.sapo_order_id) {
+    createSapoOrder({
+      line_items: items.map(it => ({
+        sku: it.sku,
+        name: it.name,
+        quantity: it.quantity,
+        price: it.unit_price,
+      })),
+      customer: {
+        name: newOrder.customer_name,
+        phone: newOrder.customer_phone,
+        address: newOrder.delivery_address,
+      },
+      note: newOrder.notes || `Đơn hàng tạo từ SK Workspace [${code}]`,
+    }).then(res => {
+      if (res.success && res.order) {
+        newOrder.sapo_order_id = String(res.order.id);
+      }
+    }).catch(err => {
+      console.warn("Không thể đồng bộ đơn mới lên Sapo:", err);
+    });
+  }
+
   return newOrder;
+}
+
+export function updateSalesOrder(orderId: string, updates: Partial<SalesOrder>): SalesOrder {
+  const order = salesStore.find((o) => o.id === orderId);
+  if (!order) throw new Error(`Không tìm thấy đơn hàng ${orderId}`);
+
+  Object.assign(order, updates);
+  if (updates.items) {
+    order.total_amount = order.items.reduce((acc, it) => acc + (it.total_price || it.quantity * it.unit_price), 0);
+  }
+
+  // Nếu có liên kết Sapo, cập nhật 2 chiều
+  if (order.sapo_order_id) {
+    updateSapoOrder(Number(order.sapo_order_id), {
+      note: order.notes,
+    }).catch(() => {});
+  }
+
+  return order;
+}
+
+export function deleteSalesOrder(orderId: string): boolean {
+  const idx = salesStore.findIndex((o) => o.id === orderId);
+  if (idx < 0) return false;
+  const removed = salesStore[idx];
+  salesStore.splice(idx, 1);
+
+  // Hủy 2 chiều trên Sapo
+  if (removed.sapo_order_id) {
+    cancelSapoOrder(Number(removed.sapo_order_id), "customer").catch(() => {});
+  }
+  return true;
 }
 
 // For testing / reset — not required but useful

@@ -7,6 +7,12 @@ function isPublic(pathname: string): boolean {
     pathname.startsWith("/login/") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/health") ||
+    pathname === "/dathang" ||
+    pathname.startsWith("/dathang/") ||
+    pathname === "/pos" ||
+    pathname.startsWith("/pos/") ||
+    pathname.startsWith("/api/sales") ||
+    pathname.startsWith("/api/sapo/products") ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/assets/") ||
     pathname.startsWith("/_next/") ||
@@ -19,7 +25,26 @@ function isPublic(pathname: string): boolean {
 }
 
 export function middleware(req: NextRequest) {
+  const host = req.headers.get("host") || "";
   const { pathname } = req.nextUrl;
+
+  // Subdomain routing for pos.sonkhang.vn
+  if (host.startsWith("pos.sonkhang.vn")) {
+    if (pathname === "/") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/pos";
+      return NextResponse.rewrite(url);
+    }
+  }
+
+  // Subdomain routing for dathang.sonkhang.vn
+  if (host.startsWith("dathang.sonkhang.vn")) {
+    if (pathname === "/") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/dathang";
+      return NextResponse.rewrite(url);
+    }
+  }
 
   if (isPublic(pathname)) return NextResponse.next();
 
