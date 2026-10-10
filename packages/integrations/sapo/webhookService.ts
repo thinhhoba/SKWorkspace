@@ -112,11 +112,8 @@ export function notifyDieuKho(order: CentralOrder, topic: SapoWebhookTopic = "or
 }
 
 async function tryPersistChatMessage(event: DieuKhoEvent): Promise<void> {
-  // Attempt to write to chat via dynamic import — no-op if module missing or DB offline
   try {
-    const chatModPath = "../../modules/chat/chatService";
-    // dynamic path avoids TS module resolution error when file absent
-    const mod = await import(chatModPath).catch(() => null) as unknown as { createChatMessage?: (p: Record<string, unknown>) => Promise<unknown> } | null;
+    const mod = await import("../../modules/chat/chatService").catch(() => null) as unknown as { createChatMessage?: (p: Record<string, unknown>) => Promise<unknown> } | null;
     if (mod?.createChatMessage) {
       await mod.createChatMessage({
         channelId: "dieu-kho",

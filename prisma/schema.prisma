@@ -99,3 +99,39 @@ model MisaLedgerEntry {
   createdAt     DateTime @default(now())
   @@map("misa_ledger_entries")
 }
+
+model FeedPost {
+  id         String        @id @default(cuid())
+  author     String
+  authorRole String        @default("Giam doc")
+  avatar     String        @default("📌")
+  content    String        @db.Text
+  tag        String        @default("thong-bao")
+  pinned     Boolean       @default(false)
+  likes      Int           @default(0)
+  createdAt  DateTime      @default(now())
+  comments   FeedComment[]
+  likes_rel  FeedLike[]
+  @@map("feed_posts")
+}
+
+model FeedComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId  String?
+  author    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  @@map("feed_comments")
+}
+
+model FeedLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  @@unique([postId, userId])
+  @@map("feed_likes")
+}

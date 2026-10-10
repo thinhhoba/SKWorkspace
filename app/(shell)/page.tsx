@@ -1,51 +1,47 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { appRegistry, GROUP_LABEL, GROUP_ORDER, type AppGroup, type AppColor } from "@/packages/core/appRegistry";
-import { TrendingUp, Package, AlertTriangle, Wallet, Search, ArrowRight, ThermometerSnowflake } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  appRegistry,
+  GROUP_LABEL,
+  GROUP_ORDER,
+  type AppGroup,
+} from "@/packages/core/appRegistry";
+import {
+  TrendingUp,
+  Package,
+  AlertTriangle,
+  Wallet,
+  Search,
+  ArrowRight,
+  ThermometerSnowflake,
+  Truck,
+  CheckCircle2,
+  MessageSquare,
+  Heart,
+  Send,
+  Plus,
+  Pin,
+  ExternalLink,
+  RefreshCw,
+  Sparkles,
+  LayoutDashboard,
+  Rss,
+  Clock,
+  User,
+  QrCode,
+  Store,
+  FileCheck,
+  CheckSquare,
+} from "lucide-react";
 
 const fmt = (n: number) => n.toLocaleString("vi-VN");
+const fmtVnd = (n: number) => `${n.toLocaleString("vi-VN")} ₫`;
 
-// Clay KPI — tone maps to .clay-kpi[data-tone]
-const TONE_MAP: Record<"primary" | "warning" | "danger", "sky" | "warning" | "danger"> = {
-  primary: "sky",
-  warning: "warning",
-  danger: "danger",
-};
-
-function KpiCard({ label, value, sub, tone, icon: Icon, mono }: { label: string; value: string; sub: string; tone: "primary" | "warning" | "danger"; icon: React.ElementType; mono?: boolean }) {
-  const dataTone = TONE_MAP[tone];
-  const borderAccent = tone === "primary" ? "border-l-sky-500" : tone === "warning" ? "border-l-amber-500" : "border-l-rose-500";
-  // icon puffy circle with light border
-  const iconWrap =
-    tone === "primary"
-      ? "bg-gradient-to-br from-sky-400 to-sky-600 text-white border-white/80 shadow-[0_4px_12px_rgba(14,165,233,0.35),inset_0_1px_1px_rgba(255,255,255,0.9)]"
-      : tone === "warning"
-        ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white border-white/80 shadow-[0_4px_12px_rgba(217,119,6,0.35),inset_0_1px_1px_rgba(255,255,255,0.9)]"
-        : "bg-gradient-to-br from-rose-400 to-rose-600 text-white border-white/80 shadow-[0_4px_12px_rgba(225,29,72,0.35),inset_0_1px_1px_rgba(255,255,255,0.9)]";
-  return (
-    <div data-tone={dataTone} className={`clay-kpi clay-kpi--${dataTone} border-l-4 ${borderAccent} p-4 flex flex-col gap-1`}>
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-bold tracking-widest text-muted-foreground">{label}</p>
-        <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full border shrink-0 ${iconWrap}`}>
-          <Icon className="h-4 w-4" />
-        </span>
-      </div>
-      <p
-        className={`mt-1 text-xl font-extrabold tracking-tight ${mono ? "mono" : ""}`}
-        style={mono ? { textShadow: "0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(14,165,233,0.12)" } : undefined}
-      >
-        {value}
-      </p>
-      <p className="text-xs text-muted-foreground">{sub}</p>
-    </div>
-  );
-}
-
-// Icon gradient by group (Tài chính Sky, Bán hàng Emerald, Vận hành Amber...)
+// Icon gradient by group
 const GROUP_ICON_GRADIENT: Record<AppGroup, string> = {
   "tong-quan": "from-violet-400 to-indigo-500",
   "ban-hang": "from-emerald-400 to-teal-500",
@@ -55,180 +51,699 @@ const GROUP_ICON_GRADIENT: Record<AppGroup, string> = {
   "he-thong": "from-slate-400 to-slate-600",
 };
 
-export default function HomePage() {
+interface FeedItem {
+  id: string;
+  type: "post" | "activity";
+  author?: string;
+  authorRole?: string;
+  avatar?: string;
+  title?: string;
+  content: string;
+  tag?: string;
+  timestamp: string;
+  likes?: number;
+  liked?: boolean;
+  activityType?: "order" | "telemetry" | "vietqr" | "picking";
+  metadata?: Record<string, any>;
+}
+
+export default function SmartWorkdeskPage() {
+  const [activeTab, setActiveTab] = React.useState<"cockpit" | "apps">("cockpit");
+  
+  // Real-time metrics
+  const [salesRevenue, setSalesRevenue] = React.useState(128400000);
+  const [pendingPickOrders, setPendingPickOrders] = React.useState(14);
+  const [fleetTemp, setFleetTemp] = React.useState(-18.4);
+  const [fleetStatus, setFleetStatus] = React.useState("NORMAL");
+  const [techcombankBalance, setTechcombankBalance] = React.useState(125000000);
+  
+  // Stream & Newsfeed
+  const [streamItems, setStreamItems] = React.useState<FeedItem[]>([]);
+  const [loadingStream, setLoadingStream] = React.useState(true);
+  const [newPostContent, setNewPostContent] = React.useState("");
+  const [newPostTag, setNewPostTag] = React.useState("thong-bao");
+  const [posting, setPosting] = React.useState(false);
+
+  // Scratchpad
+  const [scratchpad, setScratchpad] = React.useState("");
+
+  // App Search
   const [q, setQ] = React.useState("");
   const [group, setGroup] = React.useState<AppGroup | "all">("all");
 
-  const filtered = React.useMemo(() => {
+  // Load Scratchpad
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem("sk_scratchpad");
+      if (saved) setScratchpad(saved);
+    } catch {}
+  }, []);
+
+  const handleScratchpadChange = (val: string) => {
+    setScratchpad(val);
+    try {
+      localStorage.setItem("sk_scratchpad", val);
+    } catch {}
+  };
+
+  // Fetch real-time dashboard data
+  const fetchDashboardData = React.useCallback(async () => {
+    try {
+      // 1. Sales
+      const salesRes = await fetch("/api/sales").then((r) => r.json()).catch(() => null);
+      if (salesRes?.success && salesRes.stats) {
+        setSalesRevenue(salesRes.stats.revenueToday || 128400000);
+        setPendingPickOrders(salesRes.stats.choSoan || 14);
+      }
+
+      // 2. Telemetry
+      const fleetRes = await fetch("/api/fleet/telemetry").then((r) => r.json()).catch(() => null);
+      if (fleetRes?.success && fleetRes.telemetry) {
+        setFleetTemp(fleetRes.telemetry.temperature);
+        setFleetStatus(fleetRes.telemetry.status || "NORMAL");
+      }
+
+      // 3. Finance
+      const finRes = await fetch("/api/finance").then((r) => r.json()).catch(() => null);
+      if (finRes?.success && finRes.stats) {
+        setTechcombankBalance(finRes.stats.balance_techcombank || 125000000);
+      }
+
+      // 4. Feed Stream
+      const feedRes = await fetch("/api/feed/stream").then((r) => r.json()).catch(() => null);
+      if (feedRes?.success && Array.isArray(feedRes.items)) {
+        setStreamItems(feedRes.items);
+      } else {
+        // Fallback default stream
+        setStreamItems([
+          {
+            id: "act-1",
+            type: "activity",
+            activityType: "order",
+            content: "Đơn hàng Web Order #SK-WEB-261010-0042 (24.500.000₫) vừa được tạo bởi Chành xe Nam Định.",
+            timestamp: "10 phút trước",
+          },
+          {
+            id: "post-1",
+            type: "post",
+            author: "Hồ Bá Thịnh",
+            authorRole: "Giám Đốc",
+            avatar: "SK",
+            content: "Nhắc nhở toàn bộ nhân sự: Hôm nay xe Isuzu 29C-882.60 ưu tiên giao đủ 35 thùng xúc xích và gà popcorn ra bến Giáp Bát trước 11:30. Đội kho Q7 đóng đá gel lạnh đầy đủ.",
+            tag: "khan-cap",
+            timestamp: "Hôm nay 08:30",
+            likes: 12,
+            liked: false,
+          },
+          {
+            id: "act-2",
+            type: "activity",
+            activityType: "vietqr",
+            content: "Gạch nợ tự động VietQR Techcombank: Khách hàng Quán Cô Ba Cầu Giấy chuyển 8.200.000₫ vào STK 22226060.",
+            timestamp: "25 phút trước",
+          },
+          {
+            id: "act-3",
+            type: "activity",
+            activityType: "telemetry",
+            content: "Xe Isuzu 29C-882.60 (Tài xế Ngô Văn Tân) đang di chuyển trên đường Giải Phóng. Nhiệt độ thùng: -18.4°C (Đạt chuẩn HACCP).",
+            timestamp: "32 phút trước",
+          },
+        ]);
+      }
+    } catch {
+      // Keep state
+    } finally {
+      setLoadingStream(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchDashboardData();
+    const timer = setInterval(fetchDashboardData, 10000);
+    return () => clearInterval(timer);
+  }, [fetchDashboardData]);
+
+  // Handle Post Creation
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostContent.trim()) return;
+    setPosting(true);
+    try {
+      const res = await fetch("/api/feed/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: newPostContent.trim(),
+          tag: newPostTag,
+          author: "Hồ Bá Thịnh",
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.post) {
+        setStreamItems((prev) => [
+          {
+            id: data.post.id,
+            type: "post",
+            author: data.post.author,
+            authorRole: data.post.authorRole,
+            avatar: "SK",
+            content: data.post.content,
+            tag: data.post.tag,
+            timestamp: "Vừa xong",
+            likes: 0,
+            liked: false,
+          },
+          ...prev,
+        ]);
+        setNewPostContent("");
+      }
+    } catch {
+      alert("Không thể đăng bài viết lúc này");
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const handleLike = (id: string) => {
+    setStreamItems((prev) =>
+      prev.map((it) => {
+        if (it.id !== id) return it;
+        const liked = !it.liked;
+        const likes = (it.likes || 0) + (liked ? 1 : -1);
+        return { ...it, liked, likes: Math.max(0, likes) };
+      })
+    );
+  };
+
+  const filteredApps = React.useMemo(() => {
     let list = appRegistry.filter((a) => a.id !== "dashboard");
     if (group !== "all") list = list.filter((a) => a.group === group);
     if (q.trim()) {
       const t = q.toLowerCase();
-      list = list.filter((a) => a.label.toLowerCase().includes(t) || a.desc.toLowerCase().includes(t) || a.id.includes(t));
+      list = list.filter(
+        (a) =>
+          a.label.toLowerCase().includes(t) ||
+          a.desc.toLowerCase().includes(t) ||
+          a.id.includes(t)
+      );
     }
     return list;
   }, [q, group]);
 
   return (
-    <div className="space-y-5 max-w-[1280px] mx-auto">
-      {/* KPI 4 — clay-kpi */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="DOANH THU HÔM NAY" value={`${fmt(128400000)} ₫`} sub="+12% vs hôm qua" tone="primary" icon={TrendingUp} mono />
-        <KpiCard label="ĐƠN CẦN SOẠN" value="14 đơn" sub="3 đơn gấp · sáng nay" tone="warning" icon={Package} />
-        <KpiCard label="CẢNH BÁO TỒN" value="5 SKU" sub="Heo xay thiếu · Rose" tone="danger" icon={AlertTriangle} />
-        <KpiCard label="CÔNG NỢ QUÁ HẠN" value={`${fmt(84200000)} ₫`} sub="An Thịnh Mart 12 ngày" tone="danger" icon={Wallet} mono />
-      </div>
-
-      {/* Bento 3 tiles — clay-card + glass border */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* A 2/3 — Đơn sáng nay */}
-        <div className="clay-card lg:col-span-2 overflow-hidden">
-          <div className="flex flex-row items-center justify-between p-6 pb-3">
-            <h3 className="font-semibold leading-none tracking-tight text-sm">Đơn hàng sáng nay</h3>
-            <Link href="/sales" className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
-              Xem tất cả <ArrowRight className="h-3 w-3" />
-            </Link>
+    <div className="space-y-6 max-w-[1440px] mx-auto pb-16">
+      {/* Top Banner Navigation: Cockpit vs Apps Grid */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <LayoutDashboard className="w-5 h-5 text-sky-600" /> BÀN LÀM VIỆC ĐIỀU HÀNH THÔNG MINH
+            </h1>
+            <Badge className="bg-sky-600 text-white font-mono text-[10px]">SK WORKSPACE 2.0</Badge>
           </div>
-          <div className="p-6 pt-0 space-y-2">
-            {[
-              { code: "SP-0841", kh: "An Thịnh Mart", amt: 42800000, status: "Chờ soạn", tone: "warning" as const },
-              { code: "SP-0840", kh: "Minh Khang Food", amt: 18300000, status: "Đang soạn", tone: "primary" as const },
-              { code: "SP-0839", kh: "Hòa Bình Market", amt: 67200000, status: "Chờ soạn", tone: "warning" as const },
-            ].map((o) => (
-              <div
-                key={o.code}
-                className="flex items-center justify-between rounded-full border border-white/80 bg-white/90 backdrop-blur-sm px-4 py-2.5 shadow-[0_2px_8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] dark:bg-white/[0.06] dark:border-white/10"
-              >
-                <div className="min-w-0">
-                  <div className="mono text-xs font-bold">{o.code}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {o.kh} · <span className="mono">{fmt(o.amt)} ₫</span>
-                  </div>
-                </div>
-                <Badge variant={o.tone === "warning" ? "warning" : "default"} className="shrink-0 mono text-[11px] rounded-full">
-                  {o.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
+          <p className="text-xs text-muted-foreground">
+            CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: 0111252725) • Kho Tổng 96 Ngõ 337 Định Công
+          </p>
         </div>
 
-        {/* B 1/3 — Tồn kho lạnh */}
-        <div className="clay-card overflow-hidden">
-          <div className="flex flex-col space-y-1.5 p-6 pb-3">
-            <h3 className="font-semibold leading-none tracking-tight text-sm inline-flex items-center gap-2">
-              <ThermometerSnowflake className="h-4 w-4 text-sky-600" /> Tồn kho lạnh
-            </h3>
-            <p className="text-xs text-muted-foreground">Q7 68% · Q12 42%</p>
-          </div>
-          <div className="p-6 pt-0 space-y-3">
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs"><span>Kho Q7</span><span className="mono font-bold">68%</span></div>
-              <div className="h-2.5 rounded-full bg-muted overflow-hidden p-0.5 shadow-inner">
-                <div className="h-full rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]" style={{ width: "68%", background: "linear-gradient(90deg,#0284C7,#38BDF8)" }} />
-              </div>
-              <div className="flex justify-between text-xs"><span>Kho Q12</span><span className="mono font-bold">42%</span></div>
-              <div className="h-2.5 rounded-full bg-muted overflow-hidden p-0.5 shadow-inner">
-                <div className="h-full rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]" style={{ width: "42%", background: "linear-gradient(90deg,#0284C7,#38BDF8)" }} />
-              </div>
-            </div>
-            <div className="space-y-2 pt-2 border-t border-white/60 dark:border-white/10">
-              {[
-                { name: "Heo xay 500g", qty: 12, label: "Thiếu", tone: "danger" },
-                { name: "Bò viên 1kg", qty: 60, label: "Sắp thiếu", tone: "warning" },
-                { name: "Chả lụa 500g", qty: 200, label: "Đủ", tone: "success" },
-              ].map((s) => (
-                <div key={s.name} className="flex items-center justify-between text-xs">
-                  <span className="truncate pr-2">{s.name}</span>
-                  <span className="flex items-center gap-2 shrink-0">
-                    <span className="mono font-bold">{s.qty}</span>
-                    <Badge variant={s.tone === "danger" ? "destructive" : s.tone === "warning" ? "warning" : "success"} className="text-[10px] px-1.5 py-0 rounded-full">
-                      {s.label}
-                    </Badge>
+        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-full border border-slate-200 dark:border-slate-700">
+          <button
+            onClick={() => setActiveTab("cockpit")}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === "cockpit"
+                ? "bg-white dark:bg-slate-900 text-sky-600 shadow-sm"
+                : "text-muted-foreground hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Rss className="w-3.5 h-3.5" /> Bàn Làm Việc Newsfeed &amp; Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab("apps")}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === "apps"
+                ? "bg-white dark:bg-slate-900 text-sky-600 shadow-sm"
+                : "text-muted-foreground hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Tất Cả Phân Hệ ({appRegistry.length - 1})
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "cockpit" ? (
+        /* ================= TRI-COLUMN HYBRID COCKPIT ================= */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* ----------------- CỘT TRÁI (3 COLS - 25%): DASHBOARD & QUICK LAUNCHER ----------------- */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* 4 KPI Cards */}
+            <div className="space-y-3">
+              {/* KPI 1: Doanh Thu */}
+              <div className="clay-card p-4 border-l-4 border-l-sky-500 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    DOANH THU HÔM NAY (SAPO)
+                  </span>
+                  <span className="h-7 w-7 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 flex items-center justify-center">
+                    <TrendingUp className="w-3.5 h-3.5" />
                   </span>
                 </div>
+                <div className="font-mono text-xl font-black text-sky-700 dark:text-sky-400">
+                  {fmtVnd(salesRevenue)}
+                </div>
+                <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Đồng bộ thời gian thực store
+                </div>
+              </div>
+
+              {/* KPI 2: Đơn Chờ Soạn FEFO */}
+              <div className="clay-card p-4 border-l-4 border-l-amber-500 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    ĐƠN CẦN SOẠN FEFO
+                  </span>
+                  <span className="h-7 w-7 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 flex items-center justify-center">
+                    <Package className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+                <div className="font-mono text-xl font-black text-amber-700 dark:text-amber-400">
+                  {pendingPickOrders} đơn hàng
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  Kho Q7: 9 đơn · Kho Q12: 5 đơn
+                </div>
+              </div>
+
+              {/* KPI 3: Xe Lạnh Isuzu 29C-882.60 */}
+              <div className="clay-card p-4 border-l-4 border-l-cyan-500 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    ISUZU 29C-882.60 (TÂN)
+                  </span>
+                  <span className="h-7 w-7 rounded-full bg-cyan-100 dark:bg-cyan-950 text-cyan-600 flex items-center justify-center">
+                    <ThermometerSnowflake className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+                <div className="font-mono text-xl font-black text-cyan-700 dark:text-cyan-400">
+                  {fleetTemp}°C
+                </div>
+                <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Đạt chuẩn HACCP (-18°C ~ -22°C)
+                </div>
+              </div>
+
+              {/* KPI 4: Techcombank 22226060 */}
+              <div className="clay-card p-4 border-l-4 border-l-emerald-500 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    TECHCOMBANK 22226060
+                  </span>
+                  <span className="h-7 w-7 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center">
+                    <Wallet className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+                <div className="font-mono text-xl font-black text-emerald-700 dark:text-emerald-400">
+                  {fmtVnd(techcombankBalance)}
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  Gạch nợ tự động VietQR
+                </div>
+              </div>
+            </div>
+
+            {/* Launchpad: Quick Actions */}
+            <div className="clay-card p-4 space-y-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                Phím Tắt Tác Vụ Nhanh (1-Click)
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                <Link
+                  href="/pos"
+                  className="p-2.5 rounded-xl border border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 hover:border-sky-400 flex flex-col items-center justify-center text-center gap-1 text-sky-700 dark:text-sky-300 transition-all"
+                >
+                  <Store className="w-4 h-4" />
+                  <span>Quầy POS</span>
+                </Link>
+                <Link
+                  href="/dathang"
+                  className="p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 hover:border-emerald-400 flex flex-col items-center justify-center text-center gap-1 text-emerald-700 dark:text-emerald-300 transition-all"
+                >
+                  <QrCode className="w-4 h-4" />
+                  <span>Web Order B2B</span>
+                </Link>
+                <Link
+                  href="/sales"
+                  className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 hover:border-amber-400 flex flex-col items-center justify-center text-center gap-1 text-amber-700 dark:text-amber-300 transition-all"
+                >
+                  <Package className="w-4 h-4" />
+                  <span>Soạn Kho FEFO</span>
+                </Link>
+                <Link
+                  href="/finance/sapo2misa"
+                  className="p-2.5 rounded-xl border border-purple-200 bg-purple-50/60 dark:bg-purple-950/20 hover:border-purple-400 flex flex-col items-center justify-center text-center gap-1 text-purple-700 dark:text-purple-300 transition-all"
+                >
+                  <FileCheck className="w-4 h-4" />
+                  <span>Sapo2MISA 63 Cột</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* My Tasks Checklist Mini */}
+            <div className="clay-card p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <CheckSquare className="w-3.5 h-3.5 text-sky-600" /> Nhiệm vụ trong ngày
+                </span>
+                <Link href="/tasks" className="text-[11px] text-sky-600 font-bold hover:underline">
+                  Xem tất cả
+                </Link>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <label className="flex items-start gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5 rounded" defaultChecked />
+                  <span className="line-through text-muted-foreground">Đối soát đơn chành xe bến Giáp Bát 09:30</span>
+                </label>
+                <label className="flex items-start gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5 rounded" />
+                  <span>Kiểm tra nhiệt độ xe Isuzu 29C-882.60 trước giờ trưa</span>
+                </label>
+                <label className="flex items-start gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5 rounded" />
+                  <span>Chạy Cron chốt sổ EOD MISA AMIS lúc 18:00</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* ----------------- CỘT GIỮA (6 COLS - 50%): OPERATIONAL NEWSFEED STREAM ----------------- */}
+          <div className="lg:col-span-6 space-y-4">
+            {/* Social Composer */}
+            <div className="clay-card p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center text-xs">
+                  SK
+                </div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Ban Giám Đốc Sơn Khang — Đăng thông báo &amp; chỉ đạo nội bộ
+                </span>
+              </div>
+
+              <form onSubmit={handleCreatePost} className="space-y-2.5">
+                <textarea
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  placeholder="Nhập thông báo, chỉ đạo kho vận, chính sách sỉ hoặc khen thưởng tài xế..."
+                  rows={3}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
+                />
+
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-[11px] text-muted-foreground font-semibold">Chủ đề:</span>
+                    <select
+                      value={newPostTag}
+                      onChange={(e) => setNewPostTag(e.target.value)}
+                      className="text-xs h-7 rounded-lg border bg-white dark:bg-slate-900 px-2 font-medium"
+                    >
+                      <option value="thong-bao">Thông báo chung</option>
+                      <option value="khan-cap">Chỉ đạo khẩn cấp</option>
+                      <option value="khen-thuong">Biểu dương &amp; Khen thưởng</option>
+                      <option value="kho-van">Kho vận &amp; Đội xe</option>
+                      <option value="kinh-doanh">Chính sách sỉ &amp; Báo giá</option>
+                    </select>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={posting || !newPostContent.trim()}
+                    size="sm"
+                    className="rounded-full bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 h-8 text-xs"
+                  >
+                    {posting ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
+                    Đăng tin
+                  </Button>
+                </div>
+              </form>
+            </div>
+
+            {/* Stream Timeline */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Rss className="w-3.5 h-3.5 text-sky-600" /> Dòng sự kiện vận hành &amp; Tin tức
+                </span>
+                <span className="text-[11px] text-muted-foreground">Tự động cập nhật 10s</span>
+              </div>
+
+              {loadingStream ? (
+                <div className="p-8 text-center text-xs text-muted-foreground">Đang tải dòng tin...</div>
+              ) : streamItems.length === 0 ? (
+                <div className="clay-card p-6 text-center text-xs text-muted-foreground">Chưa có sự kiện nào</div>
+              ) : (
+                streamItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`clay-card p-4 space-y-2.5 transition-all ${
+                      item.type === "activity"
+                        ? "border-l-4 " +
+                          (item.activityType === "order"
+                            ? "border-l-sky-500 bg-sky-50/20"
+                            : item.activityType === "vietqr"
+                            ? "border-l-emerald-500 bg-emerald-50/20"
+                            : item.activityType === "telemetry"
+                            ? "border-l-cyan-500 bg-cyan-50/20"
+                            : "border-l-amber-500 bg-amber-50/20")
+                        : "border-l-4 border-l-slate-400"
+                    }`}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {item.type === "activity" ? (
+                          <span className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs">
+                            {item.activityType === "order" ? "📦" : item.activityType === "vietqr" ? "💰" : item.activityType === "telemetry" ? "❄️" : "📋"}
+                          </span>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-sky-600 text-white text-[10px] font-bold flex items-center justify-center">
+                            {item.avatar || "SK"}
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            {item.type === "activity"
+                              ? item.activityType === "order"
+                                ? "Đơn Hàng Mới (Sapo / Web)"
+                                : item.activityType === "vietqr"
+                                ? "Biến Động Số Dư (VietQR)"
+                                : item.activityType === "telemetry"
+                                ? "Đội Xe Lạnh 29C-882.60"
+                                : "Kiểm Đếm Kho FEFO"
+                              : `${item.author} (${item.authorRole || "Nội bộ"})`}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {item.tag && (
+                          <Badge
+                            className={`text-[9px] uppercase ${
+                              item.tag === "khan-cap"
+                                ? "bg-red-600 text-white"
+                                : item.tag === "khen-thuong"
+                                ? "bg-emerald-600 text-white"
+                                : "bg-sky-600 text-white"
+                            }`}
+                          >
+                            {item.tag}
+                          </Badge>
+                        )}
+                        <span className="text-[10px] text-muted-foreground">{item.timestamp}</span>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                      {item.content}
+                    </p>
+
+                    {/* Social Action (Like / Reply) for Posts */}
+                    {item.type === "post" && (
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                        <button
+                          onClick={() => handleLike(item.id)}
+                          className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                            item.liked ? "text-rose-600" : "text-muted-foreground hover:text-slate-900"
+                          }`}
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${item.liked ? "fill-rose-600 text-rose-600" : ""}`} />
+                          <span>{item.likes || 0}</span>
+                        </button>
+                        <Link href="/feed" className="text-[11px] text-sky-600 font-semibold hover:underline">
+                          Mở cuộc thảo luận...
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* ----------------- CỘT PHẢI (3 COLS - 25%): LOGISTICS RADAR & CHAT MINI ----------------- */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Logistics Radar: Isuzu 29C-882.60 */}
+            <div className="clay-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-sky-600" /> Radar Isuzu 29C-882.60
+                </span>
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+
+              <div className="rounded-2xl border border-sky-200 bg-sky-50/50 dark:bg-sky-950/20 p-3 text-center space-y-1">
+                <div className="text-[11px] text-muted-foreground font-semibold">CẢM BIẾN THÙNG LẠNH</div>
+                <div className="font-mono text-2xl font-black text-sky-700 dark:text-sky-300">
+                  {fleetTemp}°C
+                </div>
+                <div className="text-[10px] text-emerald-600 font-semibold">
+                  Chuẩn HACCP (-18°C ~ -22°C)
+                </div>
+              </div>
+
+              <div className="space-y-1 text-xs text-muted-foreground text-[11px]">
+                <div>Tài xế: <strong>Ngô Văn Tân</strong> (0942 22 60 60)</div>
+                <div>Lộ trình: Kho Định Công ➔ Bến xe Giáp Bát</div>
+                <div>Lốc lạnh: <strong className="text-emerald-600">Đang chạy</strong> · Cửa: <strong>Đóng</strong></div>
+              </div>
+
+              <Link
+                href="/fleet"
+                className="block text-center text-xs font-bold text-sky-600 hover:underline pt-1"
+              >
+                Mở trung tâm điều vận đội xe ➔
+              </Link>
+            </div>
+
+            {/* Quick Scratchpad */}
+            <div className="clay-card p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Pin className="w-3.5 h-3.5 text-amber-500" /> Sổ Ghi Chú Nhanh
+                </span>
+                <span className="text-[10px] text-muted-foreground">Tự lưu local</span>
+              </div>
+              <textarea
+                value={scratchpad}
+                onChange={(e) => handleScratchpadChange(e.target.value)}
+                placeholder="Ghi chú tạm số điện thoại chành xe, mã đơn cần lưu ý..."
+                rows={4}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 focus:outline-none resize-none"
+              />
+            </div>
+
+            {/* On-Duty Personnel Today */}
+            <div className="clay-card p-4 space-y-2.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                Nhân Sự Trực Ca Hôm Nay
+              </span>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <strong className="block">Trần Thị Ngọc Thúy</strong>
+                    <span className="text-[10px] text-muted-foreground">Thủ kho trung tâm (Định Công)</span>
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-800 text-[9px]">Online</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <strong className="block">Ngô Văn Tân</strong>
+                    <span className="text-[10px] text-muted-foreground">Tài xế Isuzu 29C-882.60</span>
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-800 text-[9px]">Trên tuyến</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <strong className="block">Hoàng Thị Nho</strong>
+                    <span className="text-[10px] text-muted-foreground">Kế toán trưởng (AMIS/VietQR)</span>
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-800 text-[9px]">Online</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ================= ALL 19 APPS DIRECTORY ================= */
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm kiếm phân hệ, miniapp..."
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="pl-8 h-9 rounded-full border-slate-200 shadow-sm text-xs"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setGroup("all")}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                  group === "all"
+                    ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                    : "bg-white text-slate-700 border-slate-200 hover:shadow-md"
+                }`}
+              >
+                Tất cả
+              </button>
+              {GROUP_ORDER.map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGroup(g)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                    group === g
+                      ? "bg-sky-600 text-white border-sky-600 shadow-md"
+                      : "bg-white text-slate-700 border-slate-200 hover:shadow-md"
+                  }`}
+                >
+                  {GROUP_LABEL[g]}
+                </button>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* C full — Công nợ */}
-        <div className="clay-card lg:col-span-3 overflow-hidden">
-          <div className="flex flex-row items-center justify-between p-6 pb-3">
-            <h3 className="font-semibold leading-none tracking-tight text-sm">Công nợ quá hạn (B2B)</h3>
-            <Link href="/customers" className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
-              Đối soát <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="p-6 pt-0 grid gap-2 sm:grid-cols-2">
-            {[
-              { kh: "An Thịnh Mart", amt: 84200000, days: 12 },
-              { kh: "Minh Khang Food", amt: 42100000, days: 5 },
-            ].map((d) => (
-              <div key={d.kh} className="flex items-center justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-[0_2px_8px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] dark:bg-white/[0.06] dark:border-white/10">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">
-                    {d.kh} — <span className="mono">{fmt(d.amt)} ₫</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            {filteredApps.map((app) => {
+              const Icon = app.icon;
+              const grad = GROUP_ICON_GRADIENT[app.group];
+              return (
+                <Link
+                  key={app.id}
+                  href={app.href}
+                  className="clay-tile group p-3.5 min-h-[110px] flex flex-col justify-between rounded-2xl border border-slate-200 bg-white dark:bg-slate-900 hover:border-sky-400 hover:shadow-md transition-all"
+                >
+                  <div>
+                    <span
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${grad} text-white shadow-sm border border-white/60 shrink-0`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="mt-2 text-xs font-bold leading-tight">{app.label}</div>
+                    <div className="mt-1 text-[11px] text-muted-foreground line-clamp-2 leading-tight">
+                      {app.desc}
+                    </div>
                   </div>
-                  <div className="mono text-[11px] text-muted-foreground">Quá hạn {d.days} ngày</div>
-                </div>
-                <Badge variant="destructive" className="shrink-0 cursor-pointer rounded-full" onClick={() => alert(`Đã gửi nhắc nợ — ${d.kh} (mock)`)}>
-                  Nhắc
-                </Badge>
-              </div>
-            ))}
+                  {app.badge && (
+                    <Badge variant="outline" className="mt-2 w-fit text-[9px] px-1.5 py-0 mono rounded-full">
+                      {app.badge}
+                    </Badge>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
-      </div>
-
-      {/* 14 mini-app grid — clay-tile */}
-      <div>
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <div className="relative flex-1 min-w-[180px] max-w-sm">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Tìm mini-app..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-8 h-9 rounded-full border-white/80 bg-white/90 shadow-sm" />
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setGroup("all")}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${group === "all" ? "bg-foreground text-background border-foreground shadow-md" : "glossy-pill hover:shadow-md"}`}
-            >
-              Tất cả
-            </button>
-            {GROUP_ORDER.map((g) => (
-              <button
-                key={g}
-                onClick={() => setGroup(g)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${group === g ? "bg-primary text-primary-foreground border-primary shadow-[0_4px_12px_rgba(14,165,233,0.3)]" : "glossy-pill hover:shadow-md"}`}
-              >
-                {GROUP_LABEL[g]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-          {filtered.map((app) => {
-            const Icon = app.icon;
-            const grad = GROUP_ICON_GRADIENT[app.group];
-            return (
-              <Link
-                key={app.id}
-                href={app.href}
-                className="clay-tile group p-3 min-h-[104px] flex flex-col"
-              >
-                <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${grad} text-white shadow-[0_4px_10px_rgba(15,23,42,0.15),inset_0_1px_1px_rgba(255,255,255,0.7)] border border-white/60 shrink-0`}>
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="mt-2.5 text-xs font-semibold leading-tight line-clamp-2">{app.label}</span>
-                <span className="mt-1 text-[11px] text-muted-foreground line-clamp-2 leading-tight">{app.desc}</span>
-                {app.badge && <Badge variant="outline" className="mt-2 w-fit text-[10px] px-1.5 py-0 mono rounded-full bg-white/80">{app.badge}</Badge>}
-              </Link>
-            );
-          })}
-        </div>
-        {filtered.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Không tìm thấy mini-app phù hợp.</p>}
-      </div>
+      )}
     </div>
   );
 }
