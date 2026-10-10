@@ -8,7 +8,8 @@
  *   🔄 Load balancing (Round-Robin) & Auto-failover on 429/524/5xx
  *   🛡️ Quota protection: Tracks daily limits ($150/day reset at 07:00 VN)
  *   💾 In-memory cache for models & deterministic read queries
- *   📊 Real-time telemetry dashboard at http://localhost:3001/stats
+ *   📊 Real-time telemetry dashboard with Auto-Update at http://localhost:3001/stats
+ *   🔴 Server-Sent Events (SSE) live streaming + 1-second auto-sync
  * 
  * Usage:
  *   node scripts/gateway-proxy.mjs
@@ -63,6 +64,34 @@ const telemetry = {
   }
 };
 
+// Recent requests buffer (last 30 requests)
+const recentRequests = [];
+const MAX_RECENT_REQUESTS = 30;
+let requestIdCounter = 0;
+
+function addRecentRequest(reqInfo) {
+  recentRequests.unshift(reqInfo);
+  if (recentRequests.length > MAX_RECENT_REQUESTS) {
+    recentRequests.pop();
+  }
+}
+
+// Active Server-Sent Events (SSE) subscribers
+const sseClients = new Set();
+
+function broadcastStats() {
+  if (sseClients.size === 0) return;
+  const payload = JSON.stringify(getStatsPayload());
+  const eventData = `data: ${payload}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(eventData);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
 // In-memory cache for deterministic endpoints (e.g. /v1/models)
 const localCache = new Map();
 
@@ -102,6 +131,7 @@ if (fs.existsSync(CONFIG_PATH)) {
       try {
         loadConfig();
         log('OK', `🔄 [HOT RELOAD] Đã nạp lại proxy-config.json! Hiện có ${config.keys.length} API keys khả dụng.`);
+        broadcastStats();
       } catch (err) {
         log('WARN', `Lỗi khi reload config: ${err.message}`);
       }
@@ -133,6 +163,14 @@ function log(level, msg) {
 function maskKey(key) {
   if (!key || key.length < 10) return '***';
   return `${key.slice(0, 6)}...${key.slice(-4)}`;
+}
+
+function getKeyLimit(key, idx = 0) {
+  if (config.keyLimits && config.keyLimits[key]) {
+    return Number(config.keyLimits[key]) || 150;
+  }
+  const defaultLimits = [150, 150, 300];
+  return defaultLimits[idx] || 150;
 }
 
 /**
@@ -178,7 +216,7 @@ function injectPromptCaching(bodyObj) {
 
   // 1. Breakpoint on System Prompt (highest reuse across session)
   if (currentCount < MAX_BREAKPOINTS && bodyObj.system) {
-    if (typeof bodyObj.system === 'string' && bodyObj.system.trim().length > 0) {
+    if (typeof bodyObj.system === 'string') {
       bodyObj.system = [
         {
           type: 'text',
@@ -189,9 +227,9 @@ function injectPromptCaching(bodyObj) {
       currentCount++;
       injected++;
     } else if (Array.isArray(bodyObj.system) && bodyObj.system.length > 0) {
-      const lastBlock = bodyObj.system[bodyObj.system.length - 1];
-      if (lastBlock && typeof lastBlock === 'object' && !lastBlock.cache_control) {
-        lastBlock.cache_control = { type: 'ephemeral' };
+      const lastSystem = bodyObj.system[bodyObj.system.length - 1];
+      if (lastSystem && typeof lastSystem === 'object' && !lastSystem.cache_control) {
+        lastSystem.cache_control = { type: 'ephemeral' };
         currentCount++;
         injected++;
       }
@@ -243,47 +281,65 @@ function injectPromptCaching(bodyObj) {
 }
 
 /**
- * Inspects streaming / non-streaming response body chunks for token usage & cache metrics
+ * Parses response body or SSE stream for token usage and updates telemetry
  */
-function recordUsageTelemetry(text) {
-  if (!text) return;
+function parseUsageTelemetry(text) {
+  const result = { cacheRead: 0, cacheWrite: 0, inputTokens: 0, outputTokens: 0 };
+  if (!text) return result;
 
-  const readMatch = text.match(/"cache_read_input_tokens"\s*:\s*(\d+)/);
-  const writeMatch = text.match(/"cache_creation_input_tokens"\s*:\s*(\d+)/);
-  const inputMatch = text.match(/"input_tokens"\s*:\s*(\d+)/);
-  const outputMatch = text.match(/"output_tokens"\s*:\s*(\d+)/);
-
-  if (readMatch) {
-    const tokens = parseInt(readMatch[1], 10);
-    if (tokens > 0) {
-      telemetry.tokensCachedRead += tokens;
-      telemetry.cacheHits++;
-      log('CACHE', `⚡ [CACHE HIT] Đọc ${tokens.toLocaleString()} tokens từ cache (Tiết kiệm ~90% cost!)`);
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed.usage) {
+      result.cacheRead = parsed.usage.cache_read_input_tokens || 0;
+      result.cacheWrite = parsed.usage.cache_creation_input_tokens || 0;
+      result.inputTokens = parsed.usage.input_tokens || 0;
+      result.outputTokens = parsed.usage.output_tokens || 0;
+    }
+  } catch {
+    // Check for usage in SSE events
+    const matches = [...text.matchAll(/"usage"\s*:\s*\{([^}]+)\}/g)];
+    if (matches.length > 0) {
+      for (const m of matches) {
+        const block = m[1];
+        const rM = block.match(/"cache_read_input_tokens"\s*:\s*(\d+)/);
+        const wM = block.match(/"cache_creation_input_tokens"\s*:\s*(\d+)/);
+        const iM = block.match(/"input_tokens"\s*:\s*(\d+)/);
+        const oM = block.match(/"output_tokens"\s*:\s*(\d+)/);
+        if (rM) result.cacheRead = Math.max(result.cacheRead, parseInt(rM[1], 10));
+        if (wM) result.cacheWrite = Math.max(result.cacheWrite, parseInt(wM[1], 10));
+        if (iM) result.inputTokens = Math.max(result.inputTokens, parseInt(iM[1], 10));
+        if (oM) result.outputTokens = Math.max(result.outputTokens, parseInt(oM[1], 10));
+      }
+    } else {
+      const rM = text.match(/"cache_read_input_tokens"\s*:\s*(\d+)/);
+      const wM = text.match(/"cache_creation_input_tokens"\s*:\s*(\d+)/);
+      const iM = text.match(/"input_tokens"\s*:\s*(\d+)/);
+      const oM = text.match(/"output_tokens"\s*:\s*(\d+)/);
+      if (rM) result.cacheRead = parseInt(rM[1], 10);
+      if (wM) result.cacheWrite = parseInt(wM[1], 10);
+      if (iM) result.inputTokens = parseInt(iM[1], 10);
+      if (oM) result.outputTokens = parseInt(oM[1], 10);
     }
   }
 
-  if (writeMatch) {
-    const tokens = parseInt(writeMatch[1], 10);
-    if (tokens > 0) {
-      telemetry.tokensCachedWritten += tokens;
-      telemetry.cacheWrites++;
-      log('CACHE', `💾 [CACHE WRITE] Ghi ${tokens.toLocaleString()} tokens vào Anthropic cache.`);
-    }
+  if (result.cacheRead > 0) {
+    telemetry.tokensCachedRead += result.cacheRead;
+    telemetry.cacheHits++;
+    log('CACHE', `⚡ [CACHE HIT] Đọc ${result.cacheRead.toLocaleString()} tokens từ cache (Tiết kiệm ~90% cost!)`);
+  }
+  if (result.cacheWrite > 0) {
+    telemetry.tokensCachedWritten += result.cacheWrite;
+    telemetry.cacheWrites++;
+    log('CACHE', `💾 [CACHE WRITE] Ghi ${result.cacheWrite.toLocaleString()} tokens vào Anthropic cache.`);
+  }
+  if (result.inputTokens > 0) {
+    telemetry.tokensInputUncached += result.inputTokens;
+  }
+  if (result.outputTokens > 0) {
+    telemetry.tokensOutput += result.outputTokens;
   }
 
-  if (inputMatch) {
-    const tokens = parseInt(inputMatch[1], 10);
-    if (tokens > 0) {
-      telemetry.tokensInputUncached += tokens;
-    }
-  }
-
-  if (outputMatch) {
-    const tokens = parseInt(outputMatch[1], 10);
-    if (tokens > 0) {
-      telemetry.tokensOutput += tokens;
-    }
-  }
+  return result;
 }
 
 /**
@@ -358,124 +414,719 @@ function forwardUpstream(req, reqBody, key) {
 }
 
 /**
- * Renders HTML Stats & Telemetry Dashboard
+ * Assembles unified telemetry payload for JSON API & SSE stream
  */
-function renderHtmlDashboard() {
-  const uptimeMinutes = Math.round((Date.now() - telemetry.startedAt.getTime()) / 60000);
-  const totalCached = telemetry.tokensCachedRead.toLocaleString();
-  const totalWritten = telemetry.tokensCachedWritten.toLocaleString();
-  const totalUncached = telemetry.tokensInputUncached.toLocaleString();
-  const totalOutput = telemetry.tokensOutput.toLocaleString();
-  const usdSaved = telemetry.estimatedUsdSaved.toFixed(3);
-  const vndSaved = telemetry.estimatedVndSaved.toLocaleString();
-
+function getStatsPayload() {
+  const uptimeSeconds = Math.round((Date.now() - telemetry.startedAt.getTime()) / 1000);
+  const uptimeMinutes = Math.floor(uptimeSeconds / 60);
   const totalInputs = telemetry.tokensCachedRead + telemetry.tokensInputUncached;
   const hitRate = totalInputs > 0 ? ((telemetry.tokensCachedRead / totalInputs) * 100).toFixed(1) : '0.0';
 
-  const keysHtml = config.keys.map((k, idx) => {
+  const totalDailyQuotaUsd = config.keys.reduce((sum, k, idx) => sum + getKeyLimit(k, idx), 0);
+
+  const keys = config.keys.map((k, idx) => {
     const st = keyStates.get(k) || {};
-    const isQuotaExceeded = st.quotaExceededUntil && st.quotaExceededUntil > Date.now();
-    const statusBadge = isQuotaExceeded
-      ? `<span style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px;">Hết hạn mức ngày ($150) - Reset 07:00 VN</span>`
-      : `<span style="background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px;">Sẵn sàng hoạt động</span>`;
+    const limit = getKeyLimit(k, idx);
+    const isQuotaExceeded = !!(st.quotaExceededUntil && st.quotaExceededUntil > Date.now());
+    return {
+      index: idx + 1,
+      label: `Key #${idx + 1}`,
+      masked: maskKey(k),
+      dailyLimitUsd: limit,
+      status: isQuotaExceeded ? 'quota_exceeded' : 'active',
+      statusText: isQuotaExceeded ? `Hết hạn mức ($${limit}) - Reset 07:00 VN` : `Sẵn sàng hoạt động`,
+      requests: st.totalRequests || 0
+    };
+  });
 
-    return `
-      <tr style="border-bottom: 1px solid #334155;">
-        <td style="padding: 10px 14px; font-weight: 600;">Key #${idx + 1}</td>
-        <td style="padding: 10px 14px; font-family: monospace;">${maskKey(k)}</td>
-        <td style="padding: 10px 14px;">${statusBadge}</td>
-        <td style="padding: 10px 14px;">${st.totalRequests || 0}</td>
-      </tr>
-    `;
-  }).join('');
+  return {
+    serverTime: new Date().toISOString(),
+    uptimeSeconds,
+    uptimeText: uptimeMinutes >= 60
+      ? `${Math.floor(uptimeMinutes / 60)}h ${uptimeMinutes % 60}m`
+      : `${uptimeMinutes} phút`,
+    telemetry: {
+      totalRequests: telemetry.totalRequests,
+      successfulRequests: telemetry.successfulRequests,
+      failedRequests: telemetry.failedRequests,
+      cacheHits: telemetry.cacheHits,
+      cacheWrites: telemetry.cacheWrites,
+      tokensCachedRead: telemetry.tokensCachedRead,
+      tokensCachedWritten: telemetry.tokensCachedWritten,
+      tokensInputUncached: telemetry.tokensInputUncached,
+      tokensOutput: telemetry.tokensOutput,
+      hitRate: parseFloat(hitRate),
+      estimatedUsdSaved: parseFloat(telemetry.estimatedUsdSaved.toFixed(3)),
+      estimatedVndSaved: telemetry.estimatedVndSaved
+    },
+    config: {
+      port: config.port,
+      host: config.host,
+      target: config.target,
+      strategy: config.strategy,
+      enablePromptCaching: config.enablePromptCaching,
+      enableLocalResponseCache: config.enableLocalResponseCache,
+      activeKeysCount: config.keys.length,
+      totalDailyQuotaUsd
+    },
+    keys,
+    recentRequests: [...recentRequests]
+  };
+}
 
-  return `
-    <!DOCTYPE html>
-    <html lang="vi">
-    <head>
-      <meta charset="UTF-8">
-      <title>SK Workspace - AI Gateway Cache Telemetry</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 24px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        .stat-box { background: #0f172a; border-radius: 8px; padding: 16px; border: 1px solid #334155; text-align: center; }
-        .stat-value { font-size: 26px; font-weight: 700; color: #38bdf8; margin: 8px 0; }
-        .stat-label { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-        .green { color: #4ade80 !important; }
-        .purple { color: #c084fc !important; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { padding: 10px 14px; background: #0f172a; color: #94a3b8; font-weight: 600; font-size: 13px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-          ⚡ SK Workspace AI Gateway Proxy
-          <span style="font-size: 14px; background: #0284c7; color: white; padding: 4px 10px; border-radius: 20px;">Port ${config.port}</span>
+/**
+ * Renders HTML Stats & Telemetry Dashboard with Auto-Update Real-time
+ */
+function renderHtmlDashboard() {
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>SK Workspace - AI Gateway Realtime Telemetry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --card-hover: rgba(30, 41, 59, 0.9);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(56, 189, 248, 0.4);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #38bdf8;
+      --success: #34d399;
+      --purple: #c084fc;
+      --amber: #fbbf24;
+      --red: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.5;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(192, 132, 252, 0.05) 0%, transparent 40%);
+    }
+    .container { max-width: 1080px; margin: 0 auto; }
+    
+    /* Header & Controls */
+    .header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .port-badge {
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--success);
+    }
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 10px #22c55e;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    .btn {
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: #334155; border-color: #475569; }
+    .btn-primary { background: #0284c7; border-color: #0369a1; }
+    .btn-primary:hover { background: #0369a1; }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.3); }
+    .select-rate {
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Grid & Cards */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .card:hover { border-color: var(--border-focus); }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 10px 0 6px 0;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-sub { font-size: 13px; color: var(--text-dim); }
+    .green { color: var(--success); }
+    .purple { color: var(--purple); }
+    .cyan { color: var(--primary); }
+    .blue { color: #60a5fa; }
+
+    /* Breakdown Pill Bar */
+    .pill-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .pill-item { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+    .pill-item b { color: #f8fafc; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+    /* Tables */
+    .table-container { overflow-x: auto; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      padding: 12px 14px;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+      color: #e2e8f0;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .badge-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .badge-warn { background: rgba(251, 191, 36, 0.15); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.3); }
+    .badge-error { background: rgba(248, 113, 113, 0.15); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.3); }
+    .badge-hit { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-write { background: rgba(192, 132, 252, 0.15); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3); }
+
+    /* Flash highlight for incoming rows */
+    @keyframes flash {
+      0% { background: rgba(56, 189, 248, 0.25); }
+      100% { background: transparent; }
+    }
+    .flash-row { animation: flash 1.5s ease-out; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid var(--border-focus);
+      color: #f8fafc;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header-bar">
+      <div>
+        <h1 class="brand-title">
+          ⚡ SK Workspace AI Gateway
+          <span class="port-badge">Port ${config.port}</span>
         </h1>
-        <p style="color: #94a3b8; margin-top: -6px;">Hệ thống Caching Tự Động & Cân Bằng Tải Anthropic Claude</p>
-
-        <div class="grid" style="margin-bottom: 20px;">
-          <div class="stat-box">
-            <div class="stat-label">Tiết kiệm ước tính</div>
-            <div class="stat-value green">${vndSaved} đ</div>
-            <div style="font-size: 12px; color: #64748b;">$${usdSaved} USD</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Cache Hit Rate</div>
-            <div class="stat-value purple">${hitRate}%</div>
-            <div style="font-size: 12px; color: #64748b;">${telemetry.cacheHits} Hits / ${telemetry.cacheWrites} Writes</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Tokens đọc từ Cache</div>
-            <div class="stat-value">${totalCached}</div>
-            <div style="font-size: 12px; color: #64748b;">Giảm 90% giá mua</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Tổng số Requests</div>
-            <div class="stat-value">${telemetry.totalRequests}</div>
-            <div style="font-size: 12px; color: #64748b;">Uptime: ${uptimeMinutes} phút</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 style="margin-top: 0;">🔑 Trạng Thái Các API Keys (${config.keys.length} keys)</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Số thứ tự</th>
-                <th>API Key</th>
-                <th>Trạng thái</th>
-                <th>Số yêu cầu đã gửi</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${keysHtml}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <h3 style="margin-top: 0;">⚙️ Cấu Hình Hoạt Động</h3>
-          <ul style="color: #cbd5e1; line-height: 1.8; margin-bottom: 0;">
-            <li><b>Prompt Caching:</b> ${config.enablePromptCaching ? '✅ BẬT (Tự động inject cache_control vào System, Tools & Messages)' : '❌ TẮT'}</li>
-            <li><b>Local Models Cache:</b> ${config.enableLocalResponseCache ? '✅ BẬT (Cache /v1/models 1 giờ trong RAM)' : '❌ TẮT'}</li>
-            <li><b>Target Gateway:</b> <code>${config.target}</code></li>
-            <li><b>Chính sách cân bằng:</b> <code>${config.strategy}</code></li>
-            <li><b>Tự động đổi Key:</b> Khi lỗi 429 (Rate Limit) hoặc 524/504 (Cloudflare Timeout)</li>
-          </ul>
+        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+          Smart Prompt Caching (~90% Cost Reduction) & Cân Bằng Tải Anthropic Claude
         </div>
       </div>
-    </body>
-    </html>
-  `;
+      <div class="controls">
+        <div class="live-status" id="live-indicator">
+          <span class="live-dot" id="live-dot"></span>
+          <span id="live-text">REALTIME (1.0s)</span>
+        </div>
+        <select class="select-rate" id="select-rate" onchange="changeUpdateInterval(this.value)">
+          <option value="1000" selected>1s (Realtime)</option>
+          <option value="2000">2s</option>
+          <option value="5000">5s</option>
+        </select>
+        <button class="btn" id="btn-toggle" onclick="toggleAutoUpdate()">⏸️ Tạm dừng</button>
+        <button class="btn" onclick="fetchImmediate()">🔄 Làm mới</button>
+        <button class="btn btn-primary" onclick="testPing()">⚡ Test Ping</button>
+        <button class="btn btn-danger" onclick="resetTelemetry()">🗑️ Reset</button>
+      </div>
+    </header>
+
+    <!-- Top Metrics Grid -->
+    <section class="grid">
+      <div class="card">
+        <div class="stat-label">
+          <span>Tiết kiệm ước tính</span>
+          <span>💰</span>
+        </div>
+        <div class="stat-value green" id="stat-vnd">0 đ</div>
+        <div class="stat-sub" id="stat-usd">$0.000 USD quy đổi</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">
+          <span>Cache Hit Rate</span>
+          <span>🎯</span>
+        </div>
+        <div class="stat-value purple" id="stat-hitrate">0.0%</div>
+        <div class="stat-sub" id="stat-hits-writes">0 Hits / 0 Writes</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">
+          <span>Tokens đọc từ Cache</span>
+          <span>⚡</span>
+        </div>
+        <div class="stat-value cyan" id="stat-tokens-cached">0</div>
+        <div class="stat-sub">Giảm 90% giá input Anthropic</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">
+          <span>Tổng số Requests</span>
+          <span>📊</span>
+        </div>
+        <div class="stat-value blue" id="stat-total-reqs">0</div>
+        <div class="stat-sub" id="stat-uptime">Uptime: 0 phút</div>
+      </div>
+    </section>
+
+    <!-- Detailed Token Strip -->
+    <div class="pill-bar">
+      <div class="pill-item">💾 Ghi vào Cache: <b id="stat-tokens-written">0</b> tokens</div>
+      <div class="pill-item">📥 Input Chưa Cache: <b id="stat-tokens-uncached">0</b> tokens</div>
+      <div class="pill-item">📤 Output Generated: <b id="stat-tokens-output">0</b> tokens</div>
+      <div class="pill-item">🟢 Thành công: <b id="stat-success-reqs" style="color:#4ade80;">0</b></div>
+      <div class="pill-item">🔴 Thất bại: <b id="stat-failed-reqs" style="color:#f87171;">0</b></div>
+    </div>
+
+    <!-- Active API Keys Table -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h3 style="margin: 0 0 4px 0; font-size: 17px; display: flex; align-items: center; justify-content: space-between;">
+        <span>🔑 Trạng Thái Các API Keys (<span id="key-count">${config.keys.length}</span> keys active • Quota Pool: <span id="total-quota" style="color: #38bdf8; font-weight: 700;">$600</span>/ngày)</span>
+        <span style="font-size: 12px; font-weight: normal; color: var(--text-dim);">Hạn mức: Key 1 ($150) • Key 2 ($150) • Key 3 ($300) • Reset 07:00 VN</span>
+      </h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 100px;">Số thứ tự</th>
+              <th>API Key</th>
+              <th style="width: 130px;">Hạn mức ngày</th>
+              <th>Trạng thái</th>
+              <th style="width: 160px; text-align: right;">Số yêu cầu đã gửi</th>
+            </tr>
+          </thead>
+          <tbody id="keys-tbody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Live Request Activity Stream -->
+    <div class="card" style="margin-bottom: 24px;">
+      <h3 style="margin: 0 0 4px 0; font-size: 17px; display: flex; align-items: center; justify-content: space-between;">
+        <span>🔴 Nhật Ký Hoạt Động Realtime (30 yêu cầu gần nhất)</span>
+        <span style="font-size: 12px; font-weight: normal; color: var(--text-dim);">Tự động hiển thị ngay khi Claude Code gọi API</span>
+      </h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 90px;">Thời gian</th>
+              <th style="width: 170px;">Endpoint</th>
+              <th style="width: 130px;">Key</th>
+              <th style="width: 100px;">HTTP Status</th>
+              <th style="width: 100px;">Độ trễ</th>
+              <th>Token Metrics & Cache Status</th>
+            </tr>
+          </thead>
+          <tbody id="requests-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 30px;">
+                Đang chờ yêu cầu API đầu tiên... Hãy bắt đầu sử dụng Claude Code với Base URL: <code>http://localhost:${config.port}/v1</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Proxy Configuration Details -->
+    <div class="card">
+      <h3 style="margin: 0 0 12px 0; font-size: 16px;">⚙️ Cấu Hình Hoạt Động & Hướng Dẫn</h3>
+      <ul style="color: #cbd5e1; line-height: 1.8; margin: 0; padding-left: 20px; font-size: 13.5px;">
+        <li><b>Prompt Caching:</b> ${config.enablePromptCaching ? '✅ <span style="color:#4ade80;">BẬT</span> (Tự động inject cache_control vào System, Tools & Messages)' : '❌ TẮT'}</li>
+        <li><b>Local Models Cache:</b> ${config.enableLocalResponseCache ? '✅ <span style="color:#4ade80;">BẬT</span> (Cache /v1/models 1 giờ trong RAM)' : '❌ TẮT'}</li>
+        <li><b>Target Upstream:</b> <code>${config.target}</code></li>
+        <li><b>Cân bằng tải:</b> <code>${config.strategy}</code> (Tự động phân phối đồng đều giữa các API keys)</li>
+        <li><b>Auto-Failover:</b> Tự động đổi key tức thì khi gặp mã lỗi 429 (Rate Limit) hoặc 524/504 (Cloudflare Timeout)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- Realtime Client Script -->
+  <script>
+    let isAutoUpdating = true;
+    let pollIntervalMs = 1000;
+    let pollTimer = null;
+    let eventSource = null;
+    let lastRequestId = 0;
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    function formatNumber(num) {
+      return (num || 0).toLocaleString();
+    }
+
+    function renderDashboard(data) {
+      if (!data || !isAutoUpdating) return;
+
+      const t = data.telemetry || {};
+
+      // Main metrics
+      document.getElementById('stat-vnd').textContent = (t.estimatedVndSaved || 0).toLocaleString() + ' đ';
+      document.getElementById('stat-usd').textContent = '$' + (t.estimatedUsdSaved || 0).toFixed(3) + ' USD quy đổi';
+      document.getElementById('stat-hitrate').textContent = (t.hitRate || 0).toFixed(1) + '%';
+      document.getElementById('stat-hits-writes').textContent = (t.cacheHits || 0) + ' Hits / ' + (t.cacheWrites || 0) + ' Writes';
+      document.getElementById('stat-tokens-cached').textContent = formatNumber(t.tokensCachedRead);
+      document.getElementById('stat-total-reqs').textContent = formatNumber(t.totalRequests);
+      document.getElementById('stat-uptime').textContent = 'Uptime: ' + (data.uptimeText || '0 phút');
+
+      // Detailed token metrics
+      document.getElementById('stat-tokens-written').textContent = formatNumber(t.tokensCachedWritten);
+      document.getElementById('stat-tokens-uncached').textContent = formatNumber(t.tokensInputUncached);
+      document.getElementById('stat-tokens-output').textContent = formatNumber(t.tokensOutput);
+      document.getElementById('stat-success-reqs').textContent = formatNumber(t.successfulRequests);
+      document.getElementById('stat-failed-reqs').textContent = formatNumber(t.failedRequests);
+
+      // Render Keys
+      if (Array.isArray(data.keys)) {
+        document.getElementById('key-count').textContent = data.keys.length;
+        if (data.config?.totalDailyQuotaUsd) {
+          document.getElementById('total-quota').textContent = '$' + data.config.totalDailyQuotaUsd;
+        }
+        const keysHtml = data.keys.map(k => {
+          const isQuota = k.status === 'quota_exceeded';
+          const badgeClass = isQuota ? 'badge-error' : 'badge-success';
+          return \`
+            <tr>
+              <td style="font-weight: 600;">\${k.label}</td>
+              <td class="mono">\${k.masked}</td>
+              <td style="font-weight: 700; color: #38bdf8;">$\${k.dailyLimitUsd}/ngày</td>
+              <td><span class="badge \${badgeClass}">\${k.statusText}</span></td>
+              <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono';">\${k.requests || 0}</td>
+            </tr>
+          \`;
+        }).join('');
+        document.getElementById('keys-tbody').innerHTML = keysHtml;
+      }
+
+      // Render Recent Requests
+      const reqs = data.recentRequests || [];
+      const tbody = document.getElementById('requests-tbody');
+
+      if (reqs.length === 0) {
+        tbody.innerHTML = \`
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 30px;">
+              Đang chờ yêu cầu API... Base URL Claude Code: <code>http://localhost:\${data.config?.port || 3001}/v1</code>
+            </td>
+          </tr>
+        \`;
+      } else {
+        const rowsHtml = reqs.map(r => {
+          const isHit = r.cacheRead > 0;
+          const isWrite = r.cacheWrite > 0;
+          let cacheBadge = '<span style="color: var(--text-dim);">Chưa cache</span>';
+          if (isHit) {
+            cacheBadge = \`<span class="badge badge-hit">⚡ Cache Hit: +\${formatNumber(r.cacheRead)} tok</span>\`;
+          } else if (isWrite) {
+            cacheBadge = \`<span class="badge badge-write">💾 Cache Write: +\${formatNumber(r.cacheWrite)} tok</span>\`;
+          }
+
+          let statusBadge = '<span class="badge badge-success">200 OK</span>';
+          if (r.status === 429) statusBadge = '<span class="badge badge-warn">429 Limit</span>';
+          else if (r.status >= 500) statusBadge = \`<span class="badge badge-error">\${r.status} Error</span>\`;
+          else if (r.status !== 200) statusBadge = \`<span class="badge badge-warn">\${r.status}</span>\`;
+
+          const isNew = r.id > lastRequestId;
+          const flashClass = isNew ? 'class="flash-row"' : '';
+
+          return \`
+            <tr \${flashClass}>
+              <td class="mono" style="color: var(--text-muted);">\${r.timestamp}</td>
+              <td class="mono"><b>\${r.method}</b> <span style="color:#94a3b8;">\${r.path}</span></td>
+              <td style="font-weight: 500;">\${r.keyLabel}</td>
+              <td>\${statusBadge}</td>
+              <td class="mono" style="color: var(--text-muted);">\${r.durationMs}ms</td>
+              <td>\${cacheBadge}</td>
+            </tr>
+          \`;
+        }).join('');
+
+        tbody.innerHTML = rowsHtml;
+        if (reqs.length > 0) {
+          lastRequestId = Math.max(lastRequestId, ...reqs.map(r => r.id || 0));
+        }
+      }
+    }
+
+    async function fetchImmediate() {
+      try {
+        const res = await fetch('/stats.json', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          renderDashboard(data);
+          showToast('✅ Đã cập nhật số liệu mới nhất');
+        }
+      } catch (err) {
+        console.error('Fetch stats failed:', err);
+      }
+    }
+
+    function setupRealtimeStream() {
+      if (window.EventSource) {
+        try {
+          if (eventSource) eventSource.close();
+          eventSource = new EventSource('/stats/stream');
+
+          eventSource.onopen = () => {
+            const ind = document.getElementById('live-text');
+            const dot = document.getElementById('live-dot');
+            ind.textContent = 'REALTIME (SSE Live)';
+            dot.style.background = '#22c55e';
+          };
+
+          eventSource.onmessage = (e) => {
+            try {
+              const data = JSON.parse(e.data);
+              renderDashboard(data);
+            } catch (err) {
+              console.error('Failed to parse SSE payload:', err);
+            }
+          };
+
+          eventSource.onerror = () => {
+            // Revert gracefully to polling
+            document.getElementById('live-text').textContent = 'REALTIME (' + (pollIntervalMs / 1000).toFixed(1) + 's Sync)';
+          };
+        } catch {
+          startPolling();
+        }
+      } else {
+        startPolling();
+      }
+
+      // Always maintain backup polling to keep clocks and zero-request intervals smooth
+      startPolling();
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        if (!isAutoUpdating) return;
+        try {
+          const res = await fetch('/stats.json', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            renderDashboard(data);
+          }
+        } catch (err) {}
+      }, pollIntervalMs);
+    }
+
+    function toggleAutoUpdate() {
+      isAutoUpdating = !isAutoUpdating;
+      const btn = document.getElementById('btn-toggle');
+      const ind = document.getElementById('live-text');
+      const dot = document.getElementById('live-dot');
+
+      if (isAutoUpdating) {
+        btn.textContent = '⏸️ Tạm dừng';
+        ind.textContent = 'REALTIME (' + (pollIntervalMs / 1000).toFixed(1) + 's)';
+        dot.style.background = '#22c55e';
+        showToast('▶️ Đã bật tự động cập nhật Realtime');
+        fetchImmediate();
+      } else {
+        btn.textContent = '▶️ Tiếp tục';
+        ind.textContent = 'ĐÃ TẠM DỪNG';
+        dot.style.background = '#f59e0b';
+        showToast('⏸️ Đã tạm dừng cập nhật');
+      }
+    }
+
+    function changeUpdateInterval(val) {
+      pollIntervalMs = parseInt(val, 10) || 1000;
+      if (isAutoUpdating) {
+        startPolling();
+        document.getElementById('live-text').textContent = 'REALTIME (' + (pollIntervalMs / 1000).toFixed(1) + 's)';
+        showToast('⏱️ Chu kỳ cập nhật: ' + (pollIntervalMs / 1000) + 's');
+      }
+    }
+
+    async function testPing() {
+      showToast('⚡ Đang gửi ping thử nghiệm tới /v1/models...');
+      try {
+        const start = Date.now();
+        const res = await fetch('/v1/models');
+        const duration = Date.now() - start;
+        if (res.ok) {
+          showToast('✅ Ping thành công! Phản hồi trong ' + duration + 'ms');
+          setTimeout(fetchImmediate, 200);
+        } else {
+          showToast('⚠️ Ping trả về HTTP ' + res.status);
+        }
+      } catch (err) {
+        showToast('❌ Ping thất bại: ' + err.message);
+      }
+    }
+
+    async function resetTelemetry() {
+      if (!confirm('Bạn có chắc chắn muốn đặt lại tất cả số liệu thống kê về 0?')) return;
+      try {
+        const res = await fetch('/stats/reset', { method: 'POST' });
+        if (res.ok) {
+          showToast('🗑️ Đã đặt lại toàn bộ thống kê');
+          setTimeout(fetchImmediate, 100);
+        }
+      } catch (err) {
+        showToast('❌ Reset thất bại: ' + err.message);
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchImmediate();
+      setupRealtimeStream();
+    });
+  </script>
+</body>
+</html>`;
 }
 
 const server = http.createServer(async (req, res) => {
-  // Health & stats endpoints
+  // CORS Headers for browser requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  // Health check endpoint
   if (req.url === '/health' || req.url === '/_proxy_status') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
@@ -497,15 +1148,57 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.url === '/stats' || req.url === '/dashboard') {
+  // HTML Dashboard
+  if (req.url === '/stats' || req.url === '/dashboard' || req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(renderHtmlDashboard());
     return;
   }
 
+  // JSON Telemetry API
   if (req.url === '/stats.json') {
+    res.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
+    res.end(JSON.stringify(getStatsPayload(), null, 2));
+    return;
+  }
+
+  // Real-time Server-Sent Events (SSE) Stream
+  if (req.url === '/stats/stream') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive'
+    });
+    res.write(`data: ${JSON.stringify(getStatsPayload())}\n\n`);
+    sseClients.add(res);
+
+    req.on('close', () => {
+      sseClients.delete(res);
+    });
+    return;
+  }
+
+  // Reset telemetry
+  if (req.url === '/stats/reset' && req.method === 'POST') {
+    telemetry.totalRequests = 0;
+    telemetry.successfulRequests = 0;
+    telemetry.failedRequests = 0;
+    telemetry.cacheHits = 0;
+    telemetry.cacheWrites = 0;
+    telemetry.tokensCachedRead = 0;
+    telemetry.tokensCachedWritten = 0;
+    telemetry.tokensInputUncached = 0;
+    telemetry.tokensOutput = 0;
+    recentRequests.length = 0;
+    for (const st of keyStates.values()) {
+      st.totalRequests = 0;
+    }
+    broadcastStats();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(telemetry, null, 2));
+    res.end(JSON.stringify({ ok: true, message: 'Đã reset thống kê thành công' }));
     return;
   }
 
@@ -528,8 +1221,10 @@ const server = http.createServer(async (req, res) => {
   req.on('data', chunk => chunks.push(chunk));
   req.on('end', async () => {
     let reqBody = Buffer.concat(chunks);
+    const reqStartTime = Date.now();
     loadConfig();
     telemetry.totalRequests++;
+    broadcastStats(); // Update live request counter immediately
 
     const availableKeys = config.keys.filter(k => k && !k.includes('DÁN_KEY'));
     if (availableKeys.length === 0) {
@@ -587,7 +1282,6 @@ const server = http.createServer(async (req, res) => {
 
         // Check for Quota Limit (429 cost_limit_exceeded)
         if (status === 429) {
-          // Read response to inspect error type
           const errChunks = [];
           for await (const chunk of upstreamRes) {
             errChunks.push(chunk);
@@ -595,30 +1289,32 @@ const server = http.createServer(async (req, res) => {
           const errBody = Buffer.concat(errChunks).toString('utf-8');
 
           if (errBody.includes('cost_limit_exceeded')) {
-            // Mark this key as quota exceeded until 00:00:00 UTC (07:00 VN)
+            const currentIdx = availableKeys.indexOf(currentKey);
+            const keyLimit = getKeyLimit(currentKey, currentIdx);
             const tomorrowUtc = new Date();
             tomorrowUtc.setUTCDate(tomorrowUtc.getUTCDate() + 1);
             tomorrowUtc.setUTCHours(0, 0, 0, 0);
             keyState.quotaExceededUntil = tomorrowUtc.getTime();
 
-            log('WARN', `⚠️ [QUOTA] ${keyLabel} đã đạt hạn mức $150/ngày! Reset lúc 07:00 VN.`);
+            log('WARN', `⚠️ [QUOTA] ${keyLabel} đã đạt hạn mức $${keyLimit}/ngày! Reset lúc 07:00 VN.`);
 
             if (attempts < candidateKeys.length - 1) {
               log('INFO', `Tự động chuyển tiếp sang Key khả dụng khác...`);
               attempts++;
               continue;
             } else {
-              // All keys exhausted
-              log('ERR', `⛔ [HẾT QUOTA TẤT CẢ KEYS] Tất cả các keys đều đã đạt hạn mức ngày!`);
+              const totalPool = availableKeys.reduce((sum, k, idx) => sum + getKeyLimit(k, idx), 0);
+              log('ERR', `⛔ [HẾT QUOTA TẤT CẢ KEYS] Tất cả các keys đều đã đạt hạn mức ngày ($${totalPool}/ngày)!`);
               res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
               res.end(JSON.stringify({
                 error: {
                   code: 'all_keys_cost_limit_exceeded',
-                  message: 'Tất cả các API key đều đã đạt hạn mức ngày ($150/ngày). Hạn mức sẽ tự động mở lại lúc 07:00 sáng mai (giờ VN).',
+                  message: `Tất cả các API key đều đã đạt hạn mức ngày (Tổng $${totalPool}/ngày: Key 1 $150, Key 2 $150, Key 3 $300). Hạn mức sẽ tự động mở lại lúc 07:00 sáng mai (giờ VN).`,
                   reset_at: tomorrowUtc.toISOString(),
                   advice: 'Bạn có thể dán thêm API key mới vào scripts/proxy-config.json để tiếp tục ngay lập tức.'
                 }
               }));
+              broadcastStats();
               return;
             }
           }
@@ -654,15 +1350,32 @@ const server = http.createServer(async (req, res) => {
         let responseBuffer = '';
         upstreamRes.on('data', (chunk) => {
           res.write(chunk);
-          if (responseBuffer.length < 50000) {
+          if (responseBuffer.length < 100000) {
             responseBuffer += chunk.toString('utf-8');
-            recordUsageTelemetry(chunk.toString('utf-8'));
           }
         });
 
         upstreamRes.on('end', () => {
           res.end();
-          recordUsageTelemetry(responseBuffer);
+          const durationMs = Date.now() - reqStartTime;
+          const usage = parseUsageTelemetry(responseBuffer);
+
+          addRecentRequest({
+            id: ++requestIdCounter,
+            timestamp: new Date().toLocaleTimeString('vi-VN', { hour12: false }),
+            method: req.method,
+            path: req.url.split('?')[0],
+            keyLabel: `Key #${availableKeys.indexOf(currentKey) + 1}`,
+            keyMasked: maskKey(currentKey),
+            status,
+            durationMs,
+            cacheRead: usage.cacheRead,
+            cacheWrite: usage.cacheWrite,
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens
+          });
+
+          broadcastStats();
 
           // If this was GET /v1/models and status 200, cache it locally in memory
           if (config.enableLocalResponseCache && req.method === 'GET' && (req.url === '/v1/models' || req.url === '/models') && status === 200) {
@@ -687,6 +1400,23 @@ const server = http.createServer(async (req, res) => {
 
     // All keys failed
     telemetry.failedRequests++;
+    const durationMs = Date.now() - reqStartTime;
+    addRecentRequest({
+      id: ++requestIdCounter,
+      timestamp: new Date().toLocaleTimeString('vi-VN', { hour12: false }),
+      method: req.method,
+      path: req.url.split('?')[0],
+      keyLabel: 'All Keys Failed',
+      keyMasked: 'None',
+      status: 502,
+      durationMs,
+      cacheRead: 0,
+      cacheWrite: 0,
+      inputTokens: 0,
+      outputTokens: 0
+    });
+    broadcastStats();
+
     log('ERR', `Tất cả ${candidateKeys.length} keys đều thất bại! Lỗi cuối: ${lastError?.message}`);
     res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
@@ -696,15 +1426,23 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+// Periodic heartbeat broadcast every 2.5s to keep active SSE connections fresh
+setInterval(() => {
+  broadcastStats();
+}, 2500);
+
 server.listen(config.port, config.host, () => {
   console.log('\n=============================================================');
   console.log('   🚀 SK WORKSPACE AI GATEWAY PROXY (PROMPT CACHING READY)   ');
   console.log('=============================================================');
+  const totalDailyPool = config.keys.reduce((sum, k, idx) => sum + getKeyLimit(k, idx), 0);
   log('OK', `Proxy đang chạy tại:        http://${config.host}:${config.port}`);
   log('CACHE', `Prompt Caching:             ${config.enablePromptCaching ? 'BẬT (Tiết kiệm tới 90% chi phí input)' : 'TẮT'}`);
   log('INFO', `Upstream Target:            ${config.target}`);
   log('INFO', `Số Keys cấu hình:           ${config.keys.filter(k => k && !k.includes('DÁN_KEY')).length} keys`);
+  log('INFO', `Hạn mức Quota ngày:         Tổng $${totalDailyPool}/ngày (Key 1: $150, Key 2: $150, Key 3: $300)`);
   log('INFO', `Dashboard thống kê cache:   http://${config.host}:${config.port}/stats`);
+  log('INFO', `Cập nhật Realtime:          BẬT (SSE Stream + Auto-Sync 1.0s)`);
   log('INFO', `File cấu hình:              ${CONFIG_PATH}`);
   console.log('-------------------------------------------------------------');
   console.log('👉 Base URL cho Claude Code / IDE:');
