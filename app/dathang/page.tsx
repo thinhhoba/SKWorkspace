@@ -18,6 +18,9 @@ import {
   ArrowRight,
   Flame,
   Award,
+  X,
+  Package,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,6 +138,32 @@ export default function FastWebOrderPage() {
   const [submitting, setSubmitting] = React.useState(false);
   const [orderResult, setOrderResult] = React.useState<any | null>(null);
 
+  // Tra cứu đơn hàng thời gian thực qua SĐT
+  const [showLookupModal, setShowLookupModal] = React.useState(false);
+  const [lookupPhone, setLookupPhone] = React.useState("");
+  const [lookupLoading, setLookupLoading] = React.useState(false);
+  const [lookupOrders, setLookupOrders] = React.useState<any[] | null>(null);
+
+  const handleLookupOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const phone = lookupPhone.trim();
+    if (!phone) return;
+    setLookupLoading(true);
+    try {
+      const res = await fetch(`/api/sales?search=${encodeURIComponent(phone)}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.orders)) {
+        setLookupOrders(data.orders);
+      } else {
+        setLookupOrders([]);
+      }
+    } catch {
+      setLookupOrders([]);
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const getPrice = (p: B2BProduct) => {
     if (selectedTier === "tier1") return p.wholesaleTier1;
     if (selectedTier === "tier2") return p.wholesaleTier2;
@@ -219,13 +248,22 @@ export default function FastWebOrderPage() {
       {/* Top Brand Banner */}
       <div className="bg-gradient-to-r from-sky-600 via-cyan-600 to-indigo-700 text-white p-6 md:p-10 shadow-lg">
         <div className="max-w-4xl mx-auto space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-mono text-xs font-bold tracking-widest bg-white/20 backdrop-blur-md px-3 py-1 rounded-full uppercase">
               dathang.sonkhang.vn • Cung Cấp Sỉ Thực Phẩm Đông Lạnh
             </span>
-            <Link href="/" className="text-xs text-white/80 hover:text-white underline">
-              Cổng nội bộ Sơn Khang
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLookupModal(true)}
+                className="px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-xs font-bold flex items-center gap-1.5 transition-all text-white backdrop-blur-sm shadow-sm"
+              >
+                <Search className="w-3.5 h-3.5" /> Tra Cứu Đơn Hàng
+              </button>
+              <Link href="/" className="text-xs text-white/80 hover:text-white underline">
+                Cổng nội bộ Sơn Khang
+              </Link>
+            </div>
           </div>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
             Đặt Hàng Sỉ B2B Nhanh Cho Quán Ăn, Căn Tin &amp; Chành Xe
@@ -477,6 +515,103 @@ export default function FastWebOrderPage() {
             >
               Hoàn tất &amp; Đặt đơn khác
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Order Tracking Lookup Modal */}
+      {showLookupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-sky-600" />
+                <h2 className="text-base font-black text-slate-900 dark:text-slate-100">
+                  TRA CỨU TIẾN ĐỘ ĐƠN HÀNG
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowLookupModal(false);
+                  setLookupOrders(null);
+                }}
+                className="text-muted-foreground hover:text-slate-900 dark:hover:text-white p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleLookupOrder} className="flex gap-2">
+              <Input
+                value={lookupPhone}
+                onChange={(e) => setLookupPhone(e.target.value)}
+                placeholder="Nhập số điện thoại người nhận hàng..."
+                className="rounded-2xl"
+              />
+              <Button
+                type="submit"
+                disabled={lookupLoading || !lookupPhone.trim()}
+                className="rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold shrink-0"
+              >
+                {lookupLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Tra Cứu"}
+              </Button>
+            </form>
+
+            {lookupOrders && (
+              <div className="space-y-3 max-h-80 overflow-y-auto pt-2">
+                {lookupOrders.length === 0 ? (
+                  <p className="text-xs text-center text-muted-foreground py-4">
+                    Không tìm thấy đơn hàng nào với số điện thoại này.
+                  </p>
+                ) : (
+                  lookupOrders.map((ord: any) => (
+                    <div
+                      key={ord.id}
+                      className="rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-2 text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-sky-600">{ord.code}</span>
+                        <Badge
+                          className={
+                            ord.status === "hoan_tat"
+                              ? "bg-emerald-600 text-white"
+                              : ord.status === "dang_giao"
+                              ? "bg-amber-600 text-white"
+                              : "bg-sky-600 text-white"
+                          }
+                        >
+                          {ord.status === "cho_duyet"
+                            ? "Chờ duyệt"
+                            : ord.status === "cho_soan"
+                            ? "Chờ soạn kho"
+                            : ord.status === "dang_soan"
+                            ? "Đang soạn kho"
+                            : ord.status === "da_soan"
+                            ? "Đã đóng gói"
+                            : ord.status === "dang_giao"
+                            ? "Đang giao xe tải lạnh"
+                            : ord.status === "hoan_tat"
+                            ? "Hoàn tất / Đã giao"
+                            : ord.status}
+                        </Badge>
+                      </div>
+
+                      <div className="text-muted-foreground space-y-0.5 text-[11px]">
+                        <div>Khách: <strong>{ord.customer_name}</strong></div>
+                        <div>Địa chỉ: {ord.delivery_address}</div>
+                        <div>Tổng tiền: <strong className="font-mono text-emerald-600">{fmtVnd(ord.total_amount)}</strong></div>
+                      </div>
+
+                      {ord.notes && (
+                        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[10px] text-muted-foreground">
+                          {ord.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

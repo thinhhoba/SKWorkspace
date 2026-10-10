@@ -41,18 +41,37 @@ interface MaintenanceRecord {
 export default function FleetPage() {
   const [temperature, setTemperature] = React.useState(-18.4);
   const [isCompressorRunning, setIsCompressorRunning] = React.useState(true);
+  const [doorStatus, setDoorStatus] = React.useState<"CLOSED" | "OPEN">("CLOSED");
+  const [telemetryLocation, setTelemetryLocation] = React.useState("Kho Tổng Định Công — 96 Ngõ 337 Định Công");
+  const [alertStatus, setAlertStatus] = React.useState<string>("NORMAL");
 
-  // Simulated IoT real-time temperature fluctuations
-  React.useEffect(() => {
-    const timer = setInterval(() => {
+  // Fetch real-time IoT telemetry from /api/fleet/telemetry
+  const fetchTelemetry = React.useCallback(async () => {
+    try {
+      const res = await fetch("/api/fleet/telemetry");
+      const data = await res.json();
+      if (data.success && data.telemetry) {
+        setTemperature(data.telemetry.temperature);
+        setIsCompressorRunning(data.telemetry.compressorStatus === "RUNNING");
+        setDoorStatus(data.telemetry.doorStatus);
+        setTelemetryLocation(data.telemetry.location);
+        setAlertStatus(data.telemetry.status);
+      }
+    } catch {
+      // fallback to simulated
       setTemperature((prev) => {
         const delta = (Math.random() - 0.5) * 0.4;
         const val = +(prev + delta).toFixed(1);
         return val < -22 ? -22 : val > -16 ? -16 : val;
       });
-    }, 4000);
-    return () => clearInterval(timer);
+    }
   }, []);
+
+  React.useEffect(() => {
+    fetchTelemetry();
+    const timer = setInterval(fetchTelemetry, 5000);
+    return () => clearInterval(timer);
+  }, [fetchTelemetry]);
 
   const trips: DeliveryTrip[] = [
     {

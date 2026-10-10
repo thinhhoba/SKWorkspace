@@ -24,13 +24,13 @@ const DEFAULT_AMIS_CONFIG: MisaAmisConfig = {
  * Chuyển đổi CentralOrder thành Chứng từ bán hàng MISA AMIS Kế Toán
  */
 export function convertCentralOrderToAmisVoucher(order: CentralOrder): MisaAmisSaleVoucher {
-  const refNo = generateBusinessCode("MISA_AMIS_VOUCHER", parseInt(order.order_code.replace(/\D/g, "")) || 1);
+  const refNo = generateBusinessCode("MISA_AMIS_VOUCHER", parseInt(String(order.order_code || "").replace(/\D/g, "")) || 1);
   const now = new Date().toISOString().split("T")[0];
 
   let totalVat = 0;
-  const items = order.items.map((item) => {
-    const vatRate = parseInt(item.tax_rate.replace("%", "")) || 8;
-    const amount = item.price * item.quantity;
+  const items = (order.items || []).map((item) => {
+    const vatRate = parseInt(String(item.tax_rate || "").replace("%", "")) || 8;
+    const amount = (item.price || 0) * (item.quantity || 0);
     const vatAmount = Math.round((amount * vatRate) / 100);
     totalVat += vatAmount;
 

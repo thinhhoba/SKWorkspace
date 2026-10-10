@@ -4,6 +4,7 @@ export type TxnCategory =
   | "thu_tien_hang_quan_an"
   | "thu_dai_ly_chanh_xe"
   | "thu_ho_cod"
+  | "BAN_HANG"
   | "chi_tien_hang_ncc"
   | "chi_cuoc_chanh_xe"
   | "chi_van_hanh_kho";
@@ -22,6 +23,7 @@ export const TXN_CATEGORY_LABEL: Record<TxnCategory, string> = {
   thu_tien_hang_quan_an: "Thu tiền hàng quán ăn",
   thu_dai_ly_chanh_xe: "Thu đại lý chuyển khoản chành xe",
   thu_ho_cod: "Thu hộ COD (Ngô Văn Tân)",
+  BAN_HANG: "Thu bán hàng (VietQR)",
   chi_tien_hang_ncc: "Chi tiền hàng NCC",
   chi_cuoc_chanh_xe: "Cước gửi xe bến",
   chi_van_hanh_kho: "Chi phí vận hành kho",

@@ -76,6 +76,19 @@ export function createFinanceTransaction(input: {
   return txn;
 }
 
+export function autoReconcileVietQr(orderCode: string, amount: number, senderText: string): FinanceTransaction {
+  const code = orderCode.replace(/^#/, "");
+  return createFinanceTransaction({
+    type: "THU",
+    category: "BAN_HANG",
+    amount,
+    account: "TECHCOMBANK_22226060",
+    description: `Khớp tự động VietQR Techcombank: Đơn #${code} - ${senderText}`,
+    performer: "Hệ thống VietQR Auto-Reconcile",
+  });
+}
+
+
 export function __resetFinanceStore(): void {
   financeStore = MOCK_FINANCE_TRANSACTIONS.map((t) => ({ ...t }));
   ptSeq = 115;

@@ -50,6 +50,17 @@ export function convertSapoOrderToSalesOrder(so: SapoOrder): SalesOrder {
   };
 }
 
+export function upsertSapoOrder(so: SapoOrder): SalesOrder {
+  const converted = convertSapoOrderToSalesOrder(so);
+  const idx = salesStore.findIndex((o) => o.sapo_order_id === converted.sapo_order_id || o.id === converted.id);
+  if (idx >= 0) {
+    salesStore[idx] = { ...salesStore[idx], ...converted };
+  } else {
+    salesStore.unshift(converted);
+  }
+  return converted;
+}
+
 // Đồng bộ đơn hàng thực tế từ Sapo Open API
 export async function syncSalesOrdersFromSapo(): Promise<number> {
   try {
@@ -252,6 +263,20 @@ export function deleteSalesOrder(orderId: string): boolean {
     cancelSapoOrder(Number(removed.sapo_order_id), "customer").catch(() => {});
   }
   return true;
+}
+
+export function markOrderPaid(orderCodeOrId: string): SalesOrder | null {
+  const clean = orderCodeOrId.replace(/^#/, "").trim().toLowerCase();
+  const order = salesStore.find((o) =>
+    o.id.toLowerCase() === clean ||
+    o.code.toLowerCase() === clean ||
+    (o.sapo_order_id && o.sapo_order_id.toLowerCase() === clean) ||
+    o.code.toLowerCase().includes(clean)
+  );
+  if (!order) return null;
+  order.status = "hoan_tat";
+  order.notes = (order.notes ? order.notes + " | " : "") + `Đã khớp VietQR Techcombank 22226060 lúc ${new Date().toLocaleTimeString("vi-VN")}`;
+  return order;
 }
 
 // For testing / reset — not required but useful

@@ -30,10 +30,10 @@ export function convertCentralOrderToMeInvoiceRequest(order: CentralOrder): MeIn
   let totalWithoutVat = 0;
   let totalVat = 0;
 
-  const items = order.items.map((item, index) => {
-    const vatRateNum = parseInt(item.tax_rate.replace("%", "")) || 8;
+  const items = (order.items || []).map((item, index) => {
+    const vatRateNum = parseInt(String(item.tax_rate || "").replace("%", "")) || 8;
     const vatRateName: "8%" | "10%" | "5%" | "KCT" = vatRateNum === 10 ? "10%" : vatRateNum === 5 ? "5%" : "8%";
-    const amount = item.price * item.quantity;
+    const amount = (item.price || 0) * (item.quantity || 0);
     const vatAmount = Math.round((amount * vatRateNum) / 100);
 
     totalWithoutVat += amount;

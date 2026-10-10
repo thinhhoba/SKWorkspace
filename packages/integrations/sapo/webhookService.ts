@@ -6,6 +6,7 @@ import crypto from "crypto";
 import type { SapoOrder, CentralOrder } from "./types";
 import { normalizeToCentralOrders } from "./sapoClient";
 import type { SapoWebhookTopic, SapoWebhookLog, SapoWebhookPayload } from "./types";
+import { upsertSapoOrder } from "../../modules/sales/salesService";
 
 const WEBHOOK_SECRET = process.env.SAPO_API_SECRET || "e2cc59d4ace34a009a0704ab9f72a8b4";
 
@@ -68,6 +69,11 @@ export function processOrderWebhook(topic: string, orderData: SapoOrder): Centra
   if (central) {
     processedOrders.unshift(central);
     if (processedOrders.length > MAX_LOGS) processedOrders.length = MAX_LOGS;
+    try {
+      upsertSapoOrder(orderData);
+    } catch (e) {
+      console.warn("Failed to upsert order into salesStore from webhook:", e);
+    }
   }
 
   return central;
