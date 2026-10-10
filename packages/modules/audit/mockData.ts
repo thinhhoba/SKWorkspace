@@ -1,0 +1,22 @@
+import type { AuditLog } from "./types";
+
+function todayISO(h: number, m: number): string {
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+
+export const MOCK_AUDIT_LOGS: AuditLog[] = [
+  { id: "AUD-001", timestamp: todayISO(8, 12), actor: "admin", actor_name: "Hồ Bá Thịnh", module: "PRICING", action: "UPDATE_PRICE", level: "SUCCESS", message: "Cập nhật giá bán SKU SK-002 (Ba chỉ) kênh Đại lý: 78.000 -> 82.000 ₫", ip: "14.186.22.5", client: "Chrome/Win", payload: { sku: "SK-002", channel: "dai_ly", old: 78000, new: 82000 } },
+  { id: "AUD-002", timestamp: todayISO(8, 30), actor: "SYSTEM", actor_name: "SYSTEM", module: "SALES", action: "SYNC_SAPO", level: "SUCCESS", message: "Đồng bộ 12 đơn Sapo sonkhang.mysapo.net -> SK Workspace (pull orders)", ip: "10.0.0.1", client: "BullMQ/sapo-sync", payload: { provider: "sapo", pulled: 12, shop: "sonkhang.mysapo.net" } },
+  { id: "AUD-003", timestamp: todayISO(9, 5), actor: "ketoan", actor_name: "Nguyễn Thị Kế Toán", module: "FINANCE_MISA", action: "POST_AMIS", level: "SUCCESS", message: "Hạch toán chứng từ bán hàng SK-BH-2026-001 sang MISA AMIS OpenAPI", ip: "14.186.22.18", client: "Chrome/Win", payload: { doc: "SK-BH-2026-001", endpoint: "/api/v1/vouchers", status: 201 } },
+  { id: "AUD-004", timestamp: todayISO(9, 40), actor: "ketoan", actor_name: "Nguyễn Thị Kế Toán", module: "FINANCE_MISA", action: "PUBLISH_INVOICE", level: "WARNING", message: "Phát hành HĐĐT meInvoice: thiếu MST người mua — chuyển sang trạng thái nháp", ip: "14.186.22.18", client: "Chrome/Win", payload: { invoice: "SK-HD-0091", error: "Missing buyer_tax_code", hint: "Tra cứu MST trước khi phát hành" } },
+  { id: "AUD-005", timestamp: todayISO(10, 2), actor: "thukho", actor_name: "Trần Thị Ngọc Thúy", module: "INVENTORY", action: "SYNC_SAPO", level: "INFO", message: "Nhập kho lạnh Định Công: SK-014 x 40kg (lô L240310)", ip: "14.186.22.33", client: "PWA/Android", payload: { warehouse: "KHO_DINH_CONG", sku: "SK-014", qty: 40, lot: "L240310" } },
+  { id: "AUD-006", timestamp: todayISO(10, 15), actor: "thukho", actor_name: "Trần Thị Ngọc Thúy", module: "INVENTORY", action: "SYNC_SAPO", level: "ERROR", message: "Đồng bộ tồn kho Sapo thất bại: timeout sonkhang.mysapo.net/api/stocks", ip: "14.186.22.33", client: "PWA/Android", payload: { provider: "sapo", endpoint: "/api/stocks", error: "ETIMEDOUT", retry_after: 60 } },
+  { id: "AUD-007", timestamp: todayISO(10, 45), actor: "taixe", actor_name: "Lê Văn Tài", module: "DELIVERY", action: "DISPATCH_TRIP", level: "INFO", message: "Điều xe chành Giáp Bát -> Yên Bình: 3 đơn (SK-GH-101, 102, 103)", ip: "27.72.14.9", client: "PWA/Android", payload: { trip: "SK-TRIP-20261010-01", orders: ["SK-GH-101", "SK-GH-102", "SK-GH-103"] } },
+  { id: "AUD-008", timestamp: todayISO(11, 0), actor: "SYSTEM", actor_name: "SYSTEM", module: "SALES", action: "EXPORT_QR", level: "SUCCESS", message: "VietQR Techcombank 22226060 sinh mã cho đơn SK-GH-104: 1.250.000 ₫", ip: "10.0.0.1", client: "BullMQ/vietqr", payload: { bank: "TCB", account: "22226060", amount: 1250000, order: "SK-GH-104" } },
+  { id: "AUD-009", timestamp: todayISO(11, 20), actor: "admin", actor_name: "Hồ Bá Thịnh", module: "SALES", action: "LOGIN", level: "INFO", message: "Đăng nhập hệ thống SK Workspace", ip: "14.186.22.5", client: "Chrome/Win", payload: { user: "admin", session: "sess_abc123" } },
+  { id: "AUD-010", timestamp: todayISO(11, 35), actor: "SYSTEM", actor_name: "SYSTEM", module: "FINANCE_MISA", action: "SYNC_MISA", level: "ERROR", message: "MISA AMIS OpenAPI 401: token hết hạn — cần refresh OAuth", ip: "10.0.0.1", client: "BullMQ/misa-sync", payload: { provider: "misa_amis", error: "401 Unauthorized", action: "refresh_token" } },
+  { id: "AUD-011", timestamp: todayISO(11, 50), actor: "ketoan", actor_name: "Nguyễn Thị Kế Toán", module: "FINANCE_MISA", action: "POST_AMIS", level: "WARNING", message: "Hạch toán phiếu chi SK-PC-042: chênh lệch 15.000 ₫ so với chứng từ gốc", ip: "14.186.22.18", client: "Chrome/Win", payload: { doc: "SK-PC-042", diff: 15000, currency: "VND" } },
+  { id: "AUD-012", timestamp: todayISO(12, 10), actor: "admin", actor_name: "Hồ Bá Thịnh", module: "PRICING", action: "UPDATE_PRICE", level: "INFO", message: "Đổi giá bán lẻ SKU SK-030: 45.000 -> 48.000 ₫ (áp dụng web_order + pos)", ip: "14.186.22.5", client: "Chrome/Win", payload: { sku: "SK-030", new_price: 48000, channels: ["web_order", "pos"] } },
+];
