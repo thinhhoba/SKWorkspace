@@ -52,6 +52,8 @@ export function createTask(input: { title: string; priority?: TaskPriority; assi
 export function toggleTaskStatus(id: string): WorkdeskTask | null {
   const t = tasks.find((x) => x.id === id);
   if (!t) return null;
+  // Giữ nguyên dang_lam — chỉ toggle giữa cho_xu_ly ↔ hoan_thanh
+  if (t.status === "dang_lam") return t;
   t.status = t.status === "hoan_thanh" ? "cho_xu_ly" : "hoan_thanh";
   return t;
 }

@@ -113,17 +113,14 @@ export function notifyDieuKho(order: CentralOrder, topic: SapoWebhookTopic = "or
 
 async function tryPersistChatMessage(event: DieuKhoEvent): Promise<void> {
   try {
-    const mod = await import("../../modules/chat/chatService").catch(() => null) as unknown as { createChatMessage?: (p: Record<string, unknown>) => Promise<unknown> } | null;
-    if (mod?.createChatMessage) {
-      await mod.createChatMessage({
-        channelId: "dieu-kho",
-        sender: "Sapo Bot",
-        senderRole: "Hệ thống",
-        text: event.message,
-        metadata: { topic: event.topic, order_code: event.order_code, alias_code: event.alias_code },
-      });
-    }
-  } catch { /* swallow */ }
+    const { generateActivity } = await import("../../modules/feed/feedService");
+    generateActivity("order_new", {
+      title: `Đơn Sapo ${event.alias_code || `#${event.order_code}`}`,
+      description: event.message,
+      aliasCode: event.alias_code,
+      amount: event.total_amount,
+    });
+  } catch { /* swallow if feedService not loaded */ }
 }
 
 export function getDieuKhoEvents(limit = 20): DieuKhoEvent[] {

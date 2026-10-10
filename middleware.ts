@@ -50,7 +50,9 @@ function resourceForPath(pathname: string): string | null {
   if (/^\/pwa\/giaovan(\/|$)/.test(pathname)) return "pwa:giaovan";
   if (/^\/pwa(\/|$)/.test(pathname)) return "pwa:giaovan";
   if (/^\/$/.test(pathname)) return "dashboard";
-  // API
+  // API — Workdesk (feed/tasks cho phép mọi role đã đăng nhập)
+  if (/^\/api\/feed(\/|$)/.test(pathname)) return "dashboard";
+  if (/^\/api\/tasks(\/|$)/.test(pathname)) return "dashboard";
   if (/^\/api\/finance\/vietqr(\/|$)/.test(pathname)) return "finance:vietqr";
   if (/^\/api\/finance(\/|$)/.test(pathname)) return "finance";
   if (/^\/api\/fleet\/telemetry(\/|$)/.test(pathname)) return "fleet:telemetry:write";

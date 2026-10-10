@@ -14,13 +14,15 @@ import {
 import { COMPANY_PROFILE } from "@/packages/core/company";
 import { generateBusinessCode } from "@/packages/core/aliases";
 
-const DEFAULT_MEINVOICE_CONFIG: MeInvoiceBotConfig = {
+export const DEFAULT_MEINVOICE_CONFIG: MeInvoiceBotConfig = {
   appId: process.env.MEINVOICE_APP_ID || "sk-meinvoice-bot-app",
   taxCode: COMPANY_PROFILE.taxCode, // "0111252725"
   invoicePattern: "1/001",
   invoiceSerial: "C26TSK", // Ký hiệu năm 2026 Thực phẩm Sơn Khang
   apiUrl: process.env.MEINVOICE_API_URL || "https://api.meinvoice.vn/api/v1",
 };
+
+export const MEINVOICE_CONFIG = DEFAULT_MEINVOICE_CONFIG;
 
 /**
  * Chuyển đổi CentralOrder thành Yêu cầu phát hành HĐĐT meInvoice

@@ -13,8 +13,6 @@ const TAGS: { value: FeedTag; label: string }[] = [
   { value: "khan-cap", label: "#khan-cap" },
 ];
 
-const ROLES: FeedAuthorRole[] = ["Giam doc", "Ke toan", "Thu kho", "Tai xe", "He thong"];
-
 const TAG_CLASS: Record<FeedTag, string> = {
   "thong-bao": "bg-slate-100 text-slate-700 border-slate-300",
   "khen-thuong": "bg-emerald-50 text-emerald-700 border-emerald-300",
@@ -25,12 +23,13 @@ const TAG_CLASS: Record<FeedTag, string> = {
 
 interface Props {
   onPostCreated?: (post: FeedPost) => void;
+  fixedAuthorRole?: FeedAuthorRole;
 }
 
-export default function NewsfeedComposer({ onPostCreated }: Props) {
+export default function NewsfeedComposer({ onPostCreated, fixedAuthorRole }: Props) {
   const [content, setContent] = React.useState("");
   const [tag, setTag] = React.useState<FeedTag>("thong-bao");
-  const [authorRole, setAuthorRole] = React.useState<FeedAuthorRole>("Giam doc");
+  const displayRole: FeedAuthorRole = fixedAuthorRole ?? "Giam doc";
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
@@ -40,13 +39,17 @@ export default function NewsfeedComposer({ onPostCreated }: Props) {
       setError("Vui long nhap noi dung bai dang");
       return;
     }
+    if (trimmed.length > 5000) {
+      setError("Noi dung toi da 5000 ky tu");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/feed/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: trimmed, tag, authorRole }),
+        body: JSON.stringify({ content: trimmed, tag }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -90,16 +93,9 @@ export default function NewsfeedComposer({ onPostCreated }: Props) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Vai tro:</span>
-          <select
-            value={authorRole}
-            onChange={(e) => setAuthorRole(e.target.value as FeedAuthorRole)}
-            className="h-8 rounded-full border bg-white px-3 text-xs"
-          >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
+          <span className="text-xs text-muted-foreground">Vai trò:</span>
+          <Badge variant="outline" className="text-xs bg-slate-50">{displayRole}</Badge>
+          <span className="text-[10px] text-muted-foreground">(theo tài khoản đăng nhập)</span>
         </div>
 
         {error && <p className="text-xs text-red-600">{error}</p>}
