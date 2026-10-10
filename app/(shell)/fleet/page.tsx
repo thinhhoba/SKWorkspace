@@ -129,11 +129,7 @@ export default function FleetPage() {
     window.open(`/api/fleet/haccp?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, "_blank");
   };
 
-  const trips: DeliveryTrip[] = [
-    { id: "TRIP-1", orderCode: "#13537", destination: "Số 5 Ngõ 27 Đại Cồ Việt, Hai Bà Trưng, Hà Nội", expectedTime: "09:30", packagesCount: 11, status: "completed" },
-    { id: "TRIP-2", orderCode: "#13538", destination: "Bến xe Giáp Bát - Nhà xe Tuấn Bình (Gửi Hải Phòng)", expectedTime: "11:15", packagesCount: 45, status: "in_transit" },
-    { id: "TRIP-3", orderCode: "#13540", destination: "Căn tin ĐH Bách Khoa - Cổng Trần Đại Nghĩa", expectedTime: "14:00", packagesCount: 20, status: "pending" },
-  ];
+  const trips: DeliveryTrip[] = [];
   const maintenanceHistory: MaintenanceRecord[] = [
     { id: "MNT-1", date: "05/10/2026", item: "Bảo dưỡng định kỳ 50.000km, thay dầu máy & lọc dầu Isuzu chính hãng", cost: 2350000, performer: "Isuzu Thăng Long" },
     { id: "MNT-2", date: "20/09/2026", item: "Nạp bổ sung ga lạnh R404A & kiểm tra cảm biến nhiệt độ thùng lạnh", cost: 1200000, performer: "Điện Lạnh Ô Tô Hải Hà" },
@@ -237,19 +233,27 @@ export default function FleetPage() {
           <span className="text-xs text-muted-foreground">Tài xế Tân đang phụ trách</span>
         </div>
         <div className="space-y-3">
-          {trips.map((trip) => (
-            <div key={trip.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap"><span className="font-mono text-sm font-bold text-sky-600">{trip.orderCode}</span><Badge variant="outline" className="text-xs">{trip.packagesCount} kiện hàng</Badge>
-                  {trip.status === "completed" && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><CheckCircle2 className="w-3 h-3" /> Đã giao thành công</span>}
-                  {trip.status === "in_transit" && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full"><Truck className="w-3 h-3" /> Đang vận chuyển</span>}
-                  {trip.status === "pending" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-full"><Clock className="w-3 h-3" /> Chờ xuất phát</span>}
-                </div>
-                <p className="text-xs font-semibold truncate">{trip.destination}</p>
-              </div>
-              <div className="flex items-center gap-4 text-xs shrink-0"><div className="text-right"><span className="text-muted-foreground block text-[10px]">Giờ dự kiến:</span><span className="font-mono font-bold">{trip.expectedTime}</span></div></div>
+          {trips.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
+              <Truck className="w-6 h-6 text-slate-300 dark:text-slate-700" />
+              <span className="font-medium text-slate-700 dark:text-slate-300">Chưa có chuyến giao hàng nào trong ngày</span>
+              <span className="text-[11px]">Các đơn hàng xuất kho giao bằng xe 29C-882.60 sẽ hiển thị tại đây khi được điều phối.</span>
             </div>
-          ))}
+          ) : (
+            trips.map((trip) => (
+              <div key={trip.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap"><span className="font-mono text-sm font-bold text-sky-600">{trip.orderCode}</span><Badge variant="outline" className="text-xs">{trip.packagesCount} kiện hàng</Badge>
+                    {trip.status === "completed" && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><CheckCircle2 className="w-3 h-3" /> Đã giao thành công</span>}
+                    {trip.status === "in_transit" && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full"><Truck className="w-3 h-3" /> Đang vận chuyển</span>}
+                    {trip.status === "pending" && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-full"><Clock className="w-3 h-3" /> Chờ xuất phát</span>}
+                  </div>
+                  <p className="text-xs font-semibold truncate">{trip.destination}</p>
+                </div>
+                <div className="flex items-center gap-4 text-xs shrink-0"><div className="text-right"><span className="text-muted-foreground block text-[10px]">Giờ dự kiến:</span><span className="font-mono font-bold">{trip.expectedTime}</span></div></div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

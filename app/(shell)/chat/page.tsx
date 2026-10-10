@@ -40,67 +40,16 @@ interface Channel {
 
 const CHANNELS: Channel[] = [
   { id: "chung", name: "chung", desc: "Toàn bộ nhân sự Sơn Khang", icon: "Hash", unread: 0 },
-  { id: "dieu-xe", name: "dieu-xe-29c-88260", desc: "Tài xế Tân & Điều vận bến bãi", icon: "Truck", unread: 2 },
-  { id: "kho-lanh", name: "kho-dong-lanh-q7-q12", desc: "Thủ kho kiểm kê & FEFO", icon: "Warehouse", unread: 1 },
+  { id: "dieu-xe", name: "dieu-xe-29c-88260", desc: "Tài xế Tân & Điều vận bến bãi", icon: "Truck", unread: 0 },
+  { id: "kho-lanh", name: "kho-dong-lanh-dinh-cong", desc: "Thủ kho kiểm kê & FEFO", icon: "Warehouse", unread: 0 },
   { id: "kinh-doanh", name: "kinh-doanh-si-b2b", desc: "Báo giá sỉ & Đơn đặt chành xe", icon: "Hash", unread: 0 },
   { id: "ke-toan", name: "ke-toan-vietqr-misa", desc: "Thu tiền COD & Đối soát ngân hàng", icon: "Wallet", unread: 0 },
 ];
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: "m-1",
-    channelId: "chung",
-    sender: "Ban Giám Đốc",
-    senderRole: "Quản trị viên",
-    avatarText: "SK",
-    avatarBg: "bg-sky-600",
-    text: "Chào cả nhà, hôm nay xe 29C-882.60 sẽ hoàn thành các đơn chành xe bến Giáp Bát trước 11h. Đội kho Q7 ưu tiên đóng hàng trước nhé.",
-    timestamp: "08:15",
-  },
-  {
-    id: "m-2",
-    channelId: "chung",
-    sender: "Trần Quốc Toản",
-    senderRole: "Thủ kho Q7",
-    avatarText: "QT",
-    avatarBg: "bg-emerald-600",
-    text: "Kho Q7 đã đóng xong 15 thùng Gà Popcorn CP và 10 thùng chả tôm rồi sếp ạ.",
-    timestamp: "08:22",
-  },
-  {
-    id: "m-3",
-    channelId: "dieu-xe",
-    sender: "Ngô Văn Tân",
-    senderRole: "Tài xế (0942 22 60 60)",
-    avatarText: "VT",
-    avatarBg: "bg-amber-600",
-    text: "Em đã xếp xong hàng lên xe 29C-882.60. Đồng hồ nhiệt độ thùng lạnh đang đạt -18.7°C. Em bắt đầu di chuyển ra bến xe Giáp Bát đây.",
-    timestamp: "09:05",
-  },
-  {
-    id: "m-4",
-    channelId: "dieu-xe",
-    sender: "Lê Hoàng Phúc",
-    senderRole: "Điều phối viên",
-    avatarText: "HP",
-    avatarBg: "bg-indigo-600",
-    text: "Đơn #13537 của khách Hoàng Thị Túy khách dặn gọi trước 10 phút nhé anh Tân ơi.",
-    timestamp: "09:12",
-  },
-  {
-    id: "m-5",
-    channelId: "kho-lanh",
-    sender: "Phạm Văn Long",
-    senderRole: "Thủ kho Q12",
-    avatarText: "VL",
-    avatarBg: "bg-purple-600",
-    text: "Kho Q12 vừa kiểm kê xong lô Bò viên Muwono (HH201), còn đủ 180 gói, hạn dùng đến tháng 08/2027.",
-    timestamp: "09:30",
-  },
-];
+const INITIAL_MESSAGES: ChatMessage[] = [];
 
 export default function ChatPage() {
-  const [activeChannelId, setActiveChannelId] = React.useState<string>("dieu-xe");
+  const [activeChannelId, setActiveChannelId] = React.useState<string>("chung");
   const [messages, setMessages] = React.useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputText, setInputText] = React.useState("");
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -188,18 +137,23 @@ export default function ChatPage() {
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-[11px]">
                 <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
+                <span className="font-semibold">Hồ Bá Thịnh</span>
+                <span className="text-muted-foreground text-[10px]">(Giám đốc)</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
+                <span className="font-semibold">Hoàng Thị Nho</span>
+                <span className="text-muted-foreground text-[10px]">(Kế toán trưởng)</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
+                <span className="font-semibold">Trần Thị Ngọc Thúy</span>
+                <span className="text-muted-foreground text-[10px]">(Thủ kho Định Công)</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
                 <span className="font-semibold">Ngô Văn Tân</span>
                 <span className="text-muted-foreground text-[10px]">(Xe 29C-882.60)</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px]">
-                <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
-                <span className="font-semibold">Trần Quốc Toản</span>
-                <span className="text-muted-foreground text-[10px]">(Kho Q7)</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px]">
-                <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
-                <span className="font-semibold">Nguyễn Thị Mai</span>
-                <span className="text-muted-foreground text-[10px]">(Kế toán)</span>
               </div>
             </div>
           </div>
@@ -222,37 +176,49 @@ export default function ChatPage() {
           </div>
 
           {/* Messages Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {channelMessages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-3 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}
-              >
-                {!msg.isMe && (
-                  <div className={`h-8 w-8 rounded-full ${msg.avatarBg} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
-                    {msg.avatarText}
-                  </div>
-                )}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col">
+            {channelMessages.length === 0 ? (
+              <div className="m-auto flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sky-500 mb-3">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Chưa có tin nhắn trong #{activeChannel.name}</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mt-1">
+                  Bắt đầu cuộc trao đổi nội bộ giữa ban giám đốc, kế toán, thủ kho và tài xế bằng ô nhập bên dưới.
+                </p>
+              </div>
+            ) : (
+              channelMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 ${msg.isMe ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  {!msg.isMe && (
+                    <div className={`h-8 w-8 rounded-full ${msg.avatarBg} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
+                      {msg.avatarText}
+                    </div>
+                  )}
 
-                <div className={`space-y-1 max-w-[75%] ${msg.isMe ? "items-end text-right" : "items-start"}`}>
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="font-bold text-slate-900 dark:text-slate-200">{msg.sender}</span>
-                    <span className="text-[10px]">({msg.senderRole})</span>
-                    <span className="text-[10px] font-mono">{msg.timestamp}</span>
-                  </div>
+                  <div className={`space-y-1 max-w-[75%] ${msg.isMe ? "items-end text-right" : "items-start"}`}>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <span className="font-bold text-slate-900 dark:text-slate-200">{msg.sender}</span>
+                      <span className="text-[10px]">({msg.senderRole})</span>
+                      <span className="text-[10px] font-mono">{msg.timestamp}</span>
+                    </div>
 
-                  <div
-                    className={`rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
-                      msg.isMe
-                        ? "bg-sky-600 text-white rounded-tr-none shadow-sm"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none"
-                    }`}
-                  >
-                    {msg.text}
+                    <div
+                      className={`rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
+                        msg.isMe
+                          ? "bg-sky-600 text-white rounded-tr-none shadow-sm"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
 

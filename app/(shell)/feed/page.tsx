@@ -43,77 +43,7 @@ interface Post {
   pinned?: boolean;
 }
 
-const INITIAL_POSTS: Post[] = [
-  {
-    id: "post-1",
-    author: "Ban Giám Đốc Sơn Khang",
-    role: "Quản trị hệ thống",
-    avatarText: "SK",
-    avatarBg: "bg-sky-600",
-    title: "Chính sách chiết khấu chành xe & căn tin trường học Quý 4/2026",
-    content:
-      "Công ty thông báo cập nhật bảng giá sỉ mới cho nhóm khách chành xe (Cấp 1 - chiết khấu 12%) và chuỗi căn tin (Cấp 2 - chiết khấu 7%). Mọi đơn đặt trên 5 thùng xúc xích, gà popcorn hoặc cá viên được hỗ trợ cấp đá gel đông lạnh miễn phí.",
-    tag: "kinh-doanh",
-    likes: 18,
-    liked: false,
-    pinned: true,
-    createdAt: "Hôm nay 08:30",
-    comments: [
-      {
-        id: "c-1",
-        author: "Ngô Văn Tân",
-        role: "Tài xế xe 29C-882.60",
-        content: "Đã nắm thông tin chính sách đóng thùng đá gel, sáng nay em vừa giao đủ 30 thùng cho bến xe Giáp Bát ạ.",
-        createdAt: "09:15",
-      },
-      {
-        id: "c-2",
-        author: "Nguyễn Thị Mai",
-        role: "Kế toán bán hàng",
-        content: "Hóa đơn điện tử và VietQR tự động trên hệ thống đã khớp tỷ lệ chiết khấu mới.",
-        createdAt: "09:40",
-      },
-    ],
-  },
-  {
-    id: "post-2",
-    author: "Bộ Phận Điều Vận & Đội Xe",
-    role: "Điều phối vận tải",
-    avatarText: "TX",
-    avatarBg: "bg-emerald-600",
-    title: "Biểu dương tài xế Ngô Văn Tân - Xe tải lạnh 29C-882.60 hoàn thành 100% chuyến giao",
-    content:
-      "Tài xế Ngô Văn Tân (SĐT 0942 22 60 60) đã duy trì nhiệt độ thùng lạnh Isuzu QKR đạt chuẩn -18.5°C liên tục trong tuần qua, hoàn thành giao đúng giờ 85 đơn hàng sỉ mà không phát sinh bất kỳ khiếu nại chất lượng nào.",
-    tag: "khen-thuong",
-    likes: 24,
-    liked: true,
-    createdAt: "Hôm qua 16:45",
-    comments: [
-      {
-        id: "c-3",
-        author: "Trần Quốc Toản",
-        role: "Thủ kho Q7",
-        content: "Chúc mừng anh Tân! Đội kho kiểm tra nhiệt độ lúc bốc hàng lên xe luôn đạt chuẩn.",
-        createdAt: "17:02",
-      },
-    ],
-  },
-  {
-    id: "post-3",
-    author: "Ban An Toàn Kho Lạnh",
-    role: "Kiểm soát nội bộ",
-    avatarText: "KL",
-    avatarBg: "bg-amber-600",
-    title: "Nhắc nhở quy trình FEFO và kiểm soát rã đông định kỳ tại Kho Q7 & Q12",
-    content:
-      "Yêu cầu thủ kho kiểm tra hạn sử dụng trên tem phụ và quét mã SKU 100% trước khi cho xuất hàng lên xe tải lạnh. Lô hàng nhập trước phải được đưa ra vị trí xuất trước (First-Expired, First-Out).",
-    tag: "kho-van",
-    likes: 12,
-    liked: false,
-    createdAt: "2 ngày trước",
-    comments: [],
-  },
-];
+const INITIAL_POSTS: Post[] = [];
 
 const TAG_LABELS: Record<Post["tag"], { label: string; color: string }> = {
   "thong-bao": { label: "Thông báo chung", color: "bg-slate-100 text-slate-800 border-slate-300" },
@@ -294,6 +224,17 @@ export default function FeedPage() {
 
       {/* Post List */}
       <div className="space-y-4">
+        {filteredPosts.length === 0 && (
+          <div className="rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-12 text-center space-y-3 bg-white/40 dark:bg-slate-900/40">
+            <div className="mx-auto w-12 h-12 rounded-full bg-sky-50 dark:bg-sky-950/40 flex items-center justify-center text-sky-600">
+              <Rss className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Chưa có bản tin nội bộ nào</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              Bấm nút &quot;Đăng tin mới&quot; ở trên để tạo thông báo điều hành, khen thưởng hoặc thông tin kỹ thuật kho vận.
+            </p>
+          </div>
+        )}
         {filteredPosts.map((post) => (
           <div key={post.id} className="rounded-3xl border border-slate-200 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-3">
             {/* Author info & Header */}

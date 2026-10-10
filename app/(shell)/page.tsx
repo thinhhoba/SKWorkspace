@@ -20,10 +20,10 @@ const GROUP_ICON_GRADIENT: Record<AppGroup, string> = {
 
 export default function SmartWorkdeskPage() {
   const [activeTab, setActiveTab] = React.useState<"cockpit" | "apps">("cockpit");
-  const [salesRevenue, setSalesRevenue] = React.useState(128400000);
-  const [pendingPickOrders, setPendingPickOrders] = React.useState(14);
+  const [salesRevenue, setSalesRevenue] = React.useState(0);
+  const [pendingPickOrders, setPendingPickOrders] = React.useState(0);
   const [fleetTemp, setFleetTemp] = React.useState(-18.4);
-  const [techcombankBalance, setTechcombankBalance] = React.useState(125000000);
+  const [techcombankBalance, setTechcombankBalance] = React.useState(0);
   const [streamItems, setStreamItems] = React.useState<FeedStreamItem[]>([]);
   const [tasks, setTasks] = React.useState<WorkdeskTask[] | undefined>(undefined);
   const [loadingStream, setLoadingStream] = React.useState(true);
@@ -41,11 +41,11 @@ export default function SmartWorkdeskPage() {
       ]);
       const [salesRes, fleetRes, finRes, feedRes, tasksRes] = results.map((r) => (r.status === "fulfilled" ? r.value : null));
       if (salesRes?.success && salesRes.stats) {
-        setSalesRevenue(salesRes.stats.revenueToday || 128400000);
-        setPendingPickOrders(salesRes.stats.choSoan || 14);
+        setSalesRevenue(salesRes.stats.revenueToday ?? 0);
+        setPendingPickOrders(salesRes.stats.choSoan ?? 0);
       }
       if (fleetRes?.success && fleetRes.telemetry) setFleetTemp(fleetRes.telemetry.temperature);
-      if (finRes?.success && finRes.stats) setTechcombankBalance(finRes.stats.balance_techcombank || 125000000);
+      if (finRes?.success && finRes.stats) setTechcombankBalance(finRes.stats.balance_techcombank ?? 0);
       if (feedRes?.success && Array.isArray(feedRes.items)) {
         setStreamItems(feedRes.items);
       } else if (feedRes?.success && Array.isArray(feedRes.stream)) {

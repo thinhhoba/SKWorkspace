@@ -26,52 +26,7 @@ interface Note {
   updatedAt: string;
 }
 
-const INITIAL_NOTES: Note[] = [
-  {
-    id: "n-1",
-    title: "Thông tin chành xe gửi hàng đi tỉnh (Cập nhật 10/2026)",
-    content: `1. Xe Tuấn Bình (Bến Giáp Bát): Đi Hải Phòng, Quảng Ninh. Xuất bến 11h30 trưa & 18h tối. Phụ xe: 0988.123.456.
-2. Nhà xe Hưng Thịnh (Bến Nước Ngầm): Tuyến Vinh, Hà Tĩnh. Cần đóng đá gel trước 14h.
-3. Chành xe Phương Trang: Gửi văn phòng Hoàng Mai.`,
-    category: "van-tai",
-    pinned: true,
-    color: "from-amber-500/10 to-orange-500/5 border-amber-200",
-    updatedAt: "10/10/2026 09:30",
-  },
-  {
-    id: "n-2",
-    title: "Tài khoản thanh toán VietQR & Đối soát Techcombank",
-    content: `Số tài khoản: 22226060 (Techcombank)
-Tên tài khoản: CONG TY TNHH THUC PHAM SON KHANG
-Nội dung chuẩn: "TT DH [Mã đơn]" hoặc "COD [Mã đơn] [Tên khách]"
-Tài xế Tân thu tiền mặt phải nộp lại hoặc quét QR nộp về tài khoản công ty trước 18h hàng ngày.`,
-    category: "ke-toan",
-    pinned: true,
-    color: "from-sky-500/10 to-cyan-500/5 border-sky-200",
-    updatedAt: "09/10/2026 15:45",
-  },
-  {
-    id: "n-3",
-    title: "Quy định nhiệt độ bảo quản kho đông & xe tải lạnh",
-    content: `Kho âm sâu Q7 (Định Công): Duy trì nhiệt độ -18°C đến -22°C.
-Kho Q12 (Tân Thới Hiệp): Duy trì nhiệt độ -20°C.
-Xe tải lạnh Isuzu 29C-882.60: Bật máy lạnh trước khi xếp hàng 20 phút để đạt dưới -10°C trước khi bốc hàng lên xe.`,
-    category: "kho-lanh",
-    pinned: false,
-    color: "from-emerald-500/10 to-teal-500/5 border-emerald-200",
-    updatedAt: "08/10/2026 11:20",
-  },
-  {
-    id: "n-4",
-    title: "Chính sách thưởng doanh số nhóm hàng viên thả lẩu",
-    content: `Cá viên Munchee 500g (HH123) & Bò viên Muwono (HH201): Thưởng 500đ/gói khi đại lý đặt từ 100 gói.
-Áp dụng cho nhân viên kinh doanh hoàn thành chỉ tiêu tháng 10.`,
-    category: "kinh-doanh",
-    pinned: false,
-    color: "from-purple-500/10 to-pink-500/5 border-purple-200",
-    updatedAt: "07/10/2026 16:00",
-  },
-];
+const INITIAL_NOTES: Note[] = [];
 
 const CATEGORY_NAMES: Record<Note["category"], { label: string; badge: string }> = {
   "van-tai": { label: "Vận tải & Chành xe", badge: "bg-amber-100 text-amber-800" },
@@ -248,62 +203,77 @@ export default function NotesPage() {
 
       {/* Notes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filtered.map((note) => (
-          <div
-            key={note.id}
-            className={`rounded-3xl border bg-gradient-to-br ${note.color} p-5 shadow-sm space-y-3 relative flex flex-col justify-between hover:shadow-md transition-shadow`}
-          >
-            <div className="space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <Badge variant="outline" className={`text-[10px] ${CATEGORY_NAMES[note.category].badge}`}>
-                  {CATEGORY_NAMES[note.category].label}
-                </Badge>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => togglePin(note.id)}
-                    className={`p-1 rounded-full transition-colors ${
-                      note.pinned ? "text-amber-500 bg-amber-50 dark:bg-amber-950/40" : "text-slate-400 hover:text-slate-700"
-                    }`}
-                  >
-                    <Pin className={`w-3.5 h-3.5 ${note.pinned ? "fill-current" : ""}`} />
-                  </button>
-                  <button
-                    onClick={() => deleteNote(note.id)}
-                    className="p-1 rounded-full text-slate-400 hover:text-rose-500"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+        {filtered.length === 0 ? (
+          <div className="col-span-full rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center">
+              <StickyNote className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Chưa có ghi chú nào</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Bấm &quot;Tạo ghi chú mới&quot; để lưu lại quy trình, chành xe, hoặc lưu ý nội bộ</p>
+            </div>
+            <Button onClick={() => setShowAdd(true)} size="sm" variant="outline" className="rounded-full text-xs mt-1">
+              <Plus className="w-3.5 h-3.5 mr-1" /> Thêm ghi chú mới
+            </Button>
+          </div>
+        ) : (
+          filtered.map((note) => (
+            <div
+              key={note.id}
+              className={`rounded-3xl border bg-gradient-to-br ${note.color} p-5 shadow-sm space-y-3 relative flex flex-col justify-between hover:shadow-md transition-shadow`}
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <Badge variant="outline" className={`text-[10px] ${CATEGORY_NAMES[note.category].badge}`}>
+                    {CATEGORY_NAMES[note.category].label}
+                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => togglePin(note.id)}
+                      className={`p-1 rounded-full transition-colors ${
+                        note.pinned ? "text-amber-500 bg-amber-50 dark:bg-amber-950/40" : "text-slate-400 hover:text-slate-700"
+                      }`}
+                    >
+                      <Pin className={`w-3.5 h-3.5 ${note.pinned ? "fill-current" : ""}`} />
+                    </button>
+                    <button
+                      onClick={() => deleteNote(note.id)}
+                      className="p-1 rounded-full text-slate-400 hover:text-rose-500"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
+
+                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug">
+                  {note.title}
+                </h2>
+
+                <p className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed font-sans">
+                  {note.content}
+                </p>
               </div>
 
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug">
-                {note.title}
-              </h2>
-
-              <p className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed font-sans">
-                {note.content}
-              </p>
+              <div className="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800/60 pt-3 text-[10px] text-muted-foreground">
+                <span>Cập nhật: {note.updatedAt}</span>
+                <button
+                  onClick={() => copyNote(note.id, `${note.title}\n\n${note.content}`)}
+                  className="flex items-center gap-1 text-sky-600 hover:underline font-semibold"
+                >
+                  {copiedId === note.id ? (
+                    <>
+                      <Check className="w-3 h-3 text-emerald-600" /> Đã sao chép
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" /> Sao chép
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-
-            <div className="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800/60 pt-3 text-[10px] text-muted-foreground">
-              <span>Cập nhật: {note.updatedAt}</span>
-              <button
-                onClick={() => copyNote(note.id, `${note.title}\n\n${note.content}`)}
-                className="flex items-center gap-1 text-sky-600 hover:underline font-semibold"
-              >
-                {copiedId === note.id ? (
-                  <>
-                    <Check className="w-3 h-3 text-emerald-600" /> Đã sao chép
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" /> Sao chép
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

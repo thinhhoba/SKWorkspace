@@ -42,107 +42,13 @@ interface EmailMessage {
   attachments?: string[];
 }
 
-const INITIAL_EMAILS: EmailMessage[] = [
-  {
-    id: "mail-1",
-    provider: "gmail",
-    folder: "inbox",
-    from: "quan.anvat.beba@gmail.com",
-    fromName: "Quán Ăn Vặt Bé Ba (Cầu Giấy)",
-    to: "kinhdoanh.sonkhang@gmail.com",
-    subject: "Yêu cầu báo giá sỉ 20 thùng Gà Popcorn CP và 10 thùng khoai tây",
-    preview: "Chào công ty Sơn Khang, quán mình bên Cầu Giấy muốn nhập định kỳ mỗi tuần 20 thùng...",
-    body: `Kính gửi Bộ phận Kinh doanh Thực Phẩm Sơn Khang,
-
-Quán mình hiện đang mở thêm cơ sở 2 tại ngõ 165 Cầu Giấy. Mình muốn xin bảng giá sỉ mới nhất tháng 10 cho:
-1. Gà Viên Chiên Popcorn CP (Thùng 10kg) - 20 thùng/tuần
-2. Khoai tây cọng Bỉ Aviko - 10 thùng/tuần
-3. Tương ớt Sài Gòn Can 2L - 5 can
-
-Nhờ công ty báo giá chiết khấu đại lý cấp 2 và điều kiện giao hàng miễn phí qua xe tải lạnh giúp mình nhé.
-
-Trân trọng,
-Quán Ăn Vặt Bé Ba - SĐT 0912.888.999`,
-    date: "10:15 Hôm nay",
-    unread: true,
-    starred: true,
-    attachments: ["danh_sach_mat_hang_be_ba.pdf"],
-  },
-  {
-    id: "mail-2",
-    provider: "outlook",
-    folder: "inbox",
-    from: "ebanking@techcombank.com.vn",
-    fromName: "Techcombank Corporate Notification",
-    to: "ke-toan@sonkhang.vn",
-    subject: "[Thông báo biến động số dư] TK 22226060 - Nhận thanh toán COD đơn #13537",
-    preview: "Techcombank thông báo: Tài khoản 22226060 (CONG TY TNHH THUC PHAM SON KHANG) +3.159.500 VND...",
-    body: `Kính gửi Quý khách,
-
-Techcombank xin thông báo giao dịch chuyển khoản thành công:
-- Tài khoản: 22226060
-- Tên chủ tài khoản: CONG TY TNHH THUC PHAM SON KHANG
-- Số tiền giao dịch: +3.159.500 VND
-- Nội dung giao dịch: TT DH 13537 HOANG THI TUY VIETQR
-- Ngày giờ: 10/10/2026 09:12:45
-- Số dư khả dụng hiện tại: 842.150.000 VND
-
-Trân trọng,
-Ngân hàng TMCP Kỹ Thương Việt Nam (Techcombank)`,
-    date: "09:15 Hôm nay",
-    unread: false,
-    starred: true,
-  },
-  {
-    id: "mail-3",
-    provider: "gmail",
-    folder: "inbox",
-    from: "cantin.daihocbachkhoa@gmail.com",
-    fromName: "Căn Tin Ký Túc Xá ĐH Bách Khoa",
-    to: "kinhdoanh.sonkhang@gmail.com",
-    subject: "Xác nhận lịch giao hàng chiều nay trước 15h",
-    preview: "Xác nhận đơn hàng xúc xích hồ lô và viên thả lẩu đã đặt qua hệ thống dathang.sonkhang.vn...",
-    body: `Chào Sơn Khang,
-
-Căn tin trường xác nhận nhận chuyến hàng giao bằng xe tải lạnh Isuzu 29C-882.60 của tài xế Tân chiều nay.
-Địa điểm nhận hàng: Cổng sau KTX ĐH Bách Khoa (đường Tạ Quang Bửu).
-Số lượng: 20 thùng xúc xích + 15 thùng chả cá.
-
-Cảm ơn công ty!`,
-    date: "Hôm qua 16:30",
-    unread: false,
-    starred: false,
-  },
-  {
-    id: "mail-4",
-    provider: "outlook",
-    folder: "sent",
-    from: "ke-toan@sonkhang.vn",
-    fromName: "Kế toán Sơn Khang",
-    to: "daily.haiphong.tuanbinh@gmail.com",
-    subject: "Gửi biên bản đối soát công nợ tháng 09/2026 - Nhà xe Tuấn Bình",
-    preview: "Kính gửi Nhà xe Tuấn Bình, đính kèm biên bản đối soát cước vận chuyển và tiền COD thu hộ...",
-    body: `Kính gửi Nhà xe Tuấn Bình,
-
-Công ty TNHH Thực Phẩm Sơn Khang gửi anh biên bản đối soát tiền hàng thu hộ COD tháng 9 tuyến Hà Nội - Hải Phòng.
-Tổng tiền cước đã thanh toán: 14.500.000đ.
-Số tiền COD chành xe cần chuyển về TK 22226060: 89.200.000đ.
-
-Vui lòng kiểm tra và ký xác nhận giúp em nhé.
-
-Kế toán bán hàng Sơn Khang`,
-    date: "08/10/2026",
-    unread: false,
-    starred: false,
-    attachments: ["doi_soat_tuan_binh_t9.xlsx"],
-  },
-];
+const INITIAL_EMAILS: EmailMessage[] = [];
 
 export default function MailHubPage() {
   const [provider, setProvider] = React.useState<MailProvider>("gmail");
   const [folder, setFolder] = React.useState<MailFolder>("inbox");
   const [emails, setEmails] = React.useState<EmailMessage[]>(INITIAL_EMAILS);
-  const [selectedMailId, setSelectedMailId] = React.useState<string>("mail-1");
+  const [selectedMailId, setSelectedMailId] = React.useState<string>("");
   const [search, setSearch] = React.useState("");
   const [showCompose, setShowCompose] = React.useState(false);
 
@@ -152,7 +58,7 @@ export default function MailHubPage() {
   const [bodyText, setBodyText] = React.useState("");
   const [toast, setToast] = React.useState<string | null>(null);
 
-  const activeEmail = emails.find((m) => m.id === selectedMailId) || emails[0];
+  const activeEmail = emails.find((m) => m.id === selectedMailId);
 
   const filteredEmails = emails
     .filter((m) => m.provider === provider && m.folder === folder)
@@ -335,8 +241,9 @@ export default function MailHubPage() {
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
             {filteredEmails.length === 0 ? (
-              <div className="p-8 text-center text-xs text-muted-foreground">
-                Không có thư nào trong thư mục này.
+              <div className="p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
+                <Inbox className="w-8 h-8 text-slate-300 dark:text-slate-700" />
+                <span>Không có thư nào trong thư mục này.</span>
               </div>
             ) : (
               filteredEmails.map((mail) => {
@@ -454,8 +361,14 @@ export default function MailHubPage() {
               </div>
             </div>
           ) : (
-            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              Chọn một email để đọc chi tiết
+            <div className="flex flex-col h-full items-center justify-center p-8 text-center text-muted-foreground my-auto gap-2">
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sky-500 mb-1">
+                <Mail className="w-6 h-6" />
+              </div>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Chưa có thư nào được chọn</h3>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                Chọn một thư từ danh sách bên trái hoặc bấm &quot;Soạn thư&quot; để gửi email giao dịch.
+              </p>
             </div>
           )}
         </div>

@@ -34,63 +34,7 @@ interface Task {
   progress: number;
 }
 
-const INITIAL_TASKS: Task[] = [
-  {
-    id: "TASK-101",
-    title: "Kiểm đếm định kỳ tồn kho đông lạnh Q7 - Lô Gà Popcorn CP",
-    description: "Quét lại toàn bộ mã SKU HH053 và đối chiếu với số liệu Sapo. Đảm bảo tem phụ không bị mờ do bám tuyết.",
-    status: "in_progress",
-    priority: "high",
-    assignee: "Trần Quốc Toản",
-    assigneeRole: "Thủ kho Q7",
-    dueDate: "Hôm nay 17:00",
-    progress: 60,
-  },
-  {
-    id: "TASK-102",
-    title: "Bảo dưỡng định kỳ dàn lạnh thùng xe tải 29C-882.60",
-    description: "Kiểm tra ga lạnh R404A, vệ sinh quạt dàn ngưng, thay lọc dầu máy lạnh bảo đảm giữ -20 độ C.",
-    status: "todo",
-    priority: "urgent",
-    assignee: "Ngô Văn Tân",
-    assigneeRole: "Tài xế chuyên dụng",
-    dueDate: "Ngày mai 09:00",
-    progress: 0,
-  },
-  {
-    id: "TASK-103",
-    title: "Đối soát công nợ tuần chành xe miền Tây & Bến xe Giáp Bát",
-    description: "Xuất file MISA 63 cột đối chiếu doanh thu COD VietQR Techcombank 22226060 với hệ thống Sapo.",
-    status: "done",
-    priority: "medium",
-    assignee: "Nguyễn Thị Mai",
-    assigneeRole: "Kế toán bán hàng",
-    dueDate: "Hôm qua",
-    progress: 100,
-  },
-  {
-    id: "TASK-104",
-    title: "Thiết lập chương trình khuyến mãi tương ớt Sài Gòn Can 2L",
-    description: "Áp dụng giá cấp 3 (196.000đ/thùng) cho các quán trà sữa & ăn vặt đặt từ 3 thùng.",
-    status: "in_progress",
-    priority: "medium",
-    assignee: "Lê Hoàng Phúc",
-    assigneeRole: "Kinh doanh B2B",
-    dueDate: "12/10/2026",
-    progress: 40,
-  },
-  {
-    id: "TASK-105",
-    title: "Kiểm tra hạn sử dụng chả cá sợi Ô Ngon và thịt bò viên",
-    description: "Thực hiện dán nhãn ưu tiên xuất trước (FEFO) các thùng có hạn sử dụng dưới 45 ngày.",
-    status: "todo",
-    priority: "high",
-    assignee: "Phạm Văn Long",
-    assigneeRole: "Thủ kho Q12",
-    dueDate: "13/10/2026",
-    progress: 10,
-  },
-];
+const INITIAL_TASKS: Task[] = [];
 
 const PRIORITY_BADGES: Record<TaskPriority, { label: string; color: string }> = {
   urgent: { label: "Khẩn cấp", color: "bg-rose-50 text-rose-700 border-rose-300" },
@@ -111,7 +55,7 @@ export default function TasksPage() {
   const [showAdd, setShowAdd] = React.useState(false);
   const [newTitle, setNewTitle] = React.useState("");
   const [newDesc, setNewDesc] = React.useState("");
-  const [newAssignee, setNewAssignee] = React.useState("Trần Quốc Toản");
+  const [newAssignee, setNewAssignee] = React.useState("Trần Thị Ngọc Thúy");
   const [newPriority, setNewPriority] = React.useState<TaskPriority>("medium");
   const [newDueDate, setNewDueDate] = React.useState("Hôm nay");
 
@@ -140,7 +84,7 @@ export default function TasksPage() {
       priority: newPriority,
       assignee: newAssignee,
       assigneeRole:
-        newAssignee.includes("Tân") ? "Tài xế chuyên dụng" : newAssignee.includes("Mai") ? "Kế toán" : "Thủ kho",
+        newAssignee.includes("Thịnh") ? "Giám đốc" : newAssignee.includes("Nho") ? "Kế toán trưởng" : newAssignee.includes("Tân") ? "Tài xế chuyên dụng" : "Thủ kho",
       dueDate: newDueDate,
       progress: 0,
     };
@@ -206,7 +150,7 @@ export default function TasksPage() {
             <Input
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Tên công việc (VD: Kiểm tra nhiệt độ kho Q12)..."
+              placeholder="Tên công việc (VD: Kiểm tra nhiệt độ kho Định Công)..."
               required
               className="text-sm font-semibold"
             />
@@ -216,10 +160,10 @@ export default function TasksPage() {
                 onChange={(e) => setNewAssignee(e.target.value)}
                 className="h-10 rounded-md border bg-white dark:bg-slate-950 px-3 text-xs flex-1"
               >
-                <option value="Trần Quốc Toản">Trần Quốc Toản (Thủ kho Q7)</option>
+                <option value="Hồ Bá Thịnh">Hồ Bá Thịnh (Giám đốc)</option>
+                <option value="Hoàng Thị Nho">Hoàng Thị Nho (Kế toán trưởng)</option>
+                <option value="Trần Thị Ngọc Thúy">Trần Thị Ngọc Thúy (Thủ kho Định Công)</option>
                 <option value="Ngô Văn Tân">Ngô Văn Tân (Tài xế 29C-882.60)</option>
-                <option value="Nguyễn Thị Mai">Nguyễn Thị Mai (Kế toán)</option>
-                <option value="Phạm Văn Long">Phạm Văn Long (Thủ kho Q12)</option>
               </select>
               <select
                 value={newPriority}
@@ -276,84 +220,91 @@ export default function TasksPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {colTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="rounded-2xl border border-slate-200 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-2.5 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <Badge variant="outline" className={`text-[10px] ${PRIORITY_BADGES[task.priority].color}`}>
-                          {PRIORITY_BADGES[task.priority].label}
-                        </Badge>
-                        <span className="font-mono text-[10px] text-muted-foreground">{task.id}</span>
-                      </div>
-
-                      <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug">
-                        {task.title}
-                      </h2>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
-
-                      {/* Progress bar */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-semibold text-muted-foreground">
-                          <span>Tiến độ</span>
-                          <span className="font-mono">{task.progress}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-sky-500 rounded-full"
-                            style={{ width: `${task.progress}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Assignee & Due Date */}
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground border-t border-slate-100 dark:border-slate-800 pt-2">
-                        <div className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
-                          <User className="w-3 h-3 text-sky-500" /> {task.assignee}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {task.dueDate}
-                        </div>
-                      </div>
-
-                      {/* Status switcher buttons */}
-                      <div className="flex items-center justify-between pt-1">
-                        <div className="flex gap-1">
-                          {task.status !== "todo" && (
-                            <button
-                              onClick={() => moveStatus(task.id, "todo")}
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded border border-slate-200 hover:bg-slate-100"
-                            >
-                              ← Chờ
-                            </button>
-                          )}
-                          {task.status !== "in_progress" && (
-                            <button
-                              onClick={() => moveStatus(task.id, "in_progress")}
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded border border-sky-200 text-sky-600 hover:bg-sky-50"
-                            >
-                              Làm
-                            </button>
-                          )}
-                          {task.status !== "done" && (
-                            <button
-                              onClick={() => moveStatus(task.id, "done")}
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                            >
-                              Xong ✓
-                            </button>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => deleteTask(task.id)}
-                          className="text-slate-400 hover:text-rose-500 p-1"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
+                  {colTasks.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-1.5 min-h-[140px]">
+                      <CheckCircle2 className="w-5 h-5 text-slate-300 dark:text-slate-700" />
+                      <span>Không có công việc nào</span>
                     </div>
-                  ))}
+                  ) : (
+                    colTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="rounded-2xl border border-slate-200 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-2.5 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <Badge variant="outline" className={`text-[10px] ${PRIORITY_BADGES[task.priority].color}`}>
+                            {PRIORITY_BADGES[task.priority].label}
+                          </Badge>
+                          <span className="font-mono text-[10px] text-muted-foreground">{task.id}</span>
+                        </div>
+
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug">
+                          {task.title}
+                        </h2>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+
+                        {/* Progress bar */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[10px] font-semibold text-muted-foreground">
+                            <span>Tiến độ</span>
+                            <span className="font-mono">{task.progress}%</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-sky-500 rounded-full"
+                              style={{ width: `${task.progress}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Assignee & Due Date */}
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground border-t border-slate-100 dark:border-slate-800 pt-2">
+                          <div className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                            <User className="w-3 h-3 text-sky-500" /> {task.assignee}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {task.dueDate}
+                          </div>
+                        </div>
+
+                        {/* Status switcher buttons */}
+                        <div className="flex items-center justify-between pt-1">
+                          <div className="flex gap-1">
+                            {task.status !== "todo" && (
+                              <button
+                                onClick={() => moveStatus(task.id, "todo")}
+                                className="text-[10px] font-semibold px-2 py-0.5 rounded border border-slate-200 hover:bg-slate-100"
+                              >
+                                ← Chờ
+                              </button>
+                            )}
+                            {task.status !== "in_progress" && (
+                              <button
+                                onClick={() => moveStatus(task.id, "in_progress")}
+                                className="text-[10px] font-semibold px-2 py-0.5 rounded border border-sky-200 text-sky-600 hover:bg-sky-50"
+                              >
+                                Làm
+                              </button>
+                            )}
+                            {task.status !== "done" && (
+                              <button
+                                onClick={() => moveStatus(task.id, "done")}
+                                className="text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                              >
+                                Xong ✓
+                              </button>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => deleteTask(task.id)}
+                            className="text-slate-400 hover:text-rose-500 p-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             );
@@ -362,43 +313,58 @@ export default function TasksPage() {
       ) : (
         /* List View */
         <div className="rounded-3xl border border-slate-200 bg-white dark:bg-slate-900 shadow-sm divide-y">
-          {tasks.map((task) => (
-            <div key={task.id} className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={`text-[10px] ${PRIORITY_BADGES[task.priority].color}`}>
-                    {PRIORITY_BADGES[task.priority].label}
-                  </Badge>
-                  <span className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
-                    {task.title}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground truncate">{task.description}</p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>Phụ trách: <strong>{task.assignee}</strong></span>
-                  <span>Hạn: <strong>{task.dueDate}</strong></span>
-                </div>
+          {tasks.length === 0 ? (
+            <div className="p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sky-500">
+                <CheckSquare className="w-6 h-6" />
               </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <select
-                  value={task.status}
-                  onChange={(e) => moveStatus(task.id, e.target.value as TaskStatus)}
-                  className="h-8 rounded-full border bg-white dark:bg-slate-950 px-3 text-xs font-semibold"
-                >
-                  <option value="todo">Cần thực hiện</option>
-                  <option value="in_progress">Đang tiến hành</option>
-                  <option value="done">Đã hoàn thành</option>
-                </select>
-                <button
-                  onClick={() => deleteTask(task.id)}
-                  className="text-slate-400 hover:text-rose-500 p-1.5"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Chưa có công việc nào</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Bấm &quot;Thêm việc mới&quot; để tạo và giao tác vụ cho nhân sự</p>
               </div>
+              <Button onClick={() => setShowAdd(true)} size="sm" variant="outline" className="rounded-full text-xs mt-1">
+                <Plus className="w-3.5 h-3.5 mr-1" /> Thêm công việc đầu tiên
+              </Button>
             </div>
-          ))}
+          ) : (
+            tasks.map((task) => (
+              <div key={task.id} className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-[10px] ${PRIORITY_BADGES[task.priority].color}`}>
+                      {PRIORITY_BADGES[task.priority].label}
+                    </Badge>
+                    <span className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
+                      {task.title}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{task.description}</p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>Phụ trách: <strong>{task.assignee}</strong></span>
+                    <span>Hạn: <strong>{task.dueDate}</strong></span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <select
+                    value={task.status}
+                    onChange={(e) => moveStatus(task.id, e.target.value as TaskStatus)}
+                    className="h-8 rounded-full border bg-white dark:bg-slate-950 px-3 text-xs font-semibold"
+                  >
+                    <option value="todo">Cần thực hiện</option>
+                    <option value="in_progress">Đang tiến hành</option>
+                    <option value="done">Đã hoàn thành</option>
+                  </select>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="text-slate-400 hover:text-rose-500 p-1.5"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>

@@ -54,7 +54,4 @@ export const INITIAL_INVENTORY_ITEMS: InventoryItem[] = [
   mk({ id: "INV-YB-10", sku: "BANH-GA-800", name: "Bánh gà Nét Việt 800g (18 chiếc)", category: "Đông lạnh", dvt: "hộp", warehouse: YB, warehouse_name: "Kho Vệ Tinh Yên Bình", quantity: 95, min_stock: 60, max_stock: 200, temperature: "-18°C", temp_zone: "dong_lanh", lot_number: "L2609-25", production_date: "25/09/2026", expiry_date: "25/12/2026", location: "Hầm Đông Y3", unit_price: 60000 }),
 ];
 
-export const INITIAL_TRANSFERS: StockTransfer[] = [
-  { id: "TRF-001", code: "SK-DC-261009-0001", from_warehouse: YB, to_warehouse: DC, sku: "LC-VIEN-CHIEN-500", item_name: "Viên chiên LC Foods 500g", quantity: 80, dvt: "gói", lot_number: "L2609-12", created_at: "09/10/2026 08:30", created_by: "Trần Thị Ngọc Thúy (Thủ kho)", status: "in_transit", status_label: "Đang vận chuyển", note: "Xe lạnh SK-02 điều chuyển bù tồn Định Công" },
-  { id: "TRF-002", code: "SK-DC-261008-0002", from_warehouse: YB, to_warehouse: DC, sku: "MI-INDOMIE-40", item_name: "Mì trộn Indomie Đặc Biệt 85g", quantity: 50, dvt: "thùng", lot_number: "L2609-15", created_at: "08/10/2026 15:00", created_by: "Trần Thị Ngọc Thúy", status: "completed", status_label: "Đã nhập kho Định Công", note: "Đã kiểm đếm đủ 50 thùng" },
-];
+export const INITIAL_TRANSFERS: StockTransfer[] = [];

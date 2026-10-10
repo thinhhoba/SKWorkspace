@@ -7,13 +7,7 @@ function genId(): string {
   return `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-const SEED_TASKS: WorkdeskTask[] = [
-  { id: "task-001", title: "Soạn đơn SP-0841 theo FEFO (Heo xay cận date)", description: "Ưu tiên lô HSD 15/10", priority: "cao", status: "cho_xu_ly", assignee: "Thuy", dueDate: new Date(Date.now() + 86400000).toISOString(), createdAt: nowIso() },
-  { id: "task-002", title: "Giao hàng tuyến Q7 — An Thinh Mart", description: "14h, xe Tan", priority: "cao", status: "dang_lam", assignee: "Tan", dueDate: nowIso(), createdAt: nowIso() },
-  { id: "task-003", title: "Doi soat cong no An Thinh Mart 84.2tr", description: "Qua han 12 ngay", priority: "cao", status: "cho_xu_ly", assignee: "Nho", dueDate: new Date(Date.now() + 2 * 86400000).toISOString(), createdAt: nowIso() },
-  { id: "task-004", title: "Duyet bao gia thang 10 — Minh Khang Food", description: "Chiet khau 5%", priority: "trung_binh", status: "cho_xu_ly", assignee: "Thinh", dueDate: new Date(Date.now() + 3 * 86400000).toISOString(), createdAt: nowIso() },
-  { id: "task-005", title: "Kiem ke kho lanh Q12", description: "Doi chieu ton thuc te", priority: "thap", status: "hoan_thanh", assignee: "Thuy", dueDate: nowIso(), createdAt: nowIso() },
-];
+const SEED_TASKS: WorkdeskTask[] = [];
 
 let tasks: WorkdeskTask[] = SEED_TASKS.map((t) => ({ ...t }));
 

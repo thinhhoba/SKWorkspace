@@ -6,192 +6,8 @@ const DEFAULT_SAPO_API_KEY = "0166bd3c4bb745edb301413aec771b2b";
 const DEFAULT_SAPO_API_SECRET = "e2cc59d4ace34a009a0704ab9f72a8b4";
 
 /**
- * Fallback dataset: Mô phỏng dữ liệu đơn hàng thực tế từ Sapo Sơn Khang
- */
-const MOCK_SAPO_ORDERS: SapoOrder[] = [
-  {
-    id: 341149305,
-    order_number: 13537,
-    name: "13537",
-    code: "13537",
-    created_on: "2026-10-09T08:30:00Z",
-    created_at: "2026-10-09T08:30:00Z",
-    source_name: "admin",
-    financial_status: "pending",
-    fulfillment_status: "fulfilled",
-    customer: {
-      id: 501,
-      code: "KH0009",
-      name: "Hoàng Thị Túy - 27 Đại Cồ Việt KH0009",
-      address: "Số 5 Ngõ 27 Đại Cồ Việt, P. Bạch Mai, Q. Hai Bà Trưng, Hà Nội",
-      phone: "+84979599902",
-      tax_number: "0111252725",
-    },
-    branch_name: "Kho Định Công (HN)",
-    total_price: 3159500,
-    note: "Đơn sỉ quán xiên bẩn - Túy Foods, giao trước 11h trưa",
-    line_items: [
-      {
-        id: 1,
-        sku: "HH027",
-        name: "Bánh Gà Nét Việt 800g (18 Chiếc) - Hộp",
-        quantity: 3,
-        price: 60000,
-        unit: "Hộp",
-        tax_rate: 8,
-      },
-      {
-        id: 2,
-        sku: "HH053",
-        name: "Gà Viên Chiên Popcorn CP Túi 1kg - Túi 1kg",
-        quantity: 3,
-        price: 117000,
-        unit: "Túi",
-        tax_rate: 8,
-      },
-      {
-        id: 3,
-        sku: "SB237",
-        name: "Viên xốt hải sản Mayonaise 450g basa Thoại An",
-        quantity: 5,
-        price: 41000,
-        unit: "Gói",
-        tax_rate: 8,
-      },
-      {
-        id: 4,
-        sku: "HH050",
-        name: "Chả Tôm Surimi Định Hình Ô Ngon 500g (31 Con)",
-        quantity: 12,
-        price: 44000,
-        unit: "Gói",
-        tax_rate: 8,
-      },
-      {
-        id: 5,
-        sku: "HH092",
-        name: "Xúc xích Hồ lô Đồng Quê LC Foods 500g (45 viên)",
-        quantity: 8,
-        price: 47000,
-        unit: "Gói",
-        tax_rate: 8,
-      },
-      {
-        id: 6,
-        sku: "HH043",
-        name: "Chả Mực Xoắn Ống Deli Foods 2,5kg (178 Viên)",
-        quantity: 2,
-        price: 180000,
-        unit: "Túi",
-        tax_rate: 8,
-      },
-      {
-        id: 7,
-        sku: "HH123",
-        name: "Cá viên Munchee 500g (PM)",
-        quantity: 10,
-        price: 23500,
-        unit: "Gói",
-        tax_rate: 8,
-      },
-      {
-        id: 8,
-        sku: "HH201",
-        name: "Bò viên Muwono 500g (80 viên)",
-        quantity: 10,
-        price: 28000,
-        unit: "Gói",
-        tax_rate: 8,
-      },
-    ],
-  },
-  {
-    id: 341149306,
-    order_number: 13538,
-    name: "13538",
-    code: "13538",
-    created_on: "2026-10-09T09:15:00Z",
-    created_at: "2026-10-09T09:15:00Z",
-    source_name: "zalo",
-    financial_status: "paid",
-    fulfillment_status: "fulfilled",
-    customer: {
-      id: 502,
-      code: "KH0012",
-      name: "Đại Lý Thực Phẩm Hải Hậu (Nam Định)",
-      address: "Bến xe Giáp Bát gửi xe khách Tuấn Bình đi Hải Hậu, Nam Định",
-      phone: "0912445566",
-      tax_number: "0601234567",
-    },
-    branch_name: "Kho Định Công (HN)",
-    total_price: 6850000,
-    note: "Đóng 3 thùng xốp đá gel - CK Techcombank 22226060 đủ 100%",
-    line_items: [
-      {
-        id: 11,
-        sku: "SKU-MI-INDO-DB",
-        name: "Mì trộn Indomie Vị Đặc Biệt 85g (Thùng 40 gói)",
-        quantity: 20,
-        price: 165000,
-        unit: "Thùng",
-        tax_rate: 8,
-      },
-      {
-        id: 12,
-        sku: "SKU-MI-KORENO-CJ",
-        name: "Mì Koreno Jjajangmen Tương Đen 115g (Thùng 24 gói)",
-        quantity: 15,
-        price: 106000,
-        unit: "Thùng",
-        tax_rate: 8,
-      },
-      {
-        id: 13,
-        sku: "SKU-GV-TUONG-OT-SG",
-        name: "Tương ớt Sài Gòn Can 2L (Thùng 6 can)",
-        quantity: 10,
-        price: 196000,
-        unit: "Thùng",
-        tax_rate: 8,
-      },
-    ],
-  },
-  {
-    id: 341149307,
-    order_number: 13539,
-    name: "13539",
-    code: "13539",
-    created_on: "2026-10-09T10:00:00Z",
-    created_at: "2026-10-09T10:00:00Z",
-    source_name: "pos",
-    financial_status: "paid",
-    fulfillment_status: "fulfilled",
-    customer: {
-      id: 503,
-      code: "KH-LE-01",
-      name: "Khách lẻ ghé mua trực tiếp tại kho",
-      address: "Số 96 Ngõ 337 Phố Định Công, Hoàng Mai, Hà Nội",
-      phone: "0987112233",
-    },
-    branch_name: "Kho Định Công (HN)",
-    total_price: 537000,
-    note: "Khách bốc tại kho - giảm 1k/thùng theo chính sách",
-    line_items: [
-      {
-        id: 21,
-        sku: "SKU-MI-INDO-DB",
-        name: "Mì trộn Indomie Vị Đặc Biệt 85g (Thùng 40 gói)",
-        quantity: 3,
-        price: 178000,
-        unit: "Thùng",
-        tax_rate: 8,
-      },
-    ],
-  },
-];
-
-/**
- * Fetch orders trực tiếp từ Live Sapo API qua Basic Auth
+ * Fetch orders trực tiếp từ Live Sapo API qua Basic Auth.
+ * Khi offline hoặc lỗi mạng, trả về [] (không trả dữ liệu mẫu giả lập).
  */
 export async function fetchSapoOrders(options?: {
   sinceDate?: string;
@@ -216,17 +32,17 @@ export async function fetchSapoOrders(options?: {
 
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data.orders) && data.orders.length > 0) {
+      if (Array.isArray(data.orders)) {
         return data.orders;
       }
     } else {
-      console.warn(`[SAPO API] Phản hồi lỗi HTTP ${res.status}, sử dụng dữ liệu dự phòng`);
+      console.warn(`[SAPO API] Phản hồi HTTP ${res.status}`);
     }
   } catch (err) {
-    console.warn("[SAPO API] Không thể kết nối live API Sapo, chuyển sang mock dataset:", err);
+    console.warn("[SAPO API] Không thể kết nối live API Sapo:", err);
   }
 
-  return MOCK_SAPO_ORDERS.slice(0, limit);
+  return [];
 }
 
 /**

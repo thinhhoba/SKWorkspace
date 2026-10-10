@@ -32,7 +32,7 @@ export default function LeftColumn({ revenue, pendingPickCount, fleetTemp, bankB
         <KpiCard
           label="Don can soan FEFO"
           value={`${pendingPickCount} don hang`}
-          subtext="Kho Q7: 9 don · Kho Q12: 5 don"
+          subtext={pendingPickCount > 0 ? `${pendingPickCount} don cho xuat kho` : "Khong co don cho soan"}
           borderColor="border-l-amber-500"
           iconBg="bg-amber-100 dark:bg-amber-950 text-amber-600"
           icon={<Package className="w-3.5 h-3.5" />}
