@@ -1,70 +1,99 @@
-# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 17
+# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 17 (HIỆU CHỈNH CHUẨN XÁC)
 # DỰ ÁN: SK WORKSPACE 2.0 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
 # CHỦ ĐỀ TRỌNG TÂM:
-# ĐÁNH GIÁ GAP ANALYSIS KIẾN TRÚC 4 PHÂN HỆ ERP (MUA HÀNG - KHO HÀNG - BÁN HÀNG - TÀI CHÍNH KẾ TOÁN)
-# ĐỐI SOÁT HIỆN TRẠNG SK WORKSPACE 2.0 VS THỰC TẾ VẬN HÀNH F&B CHUỖI LẠNH SƠN KHANG FOOD
+# ĐÁNH GIÁ HIỆN TRẠNG, KHẢ NĂNG TRIỂN KHAI VÀ GAP ANALYSIS 4 PHÂN HỆ ERP
+# DỰA TRÊN ĐẶC THÙ VẬN HÀNH THỰC TẾ 100% CỦA SƠN KHANG FOOD
 
 ---
 
-### I. CĂN CỨ DOANH NGHIỆP & BỐI CẢNH NGHIỆP VỤ:
-- **Doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
-- **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH
-- **Đặc thù cốt lõi:** Bán buôn / phân phối thực phẩm đông lạnh (Thịt bò, thịt lợn, gia cầm, thủy hải sản nhập khẩu), chuỗi lạnh âm sâu (-18°C ~ -22°C), lưu kho 2 điểm (Kho Tổng Định Công & Kho Yên Bình), vận chuyển xe lạnh Isuzu QKR 270 `29C-882.60`, thanh toán VietQR Techcombank `22226060`, hệ sinh thái bán hàng Sapo POS/Omni, phần mềm kế toán chuẩn mực MISA AMIS (63 cột) & hóa đơn điện tử meInvoice.
+### I. CĂN CỨ DOANH NGHIỆP & ĐẶC THÙ CỐT LÕI (BẢN CHÍNH THỨC):
 
-Chủ tịch ban hành sơ đồ tham chiếu 4 khối phân hệ ERP tiêu chuẩn gồm:
-1. **MUA HÀNG:** Yêu cầu mua, Nhà cung cấp, Báo giá NCC, Đơn hàng mua, Hóa đơn & thanh toán, Chính sách & bảng giá, Báo cáo mua hàng.
-2. **KHO HÀNG:** Kho & hàng hóa, Chứng từ kho, Nhập - xuất kho, Kiểm kho, Chất lượng (KCS), Sổ cái kho, Báo cáo kho.
-3. **BÁN HÀNG:** CRM, Báo giá, Đơn hàng bán, Hóa đơn & thanh toán, Đóng gói & giao hàng, Chương trình bán hàng, Bán hàng POS, Bán hàng Website, Báo cáo bán hàng.
-4. **TÀI CHÍNH - KẾ TOÁN:** Tiền mặt & tiền gửi, Kế toán bán hàng, Kế toán mua hàng, Kế toán kho hàng, Kế toán tài sản, Kế toán tiền lương, Kế toán ngân sách, Kế toán tổng hợp, Báo cáo tài chính & thuế.
+1. **Pháp nhân & Đại diện:**
+   - **Tên doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
+   - **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH (CCCD: `001094016823`, Sinh 20/11/1994)
+   - **Tài khoản thanh toán:** Techcombank `22226060` (BIN: `970407`) — Tự động đối soát VietQR
 
----
+2. **Ngành hàng kinh doanh cốt lõi:**
+   - **Thực phẩm khô ăn liền:** Kho sỉ Mì trộn Indomie (Đặc biệt, Cay nồng, Sườn, Bò cay...), Mì Nissin Raoh, đồ khô ăn liền đóng gói.
+   - **Gia vị:** Tương ớt, tương cà Sài Gòn Can 2L, sốt chấm Mayonnaise Kewpie, dầu ăn Cái Lân 5L, bột gia vị chế biến.
+   - **Thực phẩm đông lạnh chế biến sẵn:** Viên chiên LC Foods, gà viên chiên Popcorn CP, xúc xích, bánh gạo Tokbokki CJ, bánh gà Nét Việt, chả cá, hồ lô chiên...
 
-### II. YÊU CẦU NHIỆM VỤ ĐẶT RA CHO CLAUDE (6 WORKER SQUADS):
+3. **Cơ sở hạ tầng & Phân định Kho bãi:**
+   - **1 Trụ sở văn phòng:** Thôn 6, Xã Yên Xuân, Thành phố Hà Nội *(VĂN PHÒNG HÀNH CHÍNH — TUYỆT ĐỐI KHÔNG LƯU KHO)*.
+   - **1 Địa điểm kinh doanh:** Số 96 Ngõ 337 Phố Định Công, Phường Định Công, Thành phố Hà Nội *(ĐỊA ĐIỂM DUY NHẤT CÓ LƯU KHO)*.
+     * Khu 1: Kho khô thường (Mì Indomie & Gia vị đóng can/thùng).
+     * Khu 2: Kho đông lạnh chế biến sẵn (-18°C ~ -22°C) cho các dòng viên chiên, xúc xích, gà popcorn.
 
-Claude và các Subagents (Opus Plan, Sonnet Code, Haiku Test, Review) phải thực hiện phân tích chuyên sâu, quét toàn bộ codebase 66 routes của `SK Workspace 2.0` và đưa ra đánh giá toàn diện theo 4 góc nhìn:
+4. **Đội ngũ phương tiện vận tải thực tế:**
+   - **Xe máy:** Chuyên giao hỏa tốc nội thành Hà Nội, luồn lách ngõ ngách, phục vụ quán ăn vặt, trà sữa, căng tin trường học, đơn hàng nhỏ lẻ.
+   - **Xe tải VAN (Thùng bảo ôn / Giữ nhiệt):** Giao đơn sỉ số lượng lớn, thùng carton cho đại lý, chuỗi quán ăn, và vận chuyển ra chành xe các bến Giáp Bát & Nước Ngầm đi các tỉnh phía Bắc. *Ưu điểm: Xe VAN được phép lưu thông nội đô Hà Nội 24/7 mà không bị cấm giờ như xe tải thùng nặng!*
 
-#### 1. ĐỐI SOÁT HIỆN TRẠNG (ĐÃ CÓ & ĐANG HOẠT ĐỘNG):
-- Rà soát từng mục trong 4 khối đối chiếu với mã nguồn hiện tại (`/purchase`, `/inventory`, `/sales`, `/pos`, `/dathang`, `/pricing`, `/delivery`, `/fleet`, `/finance`, `/finance/sapo2misa`, `/reports`, `/customers`, `/hr`).
-- Xác định tỷ lệ bao phủ (% coverage) của từng khối phân hệ.
-
-#### 2. PHÂN TÍCH NHỮNG ĐIỂM THIẾU CẦN BỔ SUNG (GAPS & ACTION ITEMS):
-- Xác định những tính năng trong ảnh mà một doanh nghiệp phân phối F&B thực chiến như Sơn Khang Food **thực sự cần** nhưng hệ thống đang còn thiếu hoặc mới dừng ở mức sơ khởi:
-  * *Mua hàng:* Phiếu yêu cầu mua hàng nội bộ (Purchase Requisition), bảng so sánh giá nhiều NCC.
-  * *Kho hàng:* Phiếu điều chuyển kho nội bộ giữa Kho Định Công ↔ Yên Bình (giao diện thao tác), Phiếu kiểm kê kho định kỳ (ghi nhận chênh lệch thừa/thiếu), Phiếu kiểm tra KCS chất lượng lạnh khi nhận hàng (nhiệt độ tâm hàng đông lạnh, cảm quan bao bì).
-  * *Bán hàng:* Báo giá B2B xuất PDF/Zalo cho đại lý chành xe, Quản lý công nợ gối đầu chi tiết theo hạn nợ (30-60 ngày).
-  * *Tài chính:* Báo cáo tuổi nợ (Aging report) khách buôn & nhà cung cấp.
-
-#### 3. CẢNH BÁO NHỮNG ĐIỂM "THỪA" / OVER-ENGINEERING (RANH GIỚI VỚI MISA AMIS):
-- Chỉ rõ những tính năng trong sơ đồ ERP tổng quát mà **KHÔNG NÊN** xây dựng phức tạp trên mini-app nội bộ vì sẽ gây lãng phí tài nguyên và xung đột dữ liệu với MISA AMIS:
-  * *Kế toán tài sản, Kế toán ngân sách, Kế toán tổng hợp (General Ledger), Báo cáo tài chính & thuế:* Đây là nghiệp vụ pháp lý chuyên sâu mà kế toán trưởng Hoàng Thị Nho bắt buộc phải thao tác và kết xuất trên phần mềm kế toán **MISA AMIS**.
-  * Vai trò của SK Workspace tại đây là **Cổng vận hành tác nghiệp (Operational Hub) & Trạm tiền xử lý**: gom dòng tiền VietQR, chuẩn hóa hóa đơn, xuất file 63 cột chuẩn sang MISA AMIS, chứ không biến mình thành một bản sao cồng kềnh của MISA!
-
-#### 4. ĐÁNH GIÁ LỢI THẾ ĐẶC THÙ F&B CHUỖI LẠNH (VƯỢT TRỘI SO VỚI ERP THÔNG THƯỜNG):
-- Làm nổi bật những module sống còn mà ảnh ERP mẫu thông thường **hoàn toàn không có**, nhưng SK Workspace đã xây dựng thành công:
-  * *IoT Radar Chuỗi Lạnh Xe Tải Isuzu 29C-882.60:* Giám sát nhiệt độ thùng xe -18°C ~ -22°C, GPS, cảm biến lốc lạnh, cửa thùng, còi báo động vi phạm HACCP.
-  * *Kho vận xuất hàng FEFO (First Expired, First Out):* Cảnh báo cận hạn sử dụng (< 30 ngày), ưu tiên nhặt hàng theo Lot/Date để tránh hủy hàng đông lạnh.
-  * *Đối soát tự động VietQR Techcombank 22226060:* Tự động khớp lệnh và gạch nợ real-time không cần thủ công.
-  * *Cầu nối Sapo2Misa 63 cột:* Đồng bộ tự động doanh thu và đơn hàng Sapo sang chứng từ kế toán MISA.
+5. **Hệ sinh thái phần mềm đang sử dụng (Đều hỗ trợ kết nối API chính thức):**
+   - **Sapo:** Phần mềm quản lý bán hàng đa kênh & POS quầy (Kết nối Open API).
+   - **Misa Amis Online:** Phần mềm kế toán doanh nghiệp chính thức (Kết nối Open API nghiệp vụ).
+   - **Misa meInvoice:** Phần mềm hóa đơn điện tử chính thức (Kết nối API ký số và phát hành HĐĐT C26TSK).
 
 ---
 
-### III. MA TRẬN PHÂN BỔ THỰC THI (CLAUDE SQUADS):
+### II. YÊU CẦU NHIỆM VỤ ĐẶT RA CHO CLAUDE CODE (CHỈ THỊ 17):
 
-| Squad | Phạm Vi Đánh Giá & Kế Hoạch | Tệp Trọng Tâm Cần Quét |
-| :--- | :--- | :--- |
-| **Squad 1 (Mua Hàng & NCC)** | Phân tích quy trình Thu mua, Nhà cung cấp, Báo giá, So sánh NCC | `packages/modules/purchase/**`<br>`app/purchase/**`<br>`app/api/purchase/**` |
-| **Squad 2 (Kho Hàng & FEFO)** | Phân tích Kho lạnh, Chứng từ Nhập/Xuất/Chuyển, Kiểm kê, KCS lạnh | `packages/modules/inventory/**`<br>`app/inventory/**`<br>`app/api/inventory/**` |
-| **Squad 3 (Bán Hàng & Đa Kênh)** | Phân tích B2B Web Order, POS Kho, Báo giá, Chính sách giá, Đóng gói | `packages/modules/sales/**`<br>`app/sales/**`<br>`app/pos/**`<br>`app/dathang/**`<br>`app/pricing/**` |
-| **Squad 4 (Tài Chính & Kế Toán)** | Phân định ranh giới SK Workspace vs MISA AMIS, Quản lý công nợ & dòng tiền | `packages/modules/finance/**`<br>`app/finance/**`<br>`app/finance/sapo2misa/**` |
-| **Squad 5 (Chuỗi Lạnh & Vận Tải)** | Đánh giá phân hệ Đội xe, HACCP, Giao vận tuyến nội thành | `packages/modules/fleet/**`<br>`packages/modules/delivery/**`<br>`app/fleet/**`<br>`app/delivery/**` |
-| **Squad 6 (Kiến Trúc & Lộ Trình)** | Lập bảng ma trận GAP Analysis toàn diện và xây dựng Lộ trình nâng cấp 3 giai đoạn | `docs/GAP_ANALYSIS_ERP_PHAN_HE.md`<br>`.claude/reports/directive-17.md` |
+Claude và các Subagents (Opus Plan, Sonnet Code, Haiku Test, Review) phải phân tích, đánh giá hiện trạng và khả năng triển khai 4 khối phân hệ ERP trong ảnh tham chiếu dựa trên đúng 100% đặc thù cốt lõi trên:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│             SƠ ĐỒ 4 KHỐI PHÂN HỆ ERP THAM CHIẾU CẦN ĐÁNH GIÁ (ẢNH GỐC)                 │
+├──────────────────────────┬──────────────────────────────┬──────────────────────────────┤
+│ 1. MUA HÀNG (7 mục)      │ 2. KHO HÀNG (7 mục)          │ 3. BÁN HÀNG (9 mục)          │
+│ • Yêu cầu mua            │ • Kho & hàng hóa (SKU, vị trí)│ • CRM (Hồ sơ, lịch sử KH)   │
+│ • Nhà cung cấp           │ • Chứng từ kho (Nhập, xuất)  │ • Báo giá B2B                │
+│ • Báo giá NCC            │ • Nhập - xuất kho            │ • Đơn hàng bán               │
+│ • Đơn hàng mua           │ • Kiểm kho (Kiểm kê chênh)   │ • Hóa đơn & thanh toán       │
+│ • Hóa đơn & thanh toán   │ • Chất lượng (KCS hàng về)   │ • Đóng gói & giao hàng       │
+│ • Chính sách & bảng giá  │ • Sổ cái kho                 │ • Chương trình bán hàng      │
+│ • Báo cáo mua hàng       │ • Báo cáo kho                │ • Bán hàng POS               │
+│                          │                              │ • Bán hàng Website           │
+│                          │                              │ • Báo cáo bán hàng           │
+├──────────────────────────┴──────────────────────────────┴──────────────────────────────┤
+│ 4. TÀI CHÍNH - KẾ TOÁN (9 mục)                                                         │
+│ • Tiền mặt & tiền gửi    • Kế toán kho hàng             • Kế toán ngân sách            │
+│ • Kế toán bán hàng       • Kế toán tài sản              • Kế toán tổng hợp             │
+│ • Kế toán mua hàng       • Kế toán tiền lương           • Báo cáo tài chính & thuế     │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 1. ĐỐI SOÁT HIỆN TRẠNG & TỶ LỆ BAO PHỦ:
+- Quét toàn bộ codebase 66 routes hiện tại của `SK Workspace 2.0` đối chiếu với 4 khối trên.
+- Khẳng định rõ các module đã hoàn thiện và hoạt động thực tế.
+
+#### 2. LÀM RÕ CÁC ĐIỂM THIẾU CẦN BỔ SUNG (GAPS):
+- **Kho Hàng (Định Công):**
+  * *Kiểm kho (Stocktake):* Cần màn hình kiểm kê định kỳ đối soát tồn thực tế tại Kho Định Công, ghi nhận hao hụt/lệch tồn giữa hàng khô và hàng đông lạnh chế biến sẵn.
+  * *KCS Hàng Về:* Kiểm tra cảm quan, hạn sử dụng trên bao bì Mì Indomie, gia vị và kiểm nhiệt độ đông lạnh các dòng viên chiên/gà popcorn khi xe nhà máy giao đến.
+- **Bán Hàng:**
+  * *Báo giá B2B:* Tạo báo giá nhanh gửi Zalo cho các quán ăn, đại lý sỉ.
+  * *Đóng gói & Điều phối Giao vận:* Phân tách rõ luồng giao: **Tuyến Xe máy** (nội thành, đơn lẻ, hỏa tốc) vs **Tuyến Xe tải VAN** (đơn sỉ nhiều thùng, hàng đông lạnh chế biến sẵn, gửi chành xe bến Giáp Bát / Nước Ngầm).
+- **Mua Hàng:**
+  * *Phiếu yêu cầu mua hàng:* Đề xuất đặt hàng khi mì Indomie hoặc đồ đông lạnh chạm ngưỡng tối thiểu.
+
+#### 3. CHỈ RÕ CÁC ĐIỂM "THỪA" / OVER-ENGINEERING (RANH GIỚI VỚI MISA AMIS):
+- **Khối Tài chính - Kế toán:** Nhấn mạnh kiên quyết **KHÔNG LÀM TRÊN MINI-APP** các mục:
+  * *Kế toán tài sản, Kế toán ngân sách, Kế toán tổng hợp (General Ledger), Báo cáo tài chính & quyết toán thuế.*
+  * **Lý do kiến trúc:** Doanh nghiệp đang sử dụng **Misa Amis Online** và **meInvoice** có đầy đủ kết nối API. Mọi nghiệp vụ hạch toán chuyên sâu, khấu hao, thuế GTGT đều được Kế toán trưởng xử lý trên MISA AMIS.
+  * SK Workspace chỉ tập trung làm tốt: **Sổ quỹ dòng tiền thực (Techcombank 22226060), Gạch nợ tự động VietQR, và Cầu nối Sapo2Misa chuẩn 63 cột nghiệp vụ** để đẩy dữ liệu sạch sang AMIS qua API.
+
+#### 4. ĐÁNH GIÁ 4 LỢI THẾ ĐẶC THÙ CỦA SƠN KHANG (ERP MẪU KHÔNG CÓ):
+- Phân tích sâu 4 vũ khí đã hoạt động trên hệ thống:
+  1. *Giám sát Xe Tải VAN (Thùng bảo ôn/giữ nhiệt):* Đảm bảo nhiệt độ hàng đông lạnh chế biến sẵn khi giao quán ăn hoặc ra bến xe Giáp Bát.
+  2. *Cảnh báo Cận Date FEFO:* Cực kỳ quan trọng cho thực phẩm ăn liền và đông lạnh chế biến sẵn (cảnh báo date < 30 ngày để kích hoạt xả kho).
+  3. *VietQR Instant Reconcile:* Khớp lệnh tự động số dư Techcombank 22226060 theo từng đơn hàng.
+  4. *Bộ tích hợp Tam Giác API: Sapo (Bán hàng) ↔ SK Workspace (Vận hành) ↔ Misa Amis & meInvoice (Kế toán).*
 
 ---
 
-### IV. TIÊU CHUẨN ĐẦU RA & BÁO CÁO (QUALITY GATE):
-1. Xuất bản tệp phân tích chiến lược chi tiết: `docs/GAP_ANALYSIS_ERP_PHAN_HE.md`.
-2. Ghi nhận toàn bộ kết quả thẩm định vào tệp báo cáo chính thức `.claude/reports/directive-17.md` và đồng bộ sang `.claude/reports/latest.md`.
-3. Bảng ma trận đối chiếu phải có đầy đủ: Trạng thái (Đã có / Thiếu / Thừa), Mức độ ưu tiên (P1 - Cần ngay, P2 - Trung hạn, P3 - Không khuyến nghị), và Đề xuất giải pháp kỹ thuật cụ thể.
+### III. SẢN PHẨM ĐẦU RA YÊU CẦU:
+1. Cập nhật và hoàn thiện tài liệu chiến lược: `docs/GAP_ANALYSIS_ERP_PHAN_HE.md`.
+2. Xuất bản báo cáo thẩm định chính thức vào `.claude/reports/directive-17.md` và `.claude/reports/latest.md`.
+3. Bảng ma trận đối soát phải nêu rõ: Tên tính năng, Hiện trạng trên SK Workspace, Đánh giá (Đã có / Thiếu / Thừa), Mức độ ưu tiên (P1, P2, P3), và Hướng kết nối API (Sapo / Misa / meInvoice).
 
 **BAN HÀNH BỞI: COMMANDER & CHỦ TỊCH HỒ BÁ THỊNH**  
-*Chỉ thị số 17 có hiệu lực thi hành ngay lập tức. Claude hãy đọc tệp này và tiến hành phân tích toàn diện.*
+*Chỉ thị số 17 có hiệu lực thi hành ngay lập tức.*

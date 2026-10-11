@@ -22,13 +22,50 @@ export const COMPANY_PROFILE = {
   charterCapitalWords: "Hai tỷ đồng chẵn",
   companyType: "Công ty trách nhiệm hữu hạn một thành viên",
 
-  // 3. Trụ sở chính & Địa điểm kinh doanh
+  // 3. Ngành hàng kinh doanh cốt lõi
+  productCategories: [
+    "Thực phẩm khô ăn liền (Mì trộn Indomie, mì Nissin, đồ ăn liền đóng gói)",
+    "Gia vị (Tương ớt, tương cà Sài Gòn, sốt chấm Kewpie, dầu ăn Cái Lân, gia vị chế biến)",
+    "Thực phẩm đông lạnh chế biến sẵn (Viên chiên LC Foods, gà Popcorn CP, xúc xích, bánh gạo Tokbokki, bánh gà Nét Việt)"
+  ],
+
+  // 4. Trụ sở chính & Địa điểm kinh doanh (Phân định rõ lưu kho)
+  headquarters: {
+    address: "Thôn 6, Xã Yên Xuân, Thành phố Hà Nội, Việt Nam",
+    hasWarehouse: false, // Trụ sở văn phòng hành chính — KHÔNG LƯU KHO
+    type: "VĂN PHÒNG HÀNH CHÍNH"
+  },
+  warehouseLocation: {
+    address: "Số 96 Ngõ 337 Phố Định Công, Phường Định Công, Thành phố Hà Nội, Việt Nam",
+    alternateAddress: "Số 96 Ngõ 412 Trịnh Đình Cửu, Phường Định Công, Quận Hoàng Mai, Thành phố Hà Nội",
+    hasWarehouse: true, // Điểm tập kết & xuất nhập kho thực tế — CÓ LƯU KHO
+    businessLocationCode: "00001",
+    businessLocationName: "ĐỊA ĐIỂM KINH DOANH - CÔNG TY TNHH THỰC PHẨM SƠN KHANG",
+    zones: ["Kho khô thường (Mì & Gia vị)", "Kho đông lạnh chế biến sẵn (-18°C ~ -22°C)"]
+  },
   headquartersAddress: "Thôn 6, Xã Yên Xuân, Thành phố Hà Nội, Việt Nam",
   mainWarehouseAddress: "Số 96 Ngõ 337 Phố Định Công, Phường Định Công, Thành phố Hà Nội, Việt Nam",
-  alternateWarehouseAddress: "Số 96 Ngõ 412 Trịnh Đình Cửu, Phường Định Công, Quận Hoàng Mai, Thành phố Hà Nội",
-  businessLocationCode: "00001",
-  businessLocationName: "ĐỊA ĐIỂM KINH DOANH - CÔNG TY TNHH THỰC PHẨM SƠN KHANG",
-  businessLocationUpdatedDate: "2026-10-02",
+
+  // 5. Đội ngũ phương tiện vận tải
+  fleet: {
+    motorbikes: {
+      type: "Xe máy",
+      purpose: "Giao hỏa tốc nội thành, đơn nhỏ lẻ ngõ ngách, quán ăn vặt, căng tin trường học",
+      driver: "Nhân viên giao vận xe máy"
+    },
+    vanTrucks: {
+      type: "Xe tải VAN (Thùng bảo ôn / Giữ nhiệt)",
+      purpose: "Giao sỉ số lượng lớn, thùng to cho đại lý, chuỗi quán ăn, chành xe bến Giáp Bát & Nước Ngầm (Chạy phố 24/7 không cấm giờ)",
+      driver: "Ngô Văn Tân (0942 22 60 60)"
+    }
+  },
+
+  // 6. Hệ sinh thái phần mềm kết nối API chính thức
+  softwareIntegrations: {
+    sales: "Sapo POS / Omni (Kết nối Open API 2 chiều)",
+    accounting: "MISA AMIS Online (Kết nối Open API 63 cột nghiệp vụ)",
+    eInvoice: "MISA meInvoice (Kết nối API ký số và phát hành HĐĐT C26TSK)"
+  },
 
   // 4. Người đại diện theo pháp luật
   legalRepresentative: {
