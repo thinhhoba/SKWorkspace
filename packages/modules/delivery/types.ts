@@ -1,6 +1,17 @@
 export type RouteType = "noi_thanh_hn" | "chanh_xe_tinh";
 export type TripStatus = "cho_xep_xe" | "dang_giao" | "da_giao" | "hoan_tat";
 export type StopStatus = "cho_giao" | "dang_giao" | "da_giao" | "that_bai";
+export type VehicleType = "xe_may" | "van_bao_on";
+
+export const VEHICLE_LABEL: Record<VehicleType, string> = {
+  xe_may: "🛵 Xe Máy",
+  van_bao_on: "🚐 Xe Tải VAN",
+};
+
+export const VEHICLE_COLOR: Record<VehicleType, { bg: string; text: string; border: string }> = {
+  xe_may: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+  van_bao_on: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+};
 
 export const ROUTE_TYPE_LABEL: Record<RouteType, string> = {
   noi_thanh_hn: "Nội thành HN",
@@ -52,6 +63,8 @@ export interface DeliveryTrip {
   driver_phone: string;
   license_plate: string;
   route_type: RouteType;
+  vehicle_type: VehicleType;
+  vehicle_id?: string;
   status: TripStatus;
   stops: DeliveryStop[];
   created_at: string;
@@ -74,3 +87,12 @@ export const DRIVER_PHONE = "0942 22 60 60";
 export const WAREHOUSE_ADDRESS = "Kho Tổng Định Công — Số 96 Ngõ 337 Phố Định Công, P. Định Công, Hoàng Mai, Hà Nội";
 export const COLLECTION_ACCOUNT = "Techcombank 22226060 — CONG TY TNHH THUC PHAM SON KHANG";
 export const BEN_XE_LABELS = ["Bến xe Giáp Bát", "Bến xe Nước Ngầm", "Bến xe Mỹ Đình", "Bến xe Gia Lâm"] as const;
+
+// Vehicle helpers
+export function getVehicleLabel(v: VehicleType): string {
+  return VEHICLE_LABEL[v] ?? v;
+}
+
+export function getVehicleColor(v: VehicleType): { bg: string; text: string; border: string } {
+  return VEHICLE_COLOR[v] ?? { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
+}

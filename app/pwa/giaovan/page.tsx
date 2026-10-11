@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Phone, MapPin, Copy, Check, X, Truck, Package, QrCode } from "lucide-react";
 import { buildOrderVietQr } from "@/packages/modules/payment/vietqr";
 import type { DeliveryTrip, DeliveryStop } from "@/packages/modules/delivery/types";
-import { STOP_STATUS_LABEL } from "@/packages/modules/delivery/types";
+import { STOP_STATUS_LABEL, VEHICLE_LABEL, VEHICLE_COLOR } from "@/packages/modules/delivery/types";
 
 const vnd = (n: number) => `${n.toLocaleString("vi-VN")} ₫`;
 
@@ -126,7 +126,10 @@ export default function PwaGiaoVanPage() {
           <div key={trip.id} className="clay-card overflow-hidden p-0">
             <div className="flex items-center justify-between border-b border-white/60 px-3 py-2 bg-slate-50/50 dark:bg-slate-800/30">
               <span className="mono text-xs font-bold">{trip.code}</span>
-              <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold border ${trip.route_type === "chanh_xe_tinh" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-sky-50 text-sky-700 border-sky-200"}`}>{trip.route_type === "chanh_xe_tinh" ? "Chành xe" : "Nội thành"} · {trip.license_plate}</span>
+              <span className="flex items-center gap-1.5">
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${trip.vehicle_type === "xe_may" ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}>{VEHICLE_LABEL[trip.vehicle_type ?? "van_bao_on"]}</span>
+                <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold border ${trip.route_type === "chanh_xe_tinh" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-sky-50 text-sky-700 border-sky-200"}`}>{trip.route_type === "chanh_xe_tinh" ? "Chành xe" : "Nội thành"} · {trip.license_plate}</span>
+              </span>
             </div>
             {trip.stops.map((s, idx) => {
               const done = s.status === "da_giao";

@@ -1,15 +1,16 @@
-import type { DeliveryTrip, DeliveryStats, RouteType, TripStatus, StopStatus } from "./types";
+import type { DeliveryTrip, DeliveryStats, RouteType, TripStatus, StopStatus, VehicleType } from "./types";
 import { MOCK_DELIVERY_TRIPS } from "./mockData";
 import { DRIVER_NAME, DRIVER_PHONE, WAREHOUSE_ADDRESS, COLLECTION_ACCOUNT } from "./types";
 import { buildOrderVietQr } from "@/packages/modules/payment/vietqr";
 
-let deliveryStore: DeliveryTrip[] = MOCK_DELIVERY_TRIPS.map((t) => ({ ...t, stops: t.stops.map((s) => ({ ...s })) }));
+let deliveryStore: DeliveryTrip[] = MOCK_DELIVERY_TRIPS.map((t) => ({ ...t, stops: t.stops.map((s) => ({ ...s })), vehicle_type: "van_bao_on" as VehicleType }));
 let seqCounter = 110;
 
-export function getDeliveryTrips(filters?: { route_type?: string; status?: string; search?: string }): DeliveryTrip[] {
+export function getDeliveryTrips(filters?: { route_type?: string; status?: string; search?: string; vehicle_type?: string }): DeliveryTrip[] {
   let list = [...deliveryStore];
   if (filters?.route_type && filters.route_type !== "ALL") list = list.filter((t) => t.route_type === filters.route_type);
   if (filters?.status && filters.status !== "ALL") list = list.filter((t) => t.status === filters.status);
+  if (filters?.vehicle_type && filters.vehicle_type !== "ALL") list = list.filter((t) => t.vehicle_type === filters.vehicle_type);
   if (filters?.search?.trim()) {
     const q = filters.search.trim().toLowerCase();
     list = list.filter(
@@ -44,14 +45,29 @@ export function getDeliveryStats(): DeliveryStats {
   return { total_trips, dang_giao, hoan_tat, noi_thanh_count, chanh_xe_count, tong_thung_xop, tong_thu_ho };
 }
 
+export function getVehicleStats(): { xe_may_count: number; van_count: number } {
+  const xe_may_count = deliveryStore.filter((t) => t.vehicle_type === "xe_may").length;
+  const van_count = deliveryStore.filter((t) => t.vehicle_type === "van_bao_on").length;
+  return { xe_may_count, van_count };
+}
+
 export function createDeliveryTrip(input: {
   route_type: RouteType;
   license_plate: string;
+  vehicle_type?: VehicleType;
   stops: Array<{ customer: string; address: string; phone: string; thung_xop: number; amount_cod: number; note?: string }>;
 }): DeliveryTrip {
   if (!input.route_type || !["noi_thanh_hn", "chanh_xe_tinh"].includes(input.route_type)) throw new Error("Loại tuyến không hợp lệ");
   if (!input.license_plate?.trim()) throw new Error("Thiếu biển số xe");
   if (!input.stops?.length) throw new Error("Chuyến phải có ít nhất 1 điểm dừng");
+
+  // Validate vehicle_type logic: xe_may chỉ cho noi_thanh_hn
+  const vehicle_type = input.vehicle_type || "van_bao_on";
+  if (!["xe_may", "van_bao_on"].includes(vehicle_type)) throw new Error("Loại phương tiện không hợp lệ");
+  if (vehicle_type === "xe_may" && input.route_type === "chanh_xe_tinh") {
+    throw new Error("Xe máy chỉ phù hợp cho tuyến nội thành HN, không phù hợp cho chành xe tỉnh");
+  }
+
   const id = `do-${String(++seqCounter).padStart(2, "0")}`;
   const code = `SK-DO-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}${String(seqCounter).slice(-2)}`;
   const trip: DeliveryTrip = {
@@ -61,6 +77,7 @@ export function createDeliveryTrip(input: {
     driver_phone: DRIVER_PHONE,
     license_plate: input.license_plate.trim(),
     route_type: input.route_type,
+    vehicle_type,
     status: "cho_xep_xe",
     created_at: new Date().toLocaleDateString("vi-VN"),
     cod_account: "Techcombank 22226060",
@@ -141,6 +158,6 @@ export function generateChanhXeSlip(tripId: string, stopId?: string): string {
 }
 
 export function __resetDeliveryStore(): void {
-  deliveryStore = MOCK_DELIVERY_TRIPS.map((t) => ({ ...t, stops: t.stops.map((s) => ({ ...s })) }));
+  deliveryStore = MOCK_DELIVERY_TRIPS.map((t) => ({ ...t, stops: t.stops.map((s) => ({ ...s })), vehicle_type: "van_bao_on" as VehicleType }));
   seqCounter = 110;
 }

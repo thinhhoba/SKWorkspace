@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { DeliveryTrip, DeliveryStats, RouteType } from "@/packages/modules/delivery/types";
-import { ROUTE_TYPE_LABEL, TRIP_STATUS_LABEL, TRIP_STATUS_COLOR, STOP_STATUS_LABEL, DRIVER_NAME, WAREHOUSE_ADDRESS, COLLECTION_ACCOUNT } from "@/packages/modules/delivery/types";
+import type { DeliveryTrip, DeliveryStats, RouteType, VehicleType } from "@/packages/modules/delivery/types";
+import { ROUTE_TYPE_LABEL, TRIP_STATUS_LABEL, TRIP_STATUS_COLOR, STOP_STATUS_LABEL, VEHICLE_LABEL, VEHICLE_COLOR, DRIVER_NAME, WAREHOUSE_ADDRESS, COLLECTION_ACCOUNT } from "@/packages/modules/delivery/types";
 
 const fmtVnd = (n: number) => n.toLocaleString("vi-VN") + " ₫";
 
@@ -16,11 +16,24 @@ const ROUTE_TABS: { value: string; label: string }[] = [
   { value: "chanh_xe_tinh", label: "Tuyến Chành Xe Bến Bãi" },
 ];
 
+const VEHICLE_TABS: { value: string; label: string }[] = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "xe_may", label: "🛵 Xe Máy" },
+  { value: "van_bao_on", label: "🚐 VAN" },
+];
+
+function vehicleBadgeClass(vt: VehicleType) {
+  const c = VEHICLE_COLOR[vt] ?? { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
+  return `${c.bg} ${c.text} ${c.border}`;
+}
+
 export default function DeliveryPage() {
   const [trips, setTrips] = React.useState<DeliveryTrip[]>([]);
   const [stats, setStats] = React.useState<DeliveryStats | null>(null);
+  const [vehicleStats, setVehicleStats] = React.useState<{ xe_may_count: number; van_count: number } | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [routeType, setRouteType] = React.useState("ALL");
+  const [vehicleFilter, setVehicleFilter] = React.useState("ALL");
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [toast, setToast] = React.useState<string | null>(null);
@@ -33,6 +46,7 @@ export default function DeliveryPage() {
   const [createOpen, setCreateOpen] = React.useState(false);
   const [createRoute, setCreateRoute] = React.useState<RouteType>("noi_thanh_hn");
   const [createPlate, setCreatePlate] = React.useState("29C-882.60");
+  const [createVehicle, setCreateVehicle] = React.useState<VehicleType>("van_bao_on");
   const [createStops, setCreateStops] = React.useState([{ customer: "", address: "", phone: "", thung_xop: 1, amount_cod: 0 }]);
   const [creating, setCreating] = React.useState(false);
 
@@ -46,15 +60,28 @@ export default function DeliveryPage() {
     try {
       const qs = new URLSearchParams();
       if (routeType !== "ALL") qs.set("route_type", routeType);
+      if (vehicleFilter !== "ALL") qs.set("vehicle_type", vehicleFilter);
       if (debouncedSearch.trim()) qs.set("search", debouncedSearch.trim());
       const res = await fetch(`/api/delivery?${qs.toString()}`);
       const data = await res.json();
       if (data.success) {
         setTrips(data.trips || []);
         if (data.stats) setStats(data.stats);
+        // Derive vehicleStats client-side from full stats or compute from trips if available
+        const vs = data.vehicleStats;
+        if (vs) setVehicleStats(vs);
+        else if (data.trips) {
+          const all = data.trips as DeliveryTrip[];
+          // If filtered, we still want total counts — compute from all trips via separate fetch or client aggregation
+          // For filtered view, count within filtered set
+          setVehicleStats({
+            xe_may_count: all.filter((t) => t.vehicle_type === "xe_may").length,
+            van_count: all.filter((t) => t.vehicle_type === "van_bao_on").length,
+          });
+        }
       }
     } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [routeType, debouncedSearch]);
+  }, [routeType, vehicleFilter, debouncedSearch]);
 
   React.useEffect(() => { fetchData(); }, [fetchData]);
   React.useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }, [toast]);
@@ -73,7 +100,6 @@ export default function DeliveryPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setSlipText(data.text);
-      // Print window
       const w = window.open("", "_blank");
       if (w) {
         w.document.write(`<pre style="font-family:monospace;font-size:12px;white-space:pre-wrap;padding:16px;">${data.text.replace(/</g, "&lt;")}</pre><p style="font-size:11px;color:#666;text-align:center;">STK thu hộ: ${COLLECTION_ACCOUNT} — In dán lên thùng xốp</p>`);
@@ -87,9 +113,13 @@ export default function DeliveryPage() {
     if (!createPlate.trim()) { setToast("Thiếu biển số xe"); return; }
     const validStops = createStops.filter((s) => s.customer.trim() && s.address.trim());
     if (!validStops.length) { setToast("Cần ít nhất 1 điểm dừng"); return; }
+    if (createVehicle === "xe_may" && createRoute === "chanh_xe_tinh") {
+      setToast("Xe máy chỉ phù hợp tuyến Nội thành HN");
+      return;
+    }
     setCreating(true);
     try {
-      const res = await fetch("/api/delivery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route_type: createRoute, license_plate: createPlate, stops: validStops }) });
+      const res = await fetch("/api/delivery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route_type: createRoute, license_plate: createPlate, vehicle_type: createVehicle, stops: validStops }) });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setToast(`Đã tạo ${data.trip.code}`);
@@ -113,12 +143,12 @@ export default function DeliveryPage() {
         </div>
       </div>
 
-      {/* 4 Clay-KPI */}
+      {/* 4 Clay-KPI + Vehicle split */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="clay-card rounded-2xl p-4 border-l-4 border-l-sky-500">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><Truck className="w-3.5 h-3.5 text-sky-500" /> Chuyến đang lăn bánh</div>
           <div className="mt-1 text-2xl font-bold">{stats ? stats.dang_giao : "—"}</div>
-          <div className="text-[11px] text-muted-foreground">Tổng {stats?.total_trips ?? "—"} chuyến</div>
+          <div className="text-[11px] text-muted-foreground">Tổng {stats?.total_trips ?? "—"} chuyến {vehicleStats ? <span>· 🛵 {vehicleStats.xe_may_count} · 🚐 {vehicleStats.van_count}</span> : null}</div>
         </div>
         <div className="clay-card rounded-2xl p-4 border-l-4 border-l-emerald-500">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><MapPin className="w-3.5 h-3.5 text-emerald-500" /> Đơn giao nội thành HN</div>
@@ -136,12 +166,28 @@ export default function DeliveryPage() {
           <div className="text-[11px] text-muted-foreground">Thu hộ VietQR 22226060</div>
         </div>
       </div>
+      {/* Vehicle KPI row */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="clay-card rounded-2xl p-3 border-l-4" style={{ borderLeftColor: "#f97316" }}>
+          <div className="text-xs text-muted-foreground">🛵 Xe Máy — hỏa tốc &lt;30kg</div>
+          <div className="mt-1 text-xl font-bold">{vehicleStats ? vehicleStats.xe_may_count : "—"} <span className="text-xs font-normal text-muted-foreground">chuyến</span></div>
+        </div>
+        <div className="clay-card rounded-2xl p-3 border-l-4" style={{ borderLeftColor: "#2563eb" }}>
+          <div className="text-xs text-muted-foreground">🚐 VAN bảo ôn — sỉ / đông lạnh / chành xe</div>
+          <div className="mt-1 text-xl font-bold">{vehicleStats ? vehicleStats.van_count : "—"} <span className="text-xs font-normal text-muted-foreground">chuyến</span></div>
+        </div>
+      </div>
 
-      {/* Tabs + search */}
+      {/* Route Tabs + Vehicle Tabs + search */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-1.5">
           {ROUTE_TABS.map((t) => (
             <button key={t.value} onClick={() => setRouteType(t.value)} className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all ${routeType === t.value ? "bg-sky-600 text-white border-sky-600 shadow" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-sky-300"}`}>{t.label}</button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {VEHICLE_TABS.map((t) => (
+            <button key={t.value} onClick={() => setVehicleFilter(t.value)} className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all ${vehicleFilter === t.value ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-400"}`}>{t.label}</button>
           ))}
         </div>
         <div className="relative flex-1 min-w-[180px] max-w-[320px] ml-auto">
@@ -163,6 +209,7 @@ export default function DeliveryPage() {
                 <th className="text-left px-3 py-2.5 font-semibold whitespace-nowrap">Mã chuyến</th>
                 <th className="text-left px-3 py-2.5 font-semibold">Tài xế</th>
                 <th className="text-center px-2 py-2.5 font-semibold">Biển số</th>
+                <th className="text-center px-2 py-2.5 font-semibold">Phương tiện</th>
                 <th className="text-left px-2 py-2.5 font-semibold">Lộ trình</th>
                 <th className="text-center px-2 py-2.5 font-semibold">Điểm giao</th>
                 <th className="text-center px-2 py-2.5 font-semibold">Trạng thái</th>
@@ -175,6 +222,7 @@ export default function DeliveryPage() {
                   <td className="px-3 py-2.5 font-mono text-[11px] font-semibold whitespace-nowrap">{t.code}</td>
                   <td className="px-3 py-2.5 whitespace-nowrap">{t.driver} <span className="text-muted-foreground">· {t.driver_phone}</span></td>
                   <td className="px-2 py-2.5 text-center font-mono">{t.license_plate}</td>
+                  <td className="px-2 py-2.5 text-center"><Badge variant="outline" className={`text-[11px] ${vehicleBadgeClass(t.vehicle_type ?? "van_bao_on")}`}>{VEHICLE_LABEL[t.vehicle_type ?? "van_bao_on"]}</Badge></td>
                   <td className="px-2 py-2.5">
                     <Badge variant="outline" className={`text-[11px] ${t.route_type === "chanh_xe_tinh" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-sky-50 text-sky-700 border-sky-200"}`}>{ROUTE_TYPE_LABEL[t.route_type]}</Badge>
                     <div className="text-[11px] text-muted-foreground truncate max-w-[260px]">{t.stops.map((s) => s.customer).join(" → ")}</div>
@@ -202,7 +250,7 @@ export default function DeliveryPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div><span className="text-muted-foreground">Tài xế:</span> {detail.driver} · {detail.driver_phone}</div>
-                <div><span className="text-muted-foreground">Xe:</span> {detail.license_plate}</div>
+                <div><span className="text-muted-foreground">Xe:</span> {detail.license_plate} <Badge variant="outline" className={`ml-1 text-[11px] ${vehicleBadgeClass(detail.vehicle_type ?? "van_bao_on")}`}>{VEHICLE_LABEL[detail.vehicle_type ?? "van_bao_on"]}</Badge></div>
                 <div><span className="text-muted-foreground">Ngày:</span> {detail.created_at}</div>
                 <div><Badge variant="outline" className={TRIP_STATUS_COLOR[detail.status]}>{TRIP_STATUS_LABEL[detail.status]}</Badge></div>
               </div>
@@ -255,6 +303,14 @@ export default function DeliveryPage() {
                 <label className="text-xs font-medium">Biển số xe</label>
                 <Input value={createPlate} onChange={(e) => setCreatePlate(e.target.value)} className="mt-1 h-9 rounded-full text-sm" placeholder="29C-882.60" />
               </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Phương tiện</label>
+              <select value={createVehicle} onChange={(e) => setCreateVehicle(e.target.value as VehicleType)} className="mt-1 w-full h-9 rounded-full border bg-white dark:bg-slate-800 px-3 text-sm">
+                <option value="xe_may">🛵 Xe Máy — Hỏa tốc nội thành &lt;30kg, ngõ ngách, quán ăn vặt</option>
+                <option value="van_bao_on">🚐 Xe Tải VAN bảo ôn — Sỉ / đông lạnh / chành xe bến bãi (24/7 không cấm giờ)</option>
+              </select>
+              <p className="mt-1 text-[11px] text-muted-foreground">{createVehicle === "xe_may" ? "Xe máy chỉ áp dụng tuyến Nội thành HN — đơn nhỏ hỏa tốc" : "VAN phù hợp cả nội thành & chành xe — ưu tiên chành xe tỉnh, đông lạnh"}</p>
             </div>
             <div className="text-xs font-semibold">Điểm dừng ({createStops.length})</div>
             {createStops.map((s, idx) => (
