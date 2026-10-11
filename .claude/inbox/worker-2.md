@@ -1,44 +1,28 @@
-# CHỈ THỊ LỆNH PHÂN CÔNG — WORKER 2 (BUSINESS INTELLIGENCE & REPORTS SQUAD)
-# DỰ ÁN: SK WORKSPACE 2 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
-# NHIỆM VỤ: PHÂN HỆ BÁO CÁO DOANH THU, LÃI GỘP & VẬN HÀNH (/reports)
+# PHÂN CÔNG THỰC THI — WORKER 2 (WMS & INVENTORY SQUAD)
+# DỰ ÁN: SƠN KHANG WORKSPACE 2.0 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: 0111252725)
+# PHÂN HỆ: 2. KHO HÀNG (ADVANCED F&B WMS)
+# CĂN CỨ: CHỈ THỊ SỐ 19 TỪ COMMANDER
 
 ---
 
-### PHẠM VI DANH MỤC FILE CHO PHÉP (STRICT BOUNDARY):
-> ⚠️ **NGUYÊN TẮC AN TOÀN:** Worker 2 CHỈ ĐƯỢC PHÉP tạo và sửa trong các file sau. TUYỆT ĐỐI KHÔNG chạm vào thư mục của các worker khác.
-- `packages/modules/reports/**` (`types.ts`, `mockData.ts`, `reportService.ts`)
-- `app/api/reports/**` (`route.ts`)
-- `app/(shell)/reports/page.tsx` (Tạo mới giao diện báo cáo)
-- Báo cáo kết quả vào: `.claude/reports/worker-2-reports.md`
+### PHẠM VI DANH MỤC TỆP CHO PHÉP (STRICT BOUNDARY):
+- `packages/modules/inventory/**`
+- `app/(shell)/inventory/**`
+- `app/api/inventory/**`
+- Báo cáo kết quả: `.claude/reports/worker-2-inventory.md`
 
 ---
 
-### DỮ LIỆU ĐỊNH DANH VẬN HÀNH:
-- **Giám đốc điều hành:** HỒ BÁ THỊNH
-- **Kế toán trưởng:** HOÀNG THỊ NHO
-- **Kênh phân phối:** 6 kênh (Quán ăn vặt/mì trộn HN, Đại lý chành xe tỉnh, Căn tin, Web Order, POS, Bán lẻ)
-- **Nhóm sản phẩm:** Hàng khô (Indomie/Koreno), Gia vị & Xốt, Hàng mát, Hàng đông lạnh.
-
----
-
-### CHI TIẾT CÁC HẠNG MỤC CẦN LÀM:
-1. **Module Nghiệp Vụ (`packages/modules/reports/`):**
-   - Báo cáo Doanh thu theo 6 kênh bán hàng.
-   - Báo cáo Cơ cấu Doanh thu & Lợi nhuận gộp theo 4 nhóm hàng (ước tính biên lãi ~21.4%).
-   - Báo cáo Tỷ trọng xuất kho: Kho Định Công vs Kho Yên Bình.
-   - Báo cáo Hiệu suất giao vận của Tài xế Ngô Văn Tân (tỷ lệ giao thành công, số kiện gửi chành xe).
-2. **API Endpoints:**
-   - `GET /api/reports`: Trả về dữ liệu tổng hợp theo chu kỳ (ngày, tuần, tháng, quý).
-3. **Giao Diện Báo Cáo BI (`app/(shell)/reports/page.tsx`):**
-   - 4 Thẻ Clay-KPI: Doanh thu tháng (Sky), Lãi gộp ước tính (Emerald), Sản lượng thùng mì xuất kho (Cyan), Tỷ lệ thu hồi công nợ B2B (Amber).
-   - Biểu đồ phân bổ tỷ trọng doanh thu theo kênh (CSS Bars / SVG progress cards).
-   - Bảng xếp hạng Top 5 Sản Phẩm Bán Chạy Nhất (Indomie Đặc Biệt, Popcorn CP, Nem chua rán Đức Minh, Tokbokki, Mayonnaise Kewpie).
-   - Bộ lọc thời gian: Hôm nay | 7 ngày qua | Tháng này | Quý này.
-   - Nút **Xuất Báo Cáo Excel / PDF** tóm tắt.
+### NHIỆM VỤ CHI TIẾT:
+1. **Kho Đa Tầng Kho Định Công:** Quản lý kho tập trung tại 96 Ngõ 337 Định Công, phân khu nhiệt độ: Kho hàng khô (Mì Indomie, gia vị) và Kho đông lạnh (-18°C), vị trí kệ Bin Location.
+2. **Quản lý Lô & Hạn sử dụng (Batch/Expiry):** Bắt buộc gán Số Lô & Ngày hết hạn cho 100% hàng nhập kho (mì Indomie, Mayonnaise Kewpie, viên thả lẩu...).
+3. **Cơ chế xuất kho FEFO:** Tự động chỉ định xuất lô hàng cận Date trước, ngăn chặn tồn ứ hàng cận hạn.
+4. **Chứng từ kho chuẩn ERP:** Phiếu nhập mua (GRN), xuất bán (GDN), điều chuyển phân khu, đổi trả NCC, xuất mẫu thử.
+5. **Kiểm định chất lượng (KCS Hàng về):** Kiểm tra cảm quan, date $\ge$ 70%, nhiệt độ đông lạnh $\le$ -15°C (cảnh báo vi phạm HACCP nếu > -12°C).
+6. **Kiểm kê & Báo cáo tồn:** Kiểm kê barcode thừa/thiếu, hao hụt (rã đông, rách bao bì, hết hạn), báo cáo tuổi hàng & cảnh báo dải màu Xanh/Vàng/Đỏ.
 
 ---
 
 ### YÊU CẦU NGHIỆM THU:
-1. `npx tsc --noEmit` đạt 0 lỗi.
-2. TUYỆT ĐỐI KHÔNG chạy `git commit` hay `git push`.
-3. Ghi báo cáo vào `.claude/reports/worker-2-reports.md`.
+- `npx tsc --noEmit` đạt 0 lỗi.
+- Báo cáo kết quả vào `.claude/reports/worker-2-inventory.md`.

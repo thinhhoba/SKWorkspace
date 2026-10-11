@@ -1,39 +1,28 @@
-# CHỈ THỊ LỆNH PHÂN CÔNG — WORKER 5 (SYSTEM AUDIT & LOGS SQUAD)
-# DỰ ÁN: SK WORKSPACE 2 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
-# NHIỆM VỤ: PHÂN HỆ NHẬT KÝ HỆ THỐNG, VẾT KIỂM TOÁN & LOGS TÍCH HỢP (/audit)
+# PHÂN CÔNG THỰC THI — WORKER 5 (FINANCE & MISA SQUAD)
+# DỰ ÁN: SƠN KHANG WORKSPACE 2.0 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: 0111252725)
+# PHÂN HỆ: 5. TÀI CHÍNH - KẾ TOÁN (TÍCH HỢP OPEN API MISA)
+# CĂN CỨ: CHỈ THỊ SỐ 19 TỪ COMMANDER
 
 ---
 
-### PHẠM VI DANH MỤC FILE CHO PHÉP (STRICT BOUNDARY):
-> ⚠️ **NGUYÊN TẮC AN TOÀN:** Worker 5 CHỈ ĐƯỢC PHÉP tạo và sửa trong các file sau. TUYỆT ĐỐI KHÔNG chạm vào thư mục của các worker khác.
-- `packages/modules/audit/**` (`types.ts`, `mockData.ts`, `auditService.ts`)
-- `app/api/audit/**` (`route.ts`)
-- `app/(shell)/audit/page.tsx` (Tạo mới giao diện nhật ký)
-- Báo cáo kết quả vào: `.claude/reports/worker-5-audit.md`
+### PHẠM VI DANH MỤC TỆP CHO PHÉP (STRICT BOUNDARY):
+- `packages/modules/finance/**`
+- `packages/integrations/misa/**`
+- `app/(shell)/finance/**`
+- `app/api/finance/**`
+- `app/api/sapo2misa/**`
+- Báo cáo kết quả: `.claude/reports/worker-5-finance.md`
 
 ---
 
-### DỮ LIỆU ĐỊNH DANH HỆ THỐNG TÍCH HỢP:
-- **Tích hợp ngoài:** Sapo API (`sonkhang.mysapo.net`), MISA AMIS Kế toán OpenAPI, MISA meInvoice Bot, VietQR Techcombank.
-- **Nghiệp vụ ghi vết:** Đăng nhập hệ thống, Đồng bộ đơn Sapo, Hạch toán MISA, Phát hành HĐĐT, Đổi giá bán, Xuất/Nhập kho lạnh.
-
----
-
-### CHI TIẾT CÁC HẠNG MỤC CẦN LÀM:
-1. **Module Nghiệp Vụ (`packages/modules/audit/`):**
-   - Cấu trúc `AuditLog`: ID, Thời gian (ISO), Nhân sự thao tác (`admin`, `ketoan`, `thukho`, `taixe`, `SYSTEM`), Module tác động (`PRICING`, `SALES`, `INVENTORY`, `DELIVERY`, `FINANCE_MISA`), Hành động (`SYNC_SAPO`, `POST_AMIS`, `PUBLISH_INVOICE`, `UPDATE_PRICE`, `DISPATCH_TRIP`, `LOGIN`), Mức độ (`INFO`, `SUCCESS`, `WARNING`, `ERROR`), Chi tiết payload.
-   - Thống kê: Tổng số logs hôm nay, Số lượt đồng bộ API thành công, Số cảnh báo/lỗi hệ thống.
-2. **API Endpoints:**
-   - `GET /api/audit`: Lấy danh sách nhật ký, bộ lọc theo module, nhân sự, mức độ và tìm kiếm.
-3. **Giao Diện Nhật Ký Kiểm Toán (`app/(shell)/audit/page.tsx`):**
-   - 4 Thẻ Clay-KPI: Tổng lượt ghi nhận (Logs), Đồng bộ Sapo & MISA thành công (Emerald), Cảnh báo kiểm toán (Amber), Lỗi kết nối API (Rose).
-   - Bộ lọc thanh công cụ: Lọc theo Module | Lọc theo Nhân sự | Lọc theo Mức độ (INFO/SUCCESS/WARN/ERR) | Ô tìm kiếm tức thì.
-   - Bảng nhật ký trực quan: Timestamp, Badge mức độ, Nhân sự, Module, Mô tả sự kiện, Địa chỉ IP / Client, Nút xem chi tiết payload JSON.
-   - Modal xem chi tiết Payload Request/Response của sự kiện kiểm toán.
+### NHIỆM VỤ CHI TIẾT:
+1. **Kế toán bán hàng & Doanh thu MISA AMIS API:** Tự động sinh chứng từ bán kiêm xuất kho (`/api/v1/sa/voucher/save`), định khoản Nợ 131/111/112/1388 đối ứng Có 5111, Có 3331 và Nợ 632 / Có 156.
+2. **Phát hành HĐĐT MISA meInvoice API:** Ký số HSM và phát hành HĐĐT có mã CQT tức thì cho B2B MST (`/api/v1/invoice/publish`) + Gom khách lẻ cuối ngày.
+3. **Kế toán mua hàng MISA AMIS API:** Ghi sổ hóa đơn mua (`/api/v1/pu/voucher/save`), hạch toán Nợ 156, Nợ 1331 - Có 331.
+4. **Sổ quỹ & Thu nợ:** Quỹ tiền mặt Định Công và Techcombank `22226060`, sinh phiếu thu (`/api/v1/ca/receipt/save`) khi khách trả VietQR hoặc nộp COD (Nợ 1121 / Có 131). Báo cáo Tuổi nợ B2B Aging 15/30/60 ngày.
 
 ---
 
 ### YÊU CẦU NGHIỆM THU:
-1. `npx tsc --noEmit` đạt 0 lỗi.
-2. TUYỆT ĐỐI KHÔNG chạy `git commit` hay `git push`.
-3. Ghi báo cáo vào `.claude/reports/worker-5-audit.md`.
+- `npx tsc --noEmit` đạt 0 lỗi.
+- Báo cáo kết quả vào `.claude/reports/worker-5-finance.md`.
