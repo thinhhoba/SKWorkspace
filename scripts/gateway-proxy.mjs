@@ -58,8 +58,23 @@ async function fetchUpstreamUsage(apiKey) {
     if (!res.ok) return null;
     const data = await res.json();
     if (data.success && data.usage) {
+      let dailyCostUsed = 0;
+      if (Array.isArray(data.daily) && data.daily.length > 0) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const entry = data.daily.find((d) => d && d.date === todayStr) || data.daily[0];
+        if (entry && typeof entry.daily_cost === 'number' && !isNaN(entry.daily_cost)) {
+          dailyCostUsed = entry.daily_cost;
+        }
+      }
+      const limit = typeof data.usage.dailyCostLimit === 'number' && data.usage.dailyCostLimit > 0
+        ? data.usage.dailyCostLimit
+        : 150;
+      const dailyCostPercent = limit > 0 ? (dailyCostUsed / limit) * 100 : 0;
+
       upstreamUsageMap.set(apiKey, {
         ...data.usage,
+        dailyCostUsed,
+        dailyCostPercent,
         daily: data.daily || [],
         overage: data.overage || {},
         updatedAt: new Date().toISOString()
@@ -476,11 +491,33 @@ function getStatsPayload() {
     const st = keyStates.get(k) || {};
     const limit = getKeyLimit(k, idx);
     const upstream = upstreamUsageMap.get(k) || null;
-    const dailyUsed = upstream ? upstream.dailyCostUsed : null;
-    if (dailyUsed !== null) totalDailyUsedUsd += dailyUsed;
-    const dailyPercent = upstream ? (upstream.dailyCostPercent ?? (dailyUsed ? (dailyUsed / limit) * 100 : 0)) : null;
-    const dailyRemaining = upstream && dailyUsed !== null ? Math.max(0, limit - dailyUsed) : null;
+
+    let dailyUsed = null;
+    if (upstream) {
+      if (typeof upstream.dailyCostUsed === 'number' && !isNaN(upstream.dailyCostUsed)) {
+        dailyUsed = upstream.dailyCostUsed;
+      } else if (Array.isArray(upstream.daily) && upstream.daily.length > 0 && typeof upstream.daily[0]?.daily_cost === 'number') {
+        dailyUsed = upstream.daily[0].daily_cost;
+      }
+    }
+
+    if (dailyUsed !== null) {
+      totalDailyUsedUsd += dailyUsed;
+    }
+
+    let dailyPercent = null;
+    if (dailyUsed !== null && limit > 0) {
+      dailyPercent = (dailyUsed / limit) * 100;
+    } else if (upstream && typeof upstream.dailyCostPercent === 'number' && !isNaN(upstream.dailyCostPercent)) {
+      dailyPercent = upstream.dailyCostPercent;
+    }
+
+    const dailyRemaining = dailyUsed !== null ? Math.max(0, limit - dailyUsed) : null;
     const isQuotaExceeded = !!(st.quotaExceededUntil && st.quotaExceededUntil > Date.now()) || (dailyRemaining !== null && dailyRemaining <= 0);
+
+    const totalCostUsd = (upstream && typeof upstream.totalCost === 'number' && !isNaN(upstream.totalCost))
+      ? parseFloat(upstream.totalCost.toFixed(2))
+      : null;
 
     return {
       index: idx + 1,
@@ -490,8 +527,8 @@ function getStatsPayload() {
       dailyUsedUsd: dailyUsed !== null ? parseFloat(dailyUsed.toFixed(2)) : null,
       dailyRemainingUsd: dailyRemaining !== null ? parseFloat(dailyRemaining.toFixed(2)) : null,
       dailyPercent: dailyPercent !== null ? parseFloat(dailyPercent.toFixed(1)) : null,
-      totalCostUsd: upstream ? parseFloat(upstream.totalCost.toFixed(2)) : null,
-      totalTokens: upstream ? upstream.totalTokens : null,
+      totalCostUsd,
+      totalTokens: upstream?.totalTokens ?? null,
       expiresAt: upstream?.expiresAt || null,
       overageDays: upstream?.overage?.total_days || 0,
       upstreamRequests: upstream?.daily?.[0]?.daily_requests || upstream?.totalRequests || 0,
