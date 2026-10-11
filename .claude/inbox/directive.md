@@ -1,99 +1,109 @@
-# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 17 (HIỆU CHỈNH CHUẨN XÁC)
+# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 18
 # DỰ ÁN: SK WORKSPACE 2.0 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
 # CHỦ ĐỀ TRỌNG TÂM:
-# ĐÁNH GIÁ HIỆN TRẠNG, KHẢ NĂNG TRIỂN KHAI VÀ GAP ANALYSIS 4 PHÂN HỆ ERP
-# DỰA TRÊN ĐẶC THÙ VẬN HÀNH THỰC TẾ 100% CỦA SƠN KHANG FOOD
+# TRIỂN KHAI TOÀN DIỆN 5 TÍNH NĂNG GAP P1 (ƯU TIÊN HÀNG ĐẦU)
+# PHỤC VỤ THỰC TẾ VẬN HÀNH BÁN BUÔN & CHUỖI CUNG ỨNG SƠN KHANG FOOD
 
 ---
 
-### I. CĂN CỨ DOANH NGHIỆP & ĐẶC THÙ CỐT LÕI (BẢN CHÍNH THỨC):
+### I. CĂN CỨ DOANH NGHIỆP & BỐI CẢNH NGHIỆP VỤ:
+- **Doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
+- **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH (CCCD: `001094016823`, Sinh 20/11/1994)
+- **Tài khoản thanh toán:** Techcombank `22226060` (BIN: `970407`) — Tự động đối soát VietQR
+- **Ngành hàng:** 
+  1. *Thực phẩm khô ăn liền:* Mì trộn Indomie, Mì Nissin Raoh, đồ ăn liền đóng gói.
+  2. *Gia vị:* Tương ớt, tương cà Sài Gòn Can 2L, sốt chấm Mayonnaise Kewpie, dầu ăn Cái Lân 5L.
+  3. *Thực phẩm đông lạnh chế biến sẵn:* Viên chiên LC Foods, gà Popcorn CP, xúc xích, Tokbokki CJ, bánh gà Nét Việt.
+- **Cơ sở hạ tầng & Kho bãi:** 
+  * *Trụ sở văn phòng:* Thôn 6, Xã Yên Xuân, Hà Nội *(HÀNH CHÍNH — KHÔNG LƯU KHO)*.
+  * *Kho hàng duy nhất:* Số 96 Ngõ 337 Phố Định Công, Phường Định Công, Hà Nội *(KHO KHÔ & KHO ĐÔNG LẠNH -18°C)*.
+- **Đội xe:** **Xe máy** (giao nhanh nội thành, ngõ ngách, quán ăn vặt, căng tin) & **Xe tải VAN** (giao sỉ thùng to, hàng đông lạnh chế biến sẵn, gửi chành xe bến Giáp Bát / Nước Ngầm, chạy 24/7 không cấm giờ).
+- **Hệ thống phần mềm kết nối API:** Sapo Open API (Bán hàng), MISA AMIS Online (Kế toán), meInvoice (Hóa đơn điện tử).
 
-1. **Pháp nhân & Đại diện:**
-   - **Tên doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
-   - **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH (CCCD: `001094016823`, Sinh 20/11/1994)
-   - **Tài khoản thanh toán:** Techcombank `22226060` (BIN: `970407`) — Tự động đối soát VietQR
-
-2. **Ngành hàng kinh doanh cốt lõi:**
-   - **Thực phẩm khô ăn liền:** Kho sỉ Mì trộn Indomie (Đặc biệt, Cay nồng, Sườn, Bò cay...), Mì Nissin Raoh, đồ khô ăn liền đóng gói.
-   - **Gia vị:** Tương ớt, tương cà Sài Gòn Can 2L, sốt chấm Mayonnaise Kewpie, dầu ăn Cái Lân 5L, bột gia vị chế biến.
-   - **Thực phẩm đông lạnh chế biến sẵn:** Viên chiên LC Foods, gà viên chiên Popcorn CP, xúc xích, bánh gạo Tokbokki CJ, bánh gà Nét Việt, chả cá, hồ lô chiên...
-
-3. **Cơ sở hạ tầng & Phân định Kho bãi:**
-   - **1 Trụ sở văn phòng:** Thôn 6, Xã Yên Xuân, Thành phố Hà Nội *(VĂN PHÒNG HÀNH CHÍNH — TUYỆT ĐỐI KHÔNG LƯU KHO)*.
-   - **1 Địa điểm kinh doanh:** Số 96 Ngõ 337 Phố Định Công, Phường Định Công, Thành phố Hà Nội *(ĐỊA ĐIỂM DUY NHẤT CÓ LƯU KHO)*.
-     * Khu 1: Kho khô thường (Mì Indomie & Gia vị đóng can/thùng).
-     * Khu 2: Kho đông lạnh chế biến sẵn (-18°C ~ -22°C) cho các dòng viên chiên, xúc xích, gà popcorn.
-
-4. **Đội ngũ phương tiện vận tải thực tế:**
-   - **Xe máy:** Chuyên giao hỏa tốc nội thành Hà Nội, luồn lách ngõ ngách, phục vụ quán ăn vặt, trà sữa, căng tin trường học, đơn hàng nhỏ lẻ.
-   - **Xe tải VAN (Thùng bảo ôn / Giữ nhiệt):** Giao đơn sỉ số lượng lớn, thùng carton cho đại lý, chuỗi quán ăn, và vận chuyển ra chành xe các bến Giáp Bát & Nước Ngầm đi các tỉnh phía Bắc. *Ưu điểm: Xe VAN được phép lưu thông nội đô Hà Nội 24/7 mà không bị cấm giờ như xe tải thùng nặng!*
-
-5. **Hệ sinh thái phần mềm đang sử dụng (Đều hỗ trợ kết nối API chính thức):**
-   - **Sapo:** Phần mềm quản lý bán hàng đa kênh & POS quầy (Kết nối Open API).
-   - **Misa Amis Online:** Phần mềm kế toán doanh nghiệp chính thức (Kết nối Open API nghiệp vụ).
-   - **Misa meInvoice:** Phần mềm hóa đơn điện tử chính thức (Kết nối API ký số và phát hành HĐĐT C26TSK).
+Căn cứ Biên bản Nghiệm thu Chỉ thị số 17, Ban Quản Trị chính thức ban hành **Chỉ thị số 18** yêu cầu triển khai ngay **5 tính năng Gap P1** nhằm hoàn thiện chuỗi vận hành thực chiến.
 
 ---
 
-### II. YÊU CẦU NHIỆM VỤ ĐẶT RA CHO CLAUDE CODE (CHỈ THỊ 17):
+### II. YÊU CẦU CHI TIẾT 5 TÍNH NĂNG GAP P1:
 
-Claude và các Subagents (Opus Plan, Sonnet Code, Haiku Test, Review) phải phân tích, đánh giá hiện trạng và khả năng triển khai 4 khối phân hệ ERP trong ảnh tham chiếu dựa trên đúng 100% đặc thù cốt lõi trên:
+#### 1. GAP 1: KIỂM KÊ KHO ĐỊNH CÔNG (STOCKTAKE / INVENTORY AUDIT)
+- **Mục tiêu:** Cung cấp công cụ định kỳ cho Thủ kho Trần Thị Ngọc Thúy quét kiểm kê hàng thực tế tại Kho Định Công, so sánh với số liệu tồn sổ sách Sapo để ghi nhận chênh lệch và lập phiếu điều chỉnh.
+- **Yêu cầu chức năng:**
+  * Giao diện tại: `app/(shell)/inventory/count/page.tsx` hoặc tab Kiểm Kê tại `/inventory`.
+  * API hỗ trợ: `app/api/inventory/count/route.ts`.
+  * Bộ lọc phân khu: *Kho khô (Mì Indomie & Gia vị)* vs *Kho đông lạnh chế biến sẵn (-18°C)*.
+  * Cho phép quét mã vạch (Barcode SKU) hoặc chọn nhanh từ danh mục.
+  * Hiển thị: Tồn lý thuyết ➔ Ô nhập Tồn thực tế đếm được ➔ Tự động tính Độ lệch (Thừa / Thiếu) và Giá trị chênh lệch (VNĐ).
+  * Ghi rõ lý do hao hụt: Hao hụt tự nhiên rã đông/dăm tuyết, rách bao bì, hết hạn hủy bỏ, thất thoát.
+  * Nút "Xác nhận & Cân chỉnh tồn kho": Cập nhật lại tồn kho hệ thống và ghi log vào Audit Trail.
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│             SƠ ĐỒ 4 KHỐI PHÂN HỆ ERP THAM CHIẾU CẦN ĐÁNH GIÁ (ẢNH GỐC)                 │
-├──────────────────────────┬──────────────────────────────┬──────────────────────────────┤
-│ 1. MUA HÀNG (7 mục)      │ 2. KHO HÀNG (7 mục)          │ 3. BÁN HÀNG (9 mục)          │
-│ • Yêu cầu mua            │ • Kho & hàng hóa (SKU, vị trí)│ • CRM (Hồ sơ, lịch sử KH)   │
-│ • Nhà cung cấp           │ • Chứng từ kho (Nhập, xuất)  │ • Báo giá B2B                │
-│ • Báo giá NCC            │ • Nhập - xuất kho            │ • Đơn hàng bán               │
-│ • Đơn hàng mua           │ • Kiểm kho (Kiểm kê chênh)   │ • Hóa đơn & thanh toán       │
-│ • Hóa đơn & thanh toán   │ • Chất lượng (KCS hàng về)   │ • Đóng gói & giao hàng       │
-│ • Chính sách & bảng giá  │ • Sổ cái kho                 │ • Chương trình bán hàng      │
-│ • Báo cáo mua hàng       │ • Báo cáo kho                │ • Bán hàng POS               │
-│                          │                              │ • Bán hàng Website           │
-│                          │                              │ • Báo cáo bán hàng           │
-├──────────────────────────┴──────────────────────────────┴──────────────────────────────┤
-│ 4. TÀI CHÍNH - KẾ TOÁN (9 mục)                                                         │
-│ • Tiền mặt & tiền gửi    • Kế toán kho hàng             • Kế toán ngân sách            │
-│ • Kế toán bán hàng       • Kế toán tài sản              • Kế toán tổng hợp             │
-│ • Kế toán mua hàng       • Kế toán tiền lương           • Báo cáo tài chính & thuế     │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+#### 2. GAP 2: BIÊN BẢN KIỂM TRA CHẤT LƯỢNG KCS HÀNG VỀ (QUALITY CONTROL)
+- **Mục tiêu:** Chuẩn hóa quy trình tiếp nhận hàng hóa từ xe nhà máy/nhà phân phối giao đến Kho Định Công, đặc biệt kiểm soát nghiêm ngặt chất lượng hàng đông lạnh chế biến sẵn và hạn sử dụng hàng khô.
+- **Yêu cầu chức năng:**
+  * Giao diện tại: `app/(shell)/inventory/qc/page.tsx` hoặc modal KCS tại `/inventory` & `/purchase`.
+  * API hỗ trợ: `app/api/inventory/qc/route.ts`.
+  * Các tiêu chí kiểm tra bắt buộc:
+    1. *Cảm quan bao bì:* Nguyên đai nguyên kiện, không móp méo, tem nhãn phụ tiếng Việt đầy đủ.
+    2. *Hạn sử dụng (Shelf-life):* Date sản xuất và Hạn dùng còn tối thiểu ≥ 70% thời hạn quy định.
+    3. *Đo nhiệt độ tiếp nhận:* Hàng đông lạnh chế biến sẵn (viên chiên, gà popcorn) bắt buộc nhiệt độ thùng bảo ôn/tâm hàng phải đạt **≤ -15°C**. Nếu > -12°C ➔ Cảnh báo đỏ không đạt chuẩn HACCP!
+  * Cho phép đính kèm ảnh chụp biên bản hoặc thùng hàng.
+  * Kết luận KCS: `Đạt chuẩn nhập kho` / `Từ chối nhận hàng` / `Nhập có điều kiện`.
+  * Ký duyệt điện tử: Xác nhận của Thủ kho tiếp nhận.
 
-#### 1. ĐỐI SOÁT HIỆN TRẠNG & TỶ LỆ BAO PHỦ:
-- Quét toàn bộ codebase 66 routes hiện tại của `SK Workspace 2.0` đối chiếu với 4 khối trên.
-- Khẳng định rõ các module đã hoàn thiện và hoạt động thực tế.
+#### 3. GAP 3: BÁO GIÁ B2B XUẤT ẢNH / PDF GỬI ZALO (B2B QUOTATION GENERATOR)
+- **Mục tiêu:** Hỗ trợ nhân viên kinh doanh tạo nhanh bảng báo giá sỉ các mặt hàng mì Indomie, gia vị Sài Gòn, viên chiên LC Foods gửi cho đại lý chành xe và các quán ăn qua Zalo trong 30 giây.
+- **Yêu cầu chức năng:**
+  * Giao diện tại: `app/(shell)/pricing/quote/page.tsx` hoặc tab Báo Giá tại `/pricing`.
+  * API hỗ trợ: `app/api/pricing/quote/route.ts`.
+  * Nhập thông tin khách hàng: Tên quán ăn/đại lý, số điện thoại, địa chỉ (hoặc chọn từ CRM `/customers`).
+  * Chọn các dòng sản phẩm, tự động gợi ý giá sỉ theo các mức sản lượng (thùng/tháng) và áp dụng chiết khấu đại lý.
+  * Trình tạo bản xem trước (Live Preview Card) chuẩn nhận diện thương hiệu Sơn Khang Food:
+    * Logo Sơn Khang Food, MST `0111252725`, Hotline `0942 22 60 60`, Kho Tổng: `96 Ngõ 337 Định Công, Hoàng Mai, HN`.
+    * Bảng chi tiết: STT, Tên hàng, Quy cách (Thùng 40 gói, Can 2L, Gói 500g), Đơn giá sỉ, Thành tiền.
+    * Chính sách giao hàng: Freeship nội thành theo mức tiền, gửi chành xe Giáp Bát / Nước Ngầm.
+  * Nút tác vụ nhanh: `Sao chép ảnh báo giá` (Copy image to clipboard) hoặc `Tải ảnh / PDF` để gửi ngay qua Zalo.
 
-#### 2. LÀM RÕ CÁC ĐIỂM THIẾU CẦN BỔ SUNG (GAPS):
-- **Kho Hàng (Định Công):**
-  * *Kiểm kho (Stocktake):* Cần màn hình kiểm kê định kỳ đối soát tồn thực tế tại Kho Định Công, ghi nhận hao hụt/lệch tồn giữa hàng khô và hàng đông lạnh chế biến sẵn.
-  * *KCS Hàng Về:* Kiểm tra cảm quan, hạn sử dụng trên bao bì Mì Indomie, gia vị và kiểm nhiệt độ đông lạnh các dòng viên chiên/gà popcorn khi xe nhà máy giao đến.
-- **Bán Hàng:**
-  * *Báo giá B2B:* Tạo báo giá nhanh gửi Zalo cho các quán ăn, đại lý sỉ.
-  * *Đóng gói & Điều phối Giao vận:* Phân tách rõ luồng giao: **Tuyến Xe máy** (nội thành, đơn lẻ, hỏa tốc) vs **Tuyến Xe tải VAN** (đơn sỉ nhiều thùng, hàng đông lạnh chế biến sẵn, gửi chành xe bến Giáp Bát / Nước Ngầm).
-- **Mua Hàng:**
-  * *Phiếu yêu cầu mua hàng:* Đề xuất đặt hàng khi mì Indomie hoặc đồ đông lạnh chạm ngưỡng tối thiểu.
+#### 4. GAP 4: PHÂN LUỒNG GIAO VẬN — TUYẾN XE MÁY VS XE TẢI VAN
+- **Mục tiêu:** Phân tách rõ ràng phương thức giao vận trên hệ thống điều phối đơn hàng và PWA tài xế, tối ưu hóa năng suất giao nhận nội đô Hà Nội.
+- **Yêu cầu chức năng:**
+  * Giao diện tại: `app/(shell)/delivery/page.tsx`, `packages/modules/delivery/**` và `app/pwa/giaovan/page.tsx`.
+  * Thêm bộ chọn phân luồng phương tiện khi tạo/điều phối chuyến giao hàng:
+    * **Tuyến Xe máy (Giao hỏa tốc):** Dành cho đơn nhỏ lẻ dưới 30kg, quán ăn vặt ngõ ngách, đơn gấp nội thành. Người nhận hàng nhận trong 1-2h.
+    * **Tuyến Xe tải VAN (Thùng bảo ôn giữ nhiệt):** Dành cho đơn sỉ số lượng lớn, thùng carton, hàng đông lạnh chế biến sẵn, giao đại lý chuỗi hoặc giao ra chành xe bến Giáp Bát / Nước Ngầm. *Chạy phố 24/7 không cấm giờ!*
+  * Hiển thị Tag nhận diện rõ ràng trên danh sách đơn hàng và phiếu giao hàng: `[🛵 Xe Máy]` màu cam vs `[🚐 Xe Tải VAN]` màu xanh dương.
+  * Tích hợp điều phối tài xế: Phân công đơn xe máy cho Shipper xe máy, đơn xe tải VAN cho Tài xế Ngô Văn Tân (`0942 22 60 60`).
 
-#### 3. CHỈ RÕ CÁC ĐIỂM "THỪA" / OVER-ENGINEERING (RANH GIỚI VỚI MISA AMIS):
-- **Khối Tài chính - Kế toán:** Nhấn mạnh kiên quyết **KHÔNG LÀM TRÊN MINI-APP** các mục:
-  * *Kế toán tài sản, Kế toán ngân sách, Kế toán tổng hợp (General Ledger), Báo cáo tài chính & quyết toán thuế.*
-  * **Lý do kiến trúc:** Doanh nghiệp đang sử dụng **Misa Amis Online** và **meInvoice** có đầy đủ kết nối API. Mọi nghiệp vụ hạch toán chuyên sâu, khấu hao, thuế GTGT đều được Kế toán trưởng xử lý trên MISA AMIS.
-  * SK Workspace chỉ tập trung làm tốt: **Sổ quỹ dòng tiền thực (Techcombank 22226060), Gạch nợ tự động VietQR, và Cầu nối Sapo2Misa chuẩn 63 cột nghiệp vụ** để đẩy dữ liệu sạch sang AMIS qua API.
-
-#### 4. ĐÁNH GIÁ 4 LỢI THẾ ĐẶC THÙ CỦA SƠN KHANG (ERP MẪU KHÔNG CÓ):
-- Phân tích sâu 4 vũ khí đã hoạt động trên hệ thống:
-  1. *Giám sát Xe Tải VAN (Thùng bảo ôn/giữ nhiệt):* Đảm bảo nhiệt độ hàng đông lạnh chế biến sẵn khi giao quán ăn hoặc ra bến xe Giáp Bát.
-  2. *Cảnh báo Cận Date FEFO:* Cực kỳ quan trọng cho thực phẩm ăn liền và đông lạnh chế biến sẵn (cảnh báo date < 30 ngày để kích hoạt xả kho).
-  3. *VietQR Instant Reconcile:* Khớp lệnh tự động số dư Techcombank 22226060 theo từng đơn hàng.
-  4. *Bộ tích hợp Tam Giác API: Sapo (Bán hàng) ↔ SK Workspace (Vận hành) ↔ Misa Amis & meInvoice (Kế toán).*
+#### 5. GAP 5: BÁO CÁO TUỔI NỢ B2B KHÁCH HÀNG (ACCOUNTS RECEIVABLE AGING)
+- **Mục tiêu:** Giúp Giám đốc và Kế toán theo dõi chặt chẽ dòng tiền công nợ gối đầu của các đại lý và chành xe, cảnh báo nợ quá hạn và hỗ trợ thu hồi nợ 1-chạm.
+- **Yêu cầu chức năng:**
+  * Giao diện tại: `app/(shell)/finance/aging/page.tsx` hoặc widget Tuổi Nợ trong `/finance` và `/customers`.
+  * Phân loại công nợ theo 4 cột mốc chuẩn mực kế toán:
+    1. *Trong hạn (Dưới 15 ngày):* Màu xanh lá — An toàn.
+    2. *Chớm quá hạn (15 – 30 ngày):* Màu vàng — Cần lưu ý khi nhận đơn mới.
+    3. *Quá hạn cảnh báo (30 – 60 ngày):* Màu cam — Tạm dừng duyệt đơn mới nếu chưa thanh toán.
+    4. *Quá hạn nghiêm trọng (> 60 ngày):* Màu đỏ — Nợ xấu, chuyển hồ sơ đôn đốc đặc biệt.
+  * Bộ lọc theo nhóm khách hàng: Đại lý cấp 1, Quán ăn / Chuỗi F&B, Chành xe gửi tỉnh.
+  * Nút "Nhắc nợ 1-Chạm qua Zalo / SMS": Tự động tạo tin nhắn nhắc nợ kèm link thanh toán mã **VietQR Techcombank 22226060** đã điền sẵn số tiền nợ chính xác và mã đơn hàng.
 
 ---
 
-### III. SẢN PHẨM ĐẦU RA YÊU CẦU:
-1. Cập nhật và hoàn thiện tài liệu chiến lược: `docs/GAP_ANALYSIS_ERP_PHAN_HE.md`.
-2. Xuất bản báo cáo thẩm định chính thức vào `.claude/reports/directive-17.md` và `.claude/reports/latest.md`.
-3. Bảng ma trận đối soát phải nêu rõ: Tên tính năng, Hiện trạng trên SK Workspace, Đánh giá (Đã có / Thiếu / Thừa), Mức độ ưu tiên (P1, P2, P3), và Hướng kết nối API (Sapo / Misa / meInvoice).
+### III. MA TRẬN 6 WORKER SQUAD THỰC THI CHỈ THI 18:
+
+| Worker Squad | Trách Nhiệm Phân Hệ Cụ Thể | Danh Mục Tệp Trọng Tâm |
+| :--- | :--- | :--- |
+| **Worker 1 (Kho Vận - Kiểm Kê)** | Xây dựng UI & API Kiểm kê Kho Định Công (Stocktake), tính lệch tồn khô vs đông lạnh, lập phiếu điều chỉnh. | `app/(shell)/inventory/count/page.tsx`<br>`app/api/inventory/count/route.ts`<br>`packages/modules/inventory/auditService.ts` |
+| **Worker 2 (Kho Vận - KCS Hàng Về)** | Xây dựng Form & API Biên bản KCS tiếp nhận hàng đông lạnh (-15°C) & hàng khô, ký duyệt thủ kho. | `app/(shell)/inventory/qc/page.tsx`<br>`app/api/inventory/qc/route.ts`<br>`packages/modules/inventory/qcService.ts` |
+| **Worker 3 (Bán Hàng - Báo Giá B2B)** | Xây dựng giao diện Tạo Báo giá B2B xuất ảnh/PDF Zalo có logo Sơn Khang, chiết khấu theo sản lượng. | `app/(shell)/pricing/quote/page.tsx`<br>`app/api/pricing/quote/route.ts`<br>`components/pricing/QuotePreviewCard.tsx` |
+| **Worker 4 (Giao Vận - Xe máy & VAN)** | Nâng cấp phân luồng điều phối giao vận: Selector Xe máy vs Xe tải VAN (chạy 24/7), tag nhận diện. | `app/(shell)/delivery/page.tsx`<br>`packages/modules/delivery/**`<br>`app/pwa/giaovan/page.tsx` |
+| **Worker 5 (Tài Chính - Tuổi Nợ Aging)** | Xây dựng Bảng phân tích Tuổi nợ B2B 15-30-60 ngày và nút nhắc nợ 1-chạm VietQR Techcombank. | `app/(shell)/finance/aging/page.tsx`<br>`packages/modules/finance/agingService.ts`<br>`components/finance/AgingTableWidget.tsx` |
+| **Worker 6 (QA & Quality Gate)** | Viết kịch bản kiểm thử tự động `scripts/verify-directive-18.cjs`, đảm bảo build 66+ routes thành công, tsc 0 lỗi. | `scripts/verify-directive-18.cjs`<br>Pre-flight Quality Check |
+
+---
+
+### IV. TIÊU CHUẨN NGHIỆM THU (QUALITY GATE):
+1. **TypeScript & Build:** `npx tsc --noEmit` đạt **0 lỗi tuyệt đối**; `npm run build` thành công **100% routes**.
+2. **Kịch bản kiểm thử tự động:** `node scripts/verify-directive-18.cjs` vượt qua **100% assertions**.
+3. **Báo cáo nghiệm thu:** Xuất bản kết quả thực hiện đầy đủ vào `.claude/reports/directive-18.md` và đồng bộ sang `.claude/reports/latest.md`.
 
 **BAN HÀNH BỞI: COMMANDER & CHỦ TỊCH HỒ BÁ THỊNH**  
-*Chỉ thị số 17 có hiệu lực thi hành ngay lập tức.*
+*Chỉ thị số 18 có hiệu lực thi hành ngay lập tức.*
