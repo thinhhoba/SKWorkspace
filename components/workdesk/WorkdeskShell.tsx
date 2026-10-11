@@ -16,14 +16,42 @@ interface WorkdeskShellProps {
   loadingStream: boolean;
   onPostCreated: (post: FeedPost) => void;
   onRefresh: () => void;
+  salesStats?: {
+    cho_duyet?: number;
+    cho_soan?: number;
+    dang_soan?: number;
+    dang_giao?: number;
+    hoan_tat?: number;
+  };
+  fefoAlertCount?: number;
 }
 
-export default function WorkdeskShell({ streamItems, tasks, revenue, pendingPickCount, fleetTemp, bankBalance, loadingStream, onPostCreated, onRefresh }: WorkdeskShellProps) {
+export default function WorkdeskShell({
+  streamItems,
+  tasks,
+  revenue,
+  pendingPickCount,
+  fleetTemp,
+  bankBalance,
+  loadingStream,
+  onPostCreated,
+  onRefresh,
+  salesStats,
+  fefoAlertCount,
+}: WorkdeskShellProps) {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
       {/* Center first on mobile (order-1), left order-2, right order-3. On xl: left order-1, center order-2, right order-3 */}
       <div className="order-1 xl:order-2 xl:col-span-6">
-        <CenterColumn streamItems={streamItems} loading={loadingStream} onPostCreated={onPostCreated} onRefresh={onRefresh} />
+        <CenterColumn
+          streamItems={streamItems}
+          loading={loadingStream}
+          onPostCreated={onPostCreated}
+          onRefresh={onRefresh}
+          salesStats={salesStats}
+          fleetTemp={fleetTemp}
+          fefoAlertCount={fefoAlertCount}
+        />
       </div>
       <div className="order-2 xl:order-1 xl:col-span-3">
         <LeftColumn revenue={revenue} pendingPickCount={pendingPickCount} fleetTemp={fleetTemp} bankBalance={bankBalance} tasks={tasks} />

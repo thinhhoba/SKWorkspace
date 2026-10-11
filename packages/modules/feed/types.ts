@@ -1,5 +1,15 @@
 export type FeedTag = "thong-bao" | "khen-thuong" | "kho-van" | "kinh-doanh" | "khan-cap";
-export type FeedAuthorRole = "Giam doc" | "Ke toan" | "Thu kho" | "Tai xe" | "He thong";
+export type FeedAuthorRole =
+  | "Giam doc"
+  | "Ke toan"
+  | "Thu kho"
+  | "Tai xe"
+  | "He thong"
+  | "Giám đốc"
+  | "Kế toán"
+  | "Thủ kho"
+  | "Tài xế"
+  | "Hệ thống";
 
 export interface FeedPost {
   id: string;

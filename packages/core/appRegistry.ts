@@ -59,7 +59,7 @@ export const appRegistry: AppDef[] = [
   { id: "purchase", label: "Mua hàng", group: "van-hanh", icon: ShoppingBag, href: "/purchase", color: "warning", desc: "Đặt NCC & nhập kho" },
   { id: "inventory", label: "Kho lạnh", group: "van-hanh", icon: Warehouse, href: "/inventory", color: "success", desc: "Tồn Q7 / Q12 & cảnh báo" },
   { id: "delivery", label: "Giao vận", group: "van-hanh", icon: Truck, href: "/delivery", color: "success", desc: "Tuyến giao & tài xế" },
-  { id: "fleet", label: "Xe lạnh 29C-882.60", group: "van-hanh", icon: Truck, href: "/fleet", color: "success", badge: "-18°C", desc: "IoT nhiệt độ & tài xế Tân" },
+  { id: "fleet", label: "Đội xe & Chuỗi lạnh", group: "van-hanh", icon: Truck, href: "/fleet", color: "success", badge: "-18°C", desc: "IoT nhiệt độ & đội xe tải" },
   { id: "finance", label: "Dòng tiền", group: "tai-chinh", icon: Wallet, href: "/finance", color: "primary", desc: "Thu chi & đối soát" },
   { id: "sapo2misa", label: "Sapo2Misa", group: "tai-chinh", icon: ArrowLeftRight, href: "/finance/sapo2misa", color: "primary", badge: "63 cột", desc: "Đồng bộ Sapo → MISA" },
   { id: "reports", label: "Báo cáo", group: "tai-chinh", icon: BarChart3, href: "/reports", color: "neutral", desc: "Doanh thu & tồn & công nợ" },

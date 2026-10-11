@@ -22,6 +22,14 @@ export default function SmartWorkdeskPage() {
   const [activeTab, setActiveTab] = React.useState<"cockpit" | "apps">("cockpit");
   const [salesRevenue, setSalesRevenue] = React.useState(0);
   const [pendingPickOrders, setPendingPickOrders] = React.useState(0);
+  const [salesStats, setSalesStats] = React.useState<{
+    cho_duyet?: number;
+    cho_soan?: number;
+    dang_soan?: number;
+    dang_giao?: number;
+    hoan_tat?: number;
+  } | undefined>(undefined);
+  const [fefoAlertCount, setFefoAlertCount] = React.useState(0);
   const [fleetTemp, setFleetTemp] = React.useState(-18.4);
   const [techcombankBalance, setTechcombankBalance] = React.useState(0);
   const [streamItems, setStreamItems] = React.useState<FeedStreamItem[]>([]);
@@ -38,14 +46,19 @@ export default function SmartWorkdeskPage() {
         fetch("/api/finance").then((r) => r.json()).catch(() => null),
         fetch("/api/feed/stream").then((r) => r.json()).catch(() => null),
         fetch("/api/tasks").then((r) => r.json()).catch(() => null),
+        fetch("/api/inventory").then((r) => r.json()).catch(() => null),
       ]);
-      const [salesRes, fleetRes, finRes, feedRes, tasksRes] = results.map((r) => (r.status === "fulfilled" ? r.value : null));
+      const [salesRes, fleetRes, finRes, feedRes, tasksRes, invRes] = results.map((r) => (r.status === "fulfilled" ? r.value : null));
       if (salesRes?.success && salesRes.stats) {
         setSalesRevenue(salesRes.stats.revenueToday ?? 0);
         setPendingPickOrders(salesRes.stats.choSoan ?? 0);
+        if (salesRes.stats.byStatus) {
+          setSalesStats(salesRes.stats.byStatus);
+        }
       }
       if (fleetRes?.success && fleetRes.telemetry) setFleetTemp(fleetRes.telemetry.temperature);
       if (finRes?.success && finRes.stats) setTechcombankBalance(finRes.stats.balance_techcombank ?? 0);
+      if (invRes?.success && typeof invRes.fefo_count === "number") setFefoAlertCount(invRes.fefo_count);
       if (feedRes?.success && Array.isArray(feedRes.items)) {
         setStreamItems(feedRes.items);
       } else if (feedRes?.success && Array.isArray(feedRes.stream)) {
@@ -83,18 +96,18 @@ export default function SmartWorkdeskPage() {
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <LayoutDashboard className="w-5 h-5 text-sky-600" /> BAN LAM VIEC DIEU HANH THONG MINH
+              <LayoutDashboard className="w-5 h-5 text-sky-600" /> BÀN LÀM VIỆC ĐIỀU HÀNH THÔNG MINH
             </h1>
             <Badge className="bg-sky-600 text-white font-mono text-[10px]">SK WORKSPACE 2.0</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">CONG TY TNHH THUC PHAM SON KHANG (MST: 0111252725) - Kho Tong 96 Ngo 337 Dinh Cong</p>
+          <p className="text-xs text-muted-foreground">CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: 0111252725) · Kho Tổng: 96 Ngõ 337 Định Công</p>
         </div>
         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-full border border-slate-200 dark:border-slate-700">
           <button onClick={() => setActiveTab("cockpit")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === "cockpit" ? "bg-white dark:bg-slate-900 text-sky-600 shadow-sm" : "text-muted-foreground hover:text-slate-900 dark:hover:text-white"}`}>
-            <Rss className="w-3.5 h-3.5" /> Ban Lam Viec Newsfeed &amp; Dashboard
+            <Rss className="w-3.5 h-3.5" /> Bàn Làm Việc &amp; Giám Sát Vận Hành
           </button>
           <button onClick={() => setActiveTab("apps")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === "apps" ? "bg-white dark:bg-slate-900 text-sky-600 shadow-sm" : "text-muted-foreground hover:text-slate-900 dark:hover:text-white"}`}>
-            <Sparkles className="w-3.5 h-3.5" /> Tat Ca Phan He ({appRegistry.length - 1})
+            <Sparkles className="w-3.5 h-3.5" /> Tất Cả Phân Hệ ({appRegistry.length - 1})
           </button>
         </div>
       </div>
@@ -110,16 +123,18 @@ export default function SmartWorkdeskPage() {
           loadingStream={loadingStream}
           onPostCreated={handlePostCreated}
           onRefresh={fetchDashboardData}
+          salesStats={salesStats}
+          fefoAlertCount={fefoAlertCount}
         />
       ) : (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Tim kiem phan he, miniapp..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-8 h-9 rounded-full border-slate-200 shadow-sm text-xs" />
+              <Input placeholder="Tìm kiếm phân hệ, miniapp..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-8 h-9 rounded-full border-slate-200 shadow-sm text-xs" />
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <button onClick={() => setGroup("all")} className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${group === "all" ? "bg-slate-900 text-white border-slate-900 shadow-md" : "bg-white text-slate-700 border-slate-200 hover:shadow-md"}`}>Tat ca</button>
+              <button onClick={() => setGroup("all")} className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${group === "all" ? "bg-slate-900 text-white border-slate-900 shadow-md" : "bg-white text-slate-700 border-slate-200 hover:shadow-md"}`}>Tất cả</button>
               {GROUP_ORDER.map((g) => (
                 <button key={g} onClick={() => setGroup(g)} className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${group === g ? "bg-sky-600 text-white border-sky-600 shadow-md" : "bg-white text-slate-700 border-slate-200 hover:shadow-md"}`}>{GROUP_LABEL[g]}</button>
               ))}
