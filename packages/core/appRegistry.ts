@@ -57,7 +57,7 @@ export const appRegistry: AppDef[] = [
   { id: "customers", label: "Khách hàng B2B", group: "ban-hang", icon: Building2, href: "/customers", color: "neutral", desc: "Công nợ & lịch sử mua" },
   { id: "pricing", label: "Bảng giá", group: "ban-hang", icon: Tag, href: "/pricing", color: "neutral", desc: "SKU & giá theo kênh" },
   { id: "purchase", label: "Mua hàng", group: "van-hanh", icon: ShoppingBag, href: "/purchase", color: "warning", desc: "Đặt NCC & nhập kho" },
-  { id: "inventory", label: "Kho lạnh", group: "van-hanh", icon: Warehouse, href: "/inventory", color: "success", desc: "Tồn Q7 / Q12 & cảnh báo" },
+  { id: "inventory", label: "Kho lạnh", group: "van-hanh", icon: Warehouse, href: "/inventory", color: "success", desc: "Kho Tổng Định Công & FEFO" },
   { id: "delivery", label: "Giao vận", group: "van-hanh", icon: Truck, href: "/delivery", color: "success", desc: "Tuyến giao & tài xế" },
   { id: "fleet", label: "Đội xe & Chuỗi lạnh", group: "van-hanh", icon: Truck, href: "/fleet", color: "success", badge: "-18°C", desc: "IoT nhiệt độ & đội xe tải" },
   { id: "finance", label: "Dòng tiền", group: "tai-chinh", icon: Wallet, href: "/finance", color: "primary", desc: "Thu chi & đối soát" },
