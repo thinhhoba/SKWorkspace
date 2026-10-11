@@ -2,7 +2,6 @@
 import * as React from "react";
 import { TrendingUp, Package, ThermometerSnowflake, Wallet, CheckCircle2 } from "lucide-react";
 import KpiCard from "./KpiCard";
-import Launchpad from "./Launchpad";
 import TasksWidget from "./TasksWidget";
 import type { WorkdeskTask } from "@/packages/modules/tasks/types";
 
@@ -55,7 +54,6 @@ export default function LeftColumn({ revenue, pendingPickCount, fleetTemp, bankB
           icon={<Wallet className="w-3.5 h-3.5" />}
         />
       </div>
-      <Launchpad />
       <TasksWidget tasks={tasks} />
     </div>
   );

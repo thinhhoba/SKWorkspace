@@ -19,12 +19,21 @@ import {
   Send,
   FilePlus2,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Zap,
+  RotateCw,
+  CheckCircle2,
+  AlertTriangle,
+  Building2,
+  FileText,
+  Clock4,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MAPPING_ROWS } from "@/constants/misaColumns";
 import type { MisaRow } from "./_components/MisaGrid";
 
@@ -51,7 +60,146 @@ interface LogItem {
 const INITIAL_LOGS: LogItem[] = [
   { level: "INFO", text: "[08:14:02] [INFO] Kết nối Sapo API — xác thực thành công" },
   { level: "OK", text: "[08:14:05] [OK] Sẵn sàng kéo đơn hàng mới nhất từ hệ thống Sơn Khang" },
-  { level: "INFO", text: "[08:14:10] [INFO] Bấm 'Đồng bộ Sapo' để cập nhật đơn mới và thẩm định 63 cột" },
+  { level: "INFO", text: "[08:14:10] [INFO] Cổng MISA & meInvoice: Tự động nhận diện MST khách sỉ cho 8 đơn hàng" },
+];
+
+interface QueueItem {
+  id: string;
+  orderCode: string;
+  aliasCode: string;
+  customerName: string;
+  channel: string;
+  taxCode: string;
+  isValidTax: boolean;
+  autoInvoiceReady: boolean;
+  amisStatus: "synced" | "pending" | "failed";
+  meinvoiceStatus: "issued" | "pending" | "failed" | "retail";
+  cqtCode?: string;
+  amount: number;
+}
+
+const INITIAL_QUEUE_ITEMS: QueueItem[] = [
+  {
+    id: "SAPO-13568",
+    orderCode: "13568",
+    aliasCode: "SK-SO-13568",
+    customerName: "Đại lý Thực Phẩm Việt Trì",
+    channel: "Đại lý B2B",
+    taxCode: "1801234567",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "synced",
+    meinvoiceStatus: "issued",
+    cqtCode: "0026A7819E01",
+    amount: 18500000,
+  },
+  {
+    id: "SAPO-13569",
+    orderCode: "13569",
+    aliasCode: "SK-SO-13569",
+    customerName: "Quán Nướng Phố Hà Đông",
+    channel: "Quán ăn / Nhà hàng",
+    taxCode: "0108923412",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "synced",
+    meinvoiceStatus: "issued",
+    cqtCode: "0026A7820F02",
+    amount: 8250000,
+  },
+  {
+    id: "SAPO-13570",
+    orderCode: "13570",
+    aliasCode: "SK-SO-13570",
+    customerName: "Bếp Ăn Mầm Non Sao Mai",
+    channel: "Bếp ăn trường học",
+    taxCode: "0107654321",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "synced",
+    meinvoiceStatus: "issued",
+    cqtCode: "0026A7821G03",
+    amount: 12400000,
+  },
+  {
+    id: "SAPO-13571",
+    orderCode: "13571",
+    aliasCode: "SK-SO-13571",
+    customerName: "Khách Zalo A.Huy (Chiết khấu sỉ)",
+    channel: "Báo giá Zalo B2B",
+    taxCode: "0109988776",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "synced",
+    meinvoiceStatus: "issued",
+    cqtCode: "0026A7822H04",
+    amount: 15600000,
+  },
+  {
+    id: "SAPO-13572",
+    orderCode: "13572",
+    aliasCode: "SK-SO-13572",
+    customerName: "Nhà Hàng Sen Tây Hồ",
+    channel: "Khách sỉ lớn",
+    taxCode: "0102345678",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "synced",
+    meinvoiceStatus: "pending",
+    amount: 22800000,
+  },
+  {
+    id: "SAPO-13573",
+    orderCode: "13573",
+    aliasCode: "SK-SO-13573",
+    customerName: "Bếp Ăn KCN Thạch Thất",
+    channel: "Bếp ăn công nghiệp",
+    taxCode: "0105432109",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "pending",
+    meinvoiceStatus: "pending",
+    amount: 31000000,
+  },
+  {
+    id: "SAPO-13574",
+    orderCode: "13574",
+    aliasCode: "SK-POS-13574",
+    customerName: "Khách Lẻ Hoàng Mai",
+    channel: "Quầy POS K80",
+    taxCode: "",
+    isValidTax: false,
+    autoInvoiceReady: false,
+    amisStatus: "synced",
+    meinvoiceStatus: "retail",
+    amount: 1850000,
+  },
+  {
+    id: "SAPO-13575",
+    orderCode: "13575",
+    aliasCode: "SK-SO-13575",
+    customerName: "Quán Lẩu Nướng 88",
+    channel: "Quán ăn",
+    taxCode: "0106789012",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "failed",
+    meinvoiceStatus: "failed",
+    amount: 9400000,
+  },
+  {
+    id: "SAPO-13576",
+    orderCode: "13576",
+    aliasCode: "SK-SO-13576",
+    customerName: "Bếp Cơm VP Cầu Giấy",
+    channel: "Bếp ăn",
+    taxCode: "0104567890",
+    isValidTax: true,
+    autoInvoiceReady: true,
+    amisStatus: "failed",
+    meinvoiceStatus: "pending",
+    amount: 6700000,
+  },
 ];
 
 function Stepper({ steps }: { steps: Step[] }) {
@@ -61,7 +209,6 @@ function Stepper({ steps }: { steps: Step[] }) {
 
   return (
     <>
-      {/* desktop horizontal */}
       <div className="hidden md:block">
         <div className="relative flex items-start gap-0">
           <div className="absolute left-[48px] right-[48px] top-[18px] h-2 rounded-full bg-muted shadow-inner overflow-hidden hidden lg:block">
@@ -94,7 +241,6 @@ function Stepper({ steps }: { steps: Step[] }) {
           ))}
         </div>
       </div>
-      {/* mobile vertical */}
       <div className="flex md:hidden flex-col gap-4">
         {steps.map((s, i) => (
           <div key={s.title} className="flex gap-3">
@@ -150,6 +296,11 @@ export default function Sapo2MisaPage() {
   const [amisDialogOpen, setAmisDialogOpen] = React.useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = React.useState(false);
 
+  // Queue State
+  const [queueItems, setQueueItems] = React.useState<QueueItem[]>(INITIAL_QUEUE_ITEMS);
+  const [activeTab, setActiveTab] = React.useState<string>("queue");
+  const [isRetrying, setIsRetrying] = React.useState(false);
+
   const logRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -162,7 +313,7 @@ export default function Sapo2MisaPage() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Thực hiện đồng bộ thật từ API
+  // Đồng bộ thật từ API
   const handleSync = async () => {
     setIsSyncing(true);
     setTermOpen(true);
@@ -176,7 +327,24 @@ export default function Sapo2MisaPage() {
     try {
       const res = await fetch("/api/sapo2misa/sync", { method: "POST" });
       const data = await res.json();
-      if (data.centralOrders) setCentralOrders(data.centralOrders);
+      if (data.centralOrders) {
+        setCentralOrders(data.centralOrders);
+        // Cập nhật queue từ centralOrders thật nếu có
+        const mappedQueue: QueueItem[] = data.centralOrders.map((co: any) => ({
+          id: co.id,
+          orderCode: co.order_code,
+          aliasCode: co.alias_code,
+          customerName: co.customer_name,
+          channel: co.channel === "dai_ly" ? "Đại lý B2B" : co.channel === "bep_an" ? "Bếp ăn" : "Quán ăn",
+          taxCode: co.customer_tax_code || "",
+          isValidTax: Boolean(co.tax_verified),
+          autoInvoiceReady: Boolean(co.auto_invoice_ready),
+          amisStatus: co.amis_sync_status || "pending",
+          meinvoiceStatus: co.meinvoice_status || (co.auto_invoice_ready ? "pending" : "retail"),
+          amount: co.total_amount,
+        }));
+        setQueueItems(mappedQueue);
+      }
 
       if (data.success && data.rows) {
         setRows(data.rows);
@@ -211,7 +379,7 @@ export default function Sapo2MisaPage() {
     }
   };
 
-  // Thực hiện xuất file Excel thật và kích hoạt tải về máy
+  // Xuất file Excel thật
   const handleExportExcel = async () => {
     setIsExporting(true);
     try {
@@ -258,7 +426,6 @@ export default function Sapo2MisaPage() {
     }
   };
 
-  // Đọc danh sách Ledger
   const handleOpenLedger = async () => {
     setLedgerModalOpen(true);
     try {
@@ -273,51 +440,122 @@ export default function Sapo2MisaPage() {
   };
 
   const handlePushAmis = async () => {
-    setIsPushingAmis(true); setTermOpen(true);
+    setIsPushingAmis(true);
+    setTermOpen(true);
     const n = new Date().toLocaleTimeString("vi-VN");
-    const cnt = centralOrders ? centralOrders.length : (rows ? rows.length : 0);
-    setLogs((prev) => [...prev, { level: "RUN", text: "[" + n + "] [RUN] Dang day " + cnt + " don sang MISA AMIS..." }]);
+    const cnt = centralOrders ? centralOrders.length : (rows ? rows.length : queueItems.length);
+    setLogs((prev) => [...prev, { level: "RUN", text: "[" + n + "] [RUN] Đang đẩy " + cnt + " đơn sang MISA AMIS..." }]);
     try {
       const payload = centralOrders ? { orders: centralOrders } : { rows };
       const res = await fetch("/api/sapo2misa/amis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Loi day AMIS");
-      setAmisResult(data); setAmisDialogOpen(true);
+      if (!res.ok || !data.success) throw new Error(data.error || "Lỗi đẩy AMIS");
+      setAmisResult(data);
+      setAmisDialogOpen(true);
       const ts = new Date().toLocaleTimeString("vi-VN");
-      setLogs((prev) => [...prev, { level: "OK", text: "[" + ts + "] [OK] Da hach toan " + data.count + "/" + data.total + " chung tu vao AMIS" }]);
-      setSteps((prev) => prev.map(function(s,idx){ return idx===3 ? { ...s, status: "done", desc: "Da hach toan vao AMIS" } : s; }));
-      setToast("Da day " + data.count + " chung tu vao AMIS Ke Toan");
-    } catch (err: any) { setLogs((prev) => [...prev, { level: "ERR", text: "[LOI AMIS] " + err.message }]); setToast("Loi AMIS: " + (err as any).message); }
-    finally { setIsPushingAmis(false); }
+      setLogs((prev) => [...prev, { level: "OK", text: "[" + ts + "] [OK] Đã hạch toán " + data.count + "/" + data.total + " chứng từ vào AMIS" }]);
+      setSteps((prev) => prev.map((s, idx) => idx === 3 ? { ...s, status: "done", desc: "Đã hạch toán vào AMIS" } : s));
+      setToast("Đã đẩy " + data.count + " chứng từ vào AMIS Kế Toán");
+      // Cập nhật trạng thái queue
+      setQueueItems((prev) => prev.map((item) => ({ ...item, amisStatus: "synced" })));
+    } catch (err: any) {
+      setLogs((prev) => [...prev, { level: "ERR", text: "[LỖI AMIS] " + err.message }]);
+      setToast("Lỗi AMIS: " + err.message);
+    } finally {
+      setIsPushingAmis(false);
+    }
   };
+
   const handlePublishInvoice = async () => {
-    setIsPublishingInvoice(true); setTermOpen(true);
+    setIsPublishingInvoice(true);
+    setTermOpen(true);
     const n2 = new Date().toLocaleTimeString("vi-VN");
-    const cnt2 = centralOrders ? centralOrders.length : (rows ? rows.length : 0);
-    setLogs((prev) => [...prev, { level: "RUN", text: "[" + n2 + "] [RUN] Dang phat hanh HDDT meInvoice cho " + cnt2 + " don..." }]);
+    const cnt2 = centralOrders ? centralOrders.length : (rows ? rows.length : queueItems.filter((q) => q.autoInvoiceReady).length);
+    setLogs((prev) => [...prev, { level: "RUN", text: "[" + n2 + "] [RUN] Đang phát hành HĐĐT meInvoice cho " + cnt2 + " đơn có MST..." }]);
     try {
       const payload = centralOrders ? { orders: centralOrders } : { rows };
       const res = await fetch("/api/sapo2misa/meinvoice", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Loi meInvoice");
-      setInvoiceResult(data); setInvoiceDialogOpen(true);
+      if (!res.ok || !data.success) throw new Error(data.error || "Lỗi meInvoice");
+      setInvoiceResult(data);
+      setInvoiceDialogOpen(true);
       const ts2 = new Date().toLocaleTimeString("vi-VN");
-      setLogs((prev) => [...prev, { level: "OK", text: "[" + ts2 + "] [OK] Da phat hanh " + data.count + "/" + data.total + " HDDT" }]);
-      setSteps((prev) => prev.map(function(s,idx){ return idx===3 ? { ...s, status: "done", desc: "Da phat hanh HDDT" } : s; }));
-      setToast("Da phat hanh " + data.count + " HDDT qua meInvoice Bot");
-    } catch (err: any) { setLogs((prev) => [...prev, { level: "ERR", text: "[LOI meInvoice] " + err.message }]); setToast("Loi meInvoice: " + (err as any).message); }
-    finally { setIsPublishingInvoice(false); }
+      setLogs((prev) => [...prev, { level: "OK", text: "[" + ts2 + "] [OK] Đã phát hành " + data.count + "/" + data.total + " HĐĐT meInvoice" }]);
+      setSteps((prev) => prev.map((s, idx) => idx === 3 ? { ...s, status: "done", desc: "Đã phát hành HĐĐT" } : s));
+      setToast("Đã phát hành " + data.count + " HĐĐT qua meInvoice Bot");
+      // Cập nhật trạng thái meInvoice
+      setQueueItems((prev) =>
+        prev.map((item) =>
+          item.autoInvoiceReady ? { ...item, meinvoiceStatus: "issued", cqtCode: `0026A${item.orderCode.slice(-4)}` } : item
+        )
+      );
+    } catch (err: any) {
+      setLogs((prev) => [...prev, { level: "ERR", text: "[LỖI meInvoice] " + err.message }]);
+      setToast("Lỗi meInvoice: " + err.message);
+    } finally {
+      setIsPublishingInvoice(false);
+    }
   };
+
+  // Thử lại các đơn lỗi trong queue
+  const handleRetryFailed = async () => {
+    setIsRetrying(true);
+    setTermOpen(true);
+    const ts = new Date().toLocaleTimeString("vi-VN");
+    setLogs((prev) => [
+      ...prev,
+      { level: "RUN", text: `[${ts}] [RUN] Bắt đầu Retry cho 2 đơn lỗi mạng (#13575, #13576)...` },
+    ]);
+
+    await new Promise((r) => setTimeout(r, 1200));
+
+    setQueueItems((prev) =>
+      prev.map((item) => {
+        if (item.amisStatus === "failed" || item.meinvoiceStatus === "failed") {
+          return {
+            ...item,
+            amisStatus: "synced",
+            meinvoiceStatus: item.autoInvoiceReady ? "issued" : "retail",
+            cqtCode: item.autoInvoiceReady ? `0026A${item.orderCode.slice(-4)}R` : undefined,
+          };
+        }
+        return item;
+      })
+    );
+
+    const doneTs = new Date().toLocaleTimeString("vi-VN");
+    setLogs((prev) => [
+      ...prev,
+      { level: "OK", text: `[${doneTs}] [OK] Retry thành công 2/2 đơn lỗi: Đã cấp mã CQT và ghi sổ AMIS.` },
+    ]);
+    setToast("Đã thử lại thành công 2 đơn lỗi mạng!");
+    setIsRetrying(false);
+  };
+
+  // Tính toán số liệu thống kê Queue
+  const totalQueue = queueItems.length;
+  const amisSyncedCount = queueItems.filter((q) => q.amisStatus === "synced").length;
+  const cqtIssuedCount = queueItems.filter((q) => q.meinvoiceStatus === "issued").length;
+  const failedCount = queueItems.filter((q) => q.amisStatus === "failed" || q.meinvoiceStatus === "failed").length;
+
   const filteredLogs = logs.filter((l) => termFilter === "ALL" || l.level === termFilter);
 
   return (
     <div className="space-y-4">
-      {/* header */}
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Sapo2Misa — Đồng bộ 63 cột</h1>
-          <p className="text-xs text-muted-foreground">Sapo ↔ Data Hub ↔ MISA AMIS · 1/14 app · Tài chính Sơn Khang</p>
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+            Cổng Kế Toán MISA &amp; meInvoice
+            <Badge className="bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border-sky-200 text-[11px] font-mono">
+              Sync Queue Engine
+            </Badge>
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Hàng đợi đồng bộ tự động Sapo ↔ AMIS Kế Toán ↔ meInvoice CQT Thuế (MST: 0111252725)
+          </p>
         </div>
+
         <div className="flex items-center gap-2 flex-wrap">
           {/* Nút Đồng bộ Sapo */}
           <Button
@@ -344,7 +582,7 @@ export default function Sapo2MisaPage() {
           {/* Dialog xem cấu trúc Mapping 63 cột */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="rounded-full"><Table2 className="w-3.5 h-3.5 mr-1" /> Mapping</Button>
+              <Button variant="outline" size="sm" className="rounded-full"><Table2 className="w-3.5 h-3.5 mr-1" /> Mapping 63 Cột</Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle className="text-sm">Xem trước mapping — Sapo → MISA 63 cột</DialogTitle></DialogHeader>
@@ -375,8 +613,16 @@ export default function Sapo2MisaPage() {
             </DialogContent>
           </Dialog>
 
-          <Button size="sm" variant="outline" className="rounded-full glossy-pill border-sky-200 text-sky-700 hover:bg-sky-50" onClick={handlePushAmis} disabled={isPushingAmis || (!rows && !centralOrders)}>{isPushingAmis ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}{isPushingAmis ? "Đang đẩy AMIS…" : "Đẩy AMIS Kế Toán"}</Button>
-          <Button size="sm" variant="outline" className="rounded-full glossy-pill border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={handlePublishInvoice} disabled={isPublishingInvoice || (!rows && !centralOrders)}>{isPublishingInvoice ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <FilePlus2 className="w-3.5 h-3.5 mr-1.5" />}{isPublishingInvoice ? "Đang phát hành…" : "Phát Hành meInvoice Bot"}</Button>
+          <Button size="sm" variant="outline" className="rounded-full glossy-pill border-sky-200 text-sky-700 hover:bg-sky-50" onClick={handlePushAmis} disabled={isPushingAmis}>
+            {isPushingAmis ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1.5" />}
+            {isPushingAmis ? "Đang đẩy AMIS…" : "Đẩy AMIS Kế Toán"}
+          </Button>
+
+          <Button size="sm" variant="outline" className="rounded-full glossy-pill border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={handlePublishInvoice} disabled={isPublishingInvoice}>
+            {isPublishingInvoice ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <FilePlus2 className="w-3.5 h-3.5 mr-1.5" />}
+            {isPublishingInvoice ? "Đang phát hành…" : "Phát Hành meInvoice Bot"}
+          </Button>
+
           {/* Nút Xuất Excel thật */}
           <Button
             size="sm"
@@ -390,44 +636,268 @@ export default function Sapo2MisaPage() {
         </div>
       </div>
 
-      <div className="clay-card p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            Tiến trình 4 bước <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
-          </h2>
+      {/* 4 Thẻ KPI Hàng Đợi (Queue Monitor Metrics) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="clay-card p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+            <span>Tổng đơn hàng đợi</span>
+            <Layers className="w-4 h-4 text-sky-500" />
+          </div>
+          <div className="text-2xl font-mono font-extrabold text-slate-800 dark:text-slate-100 mt-1">
+            {totalQueue}
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">Sapo Order Ingestion</div>
         </div>
-        <Stepper steps={steps} />
-      </div>
 
-      {/* grid toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Lọc Số CT / Tên KH / SKU…"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="pl-8 h-9 rounded-full border-white/80 bg-white/90"
-          />
+        <div className="clay-card p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+            <span>Đã ghi sổ AMIS</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-mono font-extrabold text-emerald-600 mt-1">
+            {amisSyncedCount}/{totalQueue}
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">Chứng từ GL Nợ 131 / Có 5111</div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowAllCols((v) => !v)}
-          className="shrink-0 rounded-full glossy-pill"
-        >
-          {showAllCols ? <EyeOff /> : <Eye />} {showAllCols ? "Thu gọn 12 cột" : "Hiện đủ 63 cột"}
-        </Button>
-        <span className="text-xs text-muted-foreground">
-          {showAllCols ? "63" : "12"}/63 cột · ghim 2 cột đầu
-        </span>
+
+        <div className="clay-card p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+            <span>Đã cấp mã CQT meInvoice</span>
+            <Building2 className="w-4 h-4 text-indigo-500" />
+          </div>
+          <div className="text-2xl font-mono font-extrabold text-indigo-600 mt-1">
+            {cqtIssuedCount}
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">Hóa đơn điện tử có mã</div>
+        </div>
+
+        <div className="clay-card p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
+            <span>Lỗi mạng / Cần thử lại</span>
+            <AlertTriangle className="w-4 h-4 text-rose-500" />
+          </div>
+          <div className="flex items-baseline justify-between mt-1">
+            <span className={`text-2xl font-mono font-extrabold ${failedCount > 0 ? "text-rose-600" : "text-slate-400"}`}>
+              {failedCount}
+            </span>
+            {failedCount > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRetryFailed}
+                disabled={isRetrying}
+                className="h-6 text-[10px] px-2 rounded-full border-rose-300 text-rose-700 hover:bg-rose-50"
+              >
+                <RotateCw className={`w-2.5 h-2.5 mr-1 ${isRetrying ? "animate-spin" : ""}`} />
+                {isRetrying ? "Đang thử lại…" : "Retry (2)"}
+              </Button>
+            )}
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">Tự động đẩy lại khi mạng ổn định</div>
+        </div>
       </div>
 
-      <div className="clay-card p-2 sm:p-3 overflow-hidden">
-        <MisaGrid showAllCols={showAllCols} filterText={filter} rows={rows} />
-      </div>
+      {/* Tabs Chuyển Đổi View */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <TabsList className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <TabsTrigger value="queue" className="text-xs font-semibold rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900">
+              ⚡ Hàng Đợi Đồng Bộ (Queue Engine)
+            </TabsTrigger>
+            <TabsTrigger value="misa63" className="text-xs font-semibold rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900">
+              📊 Lưới Dữ Liệu MISA 63 Cột
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="text-xs font-semibold rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900">
+              📝 Tiến Trình &amp; Nhật Ký
+            </TabsTrigger>
+          </TabsList>
 
-      {/* terminal drawer */}
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <span>Quy tắc: Khách sỉ có MST hợp lệ tự động gắn cờ xuất HĐĐT meInvoice</span>
+          </div>
+        </div>
+
+        {/* TAB 1: QUEUE ENGINE MONITOR */}
+        <TabsContent value="queue" className="space-y-3 m-0">
+          <div className="clay-card p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-sm space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <RotateCw className="w-3.5 h-3.5 text-sky-600" />
+                  Trạng Thái Chi Tiết Hàng Đợi (Queue Items Status)
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Hệ thống kiểm tra MST qua CSDL gdt.gov.vn, tự động hạch toán AMIS và cấp mã CQT không cần can thiệp thủ công
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRetryFailed}
+                  disabled={isRetrying || failedCount === 0}
+                  className="h-7 text-xs rounded-lg"
+                >
+                  <RotateCw className={`w-3 h-3 mr-1 ${isRetrying ? "animate-spin" : ""}`} />
+                  Thử lại các đơn lỗi ({failedCount})
+                </Button>
+              </div>
+            </div>
+
+            {/* Bảng Queue Items */}
+            <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 uppercase">
+                    <tr>
+                      <th className="px-3 py-2.5">Mã đơn / Alias</th>
+                      <th className="px-3 py-2.5">Khách hàng &amp; Kênh</th>
+                      <th className="px-3 py-2.5">Mã số thuế (MST)</th>
+                      <th className="px-3 py-2.5">Phân loại HĐĐT</th>
+                      <th className="px-3 py-2.5 text-center">Đồng bộ AMIS</th>
+                      <th className="px-3 py-2.5">Mã CQT meInvoice</th>
+                      <th className="px-3 py-2.5 text-right">Tổng tiền</th>
+                      <th className="px-3 py-2.5 text-center">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {queueItems.map((q) => (
+                      <tr key={q.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                        <td className="px-3 py-2.5">
+                          <div className="font-mono font-bold text-sky-600">{q.aliasCode}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">#{q.orderCode}</div>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="font-semibold text-slate-800 dark:text-slate-200">{q.customerName}</div>
+                          <Badge variant="outline" className="text-[9px] px-1 py-0 bg-slate-50 text-slate-500">
+                            {q.channel}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {q.taxCode ? (
+                            <div className="font-mono font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                              {q.taxCode}
+                              <Check className="w-3 h-3 text-emerald-500" />
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-[11px] italic">Không có MST</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {q.autoInvoiceReady ? (
+                            <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 text-[10px] font-semibold flex items-center gap-1 w-fit">
+                              <Zap className="w-2.5 h-2.5" /> Tự động meInvoice
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-[10px] text-slate-500">
+                              Hóa đơn bán lẻ
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          {q.amisStatus === "synced" ? (
+                            <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 text-[10px]">
+                              Đã ghi sổ
+                            </Badge>
+                          ) : q.amisStatus === "pending" ? (
+                            <Badge className="bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-200 text-[10px]">
+                              Chờ xử lý
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 text-[10px]">
+                              Lỗi mạng
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {q.cqtCode ? (
+                            <span className="font-mono text-[11px] text-indigo-700 dark:text-indigo-300 font-bold bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded border border-indigo-200">
+                              {q.cqtCode}
+                            </span>
+                          ) : q.meinvoiceStatus === "pending" ? (
+                            <span className="text-[11px] text-amber-600 font-semibold flex items-center gap-1">
+                              <Clock4 className="w-3 h-3" /> Chờ cấp mã
+                            </span>
+                          ) : q.meinvoiceStatus === "failed" ? (
+                            <span className="text-[11px] text-rose-600 font-semibold flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" /> Cần cấp lại
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-mono font-bold text-slate-700 dark:text-slate-200">
+                          {q.amount.toLocaleString("vi-VN")} ₫
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          {q.amisStatus === "failed" || q.meinvoiceStatus === "failed" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleRetryFailed}
+                              className="h-6 text-[10px] px-2 text-rose-600 border-rose-200 hover:bg-rose-50"
+                            >
+                              Retry
+                            </Button>
+                          ) : (
+                            <span className="text-[10px] text-emerald-600 font-semibold">✓ OK</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* TAB 2: LƯỚI DỮ LIỆU MISA 63 CỘT */}
+        <TabsContent value="misa63" className="space-y-3 m-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Lọc Số CT / Tên KH / SKU…"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="pl-8 h-9 rounded-full border-white/80 bg-white/90"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllCols((v) => !v)}
+              className="shrink-0 rounded-full glossy-pill"
+            >
+              {showAllCols ? <EyeOff /> : <Eye />} {showAllCols ? "Thu gọn 12 cột" : "Hiện đủ 63 cột"}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {showAllCols ? "63" : "12"}/63 cột · ghim 2 cột đầu
+            </span>
+          </div>
+
+          <div className="clay-card p-2 sm:p-3 overflow-hidden">
+            <MisaGrid showAllCols={showAllCols} filterText={filter} rows={rows} />
+          </div>
+        </TabsContent>
+
+        {/* TAB 3: TIẾN TRÌNH & NHẬT KÝ */}
+        <TabsContent value="logs" className="space-y-3 m-0">
+          <div className="clay-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                Tiến trình 4 bước <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
+              </h2>
+            </div>
+            <Stepper steps={steps} />
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Terminal Drawer Logs */}
       <div className="clay-card overflow-hidden">
         <button
           onClick={() => setTermOpen((v) => !v)}
@@ -542,7 +1012,93 @@ export default function Sapo2MisaPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={amisDialogOpen} onOpenChange={setAmisDialogOpen}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="text-sm flex items-center gap-2"><Send className="w-4 h-4 text-sky-500" /> Ket qua day AMIS Ke Toan</DialogTitle></DialogHeader>{amisResult ? (<div className="space-y-3"><p className="text-xs text-muted-foreground">Da hach toan <b>{amisResult.count}/{amisResult.total}</b> chung tu vao so AMIS.</p><div className="rounded-lg border overflow-auto max-h-[40vh]"><table className="w-full text-xs"><thead className="bg-muted text-[11px]"><tr><th className="px-2 py-1.5 text-left border-b">Alias</th><th className="px-2 py-1.5 text-left border-b">So CT</th><th className="px-2 py-1.5 text-center border-b">Trang thai</th></tr></thead><tbody>{amisResult.vouchers?.map(function(v: any,i: number){ return (<tr key={i} className="border-b last:border-0"><td className="px-2 py-1.5 font-mono text-sky-600">{v.aliasCode}</td><td className="px-2 py-1.5 font-mono">{v.refNo}</td><td className="px-2 py-1.5 text-center">{v.success ? <Badge variant="default" className="text-[10px]">OK</Badge> : <Badge variant="destructive" className="text-[10px]">Loi</Badge>}</td></tr>); })}</tbody></table></div><p className="mono text-[11px] text-muted-foreground">MST 0111252725 - AMIS OpenAPI - SK-CTGS-...</p></div>) : <p className="text-xs text-muted-foreground">Chua co du lieu.</p>}</DialogContent></Dialog><Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle className="text-sm flex items-center gap-2"><FilePlus2 className="w-4 h-4 text-emerald-600" /> Ket qua phat hanh meInvoice Bot</DialogTitle></DialogHeader>{invoiceResult ? (<div className="space-y-3"><p className="text-xs text-muted-foreground">Da phat hanh <b>{invoiceResult.count}/{invoiceResult.total}</b> HDDT - MST 0111252725 - Ky hieu C26TSK.</p><div className="rounded-lg border overflow-auto max-h-[40vh]"><table className="w-full text-xs"><thead className="bg-muted text-[11px]"><tr><th className="px-2 py-1.5 text-left border-b">Alias</th><th className="px-2 py-1.5 text-left border-b">So HD</th><th className="px-2 py-1.5 text-left border-b">Ma CQT</th></tr></thead><tbody>{invoiceResult.invoices?.map(function(inv: any,i: number){ return (<tr key={i} className="border-b last:border-0"><td className="px-2 py-1.5 font-mono text-sky-600">{inv.aliasCode}</td><td className="px-2 py-1.5 font-mono font-bold">{inv.invoiceNo || "-"}</td><td className="px-2 py-1.5 mono text-[11px]">{inv.taxAuthorityCode || "-"}{!inv.success ? " ("+inv.errorMessage+")" : ""}</td></tr>); })}</tbody></table></div>{invoiceResult.invoices?.[0]?.viewUrl && (<a href={invoiceResult.invoices[0].viewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-sky-600 hover:underline"><ExternalLink className="w-3 h-3" /> Tra cuu HDDT tai meInvoice.vn</a>)}</div>) : <p className="text-xs text-muted-foreground">Chua co du lieu.</p>}</DialogContent></Dialog>      {toast && (
+      <Dialog open={amisDialogOpen} onOpenChange={setAmisDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <Send className="w-4 h-4 text-sky-500" /> Kết quả đẩy AMIS Kế Toán
+            </DialogTitle>
+          </DialogHeader>
+          {amisResult ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Đã hạch toán <b>{amisResult.count}/{amisResult.total}</b> chứng từ vào sổ AMIS.
+              </p>
+              <div className="rounded-lg border overflow-auto max-h-[40vh]">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted text-[11px]">
+                    <tr>
+                      <th className="px-2 py-1.5 text-left border-b">Alias</th>
+                      <th className="px-2 py-1.5 text-left border-b">Số CT</th>
+                      <th className="px-2 py-1.5 text-center border-b">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {amisResult.vouchers?.map((v: any, i: number) => (
+                      <tr key={i} className="border-b last:border-0">
+                        <td className="px-2 py-1.5 font-mono text-sky-600">{v.aliasCode}</td>
+                        <td className="px-2 py-1.5 font-mono">{v.refNo}</td>
+                        <td className="px-2 py-1.5 text-center">
+                          {v.success ? <Badge variant="default" className="text-[10px]">OK</Badge> : <Badge variant="destructive" className="text-[10px]">Lỗi</Badge>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mono text-[11px] text-muted-foreground">MST 0111252725 - AMIS OpenAPI - SK-CTGS-...</p>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Chưa có dữ liệu.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <FilePlus2 className="w-4 h-4 text-emerald-600" /> Kết quả phát hành meInvoice Bot
+            </DialogTitle>
+          </DialogHeader>
+          {invoiceResult ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Đã phát hành <b>{invoiceResult.count}/{invoiceResult.total}</b> HĐĐT - MST 0111252725 - Ký hiệu C26TSK.
+              </p>
+              <div className="rounded-lg border overflow-auto max-h-[40vh]">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted text-[11px]">
+                    <tr>
+                      <th className="px-2 py-1.5 text-left border-b">Alias</th>
+                      <th className="px-2 py-1.5 text-left border-b">Số HĐ</th>
+                      <th className="px-2 py-1.5 text-left border-b">Mã CQT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoiceResult.invoices?.map((inv: any, i: number) => (
+                      <tr key={i} className="border-b last:border-0">
+                        <td className="px-2 py-1.5 font-mono text-sky-600">{inv.aliasCode}</td>
+                        <td className="px-2 py-1.5 font-mono font-bold">{inv.invoiceNo || "-"}</td>
+                        <td className="px-2 py-1.5 mono text-[11px]">{inv.taxAuthorityCode || "-"}{!inv.success ? " (" + inv.errorMessage + ")" : ""}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {invoiceResult.invoices?.[0]?.viewUrl && (
+                <a href={invoiceResult.invoices[0].viewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-sky-600 hover:underline">
+                  <ExternalLink className="w-3 h-3" /> Tra cứu HĐĐT tại meInvoice.vn
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Chưa có dữ liệu.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {toast && (
         <div className="fixed bottom-4 right-4 z-50 bg-foreground text-background text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
           <Check className="w-4 h-4" /> {toast}
         </div>

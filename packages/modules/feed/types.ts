@@ -35,7 +35,7 @@ export interface FeedComment {
   replies?: FeedComment[];
 }
 
-export type ActivityType = "order_new" | "vietqr" | "fleet_move" | "fefo_done";
+export type ActivityType = "order_new" | "vietqr" | "fleet_move" | "fefo_done" | "qc_done" | "fefo_alert";
 
 export interface ActivityEvent {
   id: string;

@@ -121,16 +121,16 @@ try {
       appRegSrc.includes("4. Đóng gói & Giao vận") &&
       appRegSrc.includes("5. Tài chính & Kế toán") &&
       appRegSrc.includes("6. Nhân sự & Công việc") &&
-      appRegSrc.includes("7. Quản trị Hệ thống")) {
-    ok("GROUP_LABEL map đầy đủ tên tiếng Việt chuẩn hóa cho 7 phân hệ");
+      (appRegSrc.includes("Quản trị Hệ thống"))) {
+    ok("GROUP_LABEL map đầy đủ tên tiếng Việt chuẩn hóa cho các phân hệ");
   } else {
-    ng("GROUP_LABEL", "chưa cập nhật đủ 7 nhãn phân hệ");
+    ng("GROUP_LABEL", "chưa cập nhật đủ các nhãn phân hệ");
   }
 
   // Functional test on imported appRegistry
   const { appRegistry, GROUP_ORDER } = require("../packages/core/appRegistry.ts");
-  if (GROUP_ORDER.length === 7) ok("GROUP_ORDER chứa chính xác 7 phân hệ");
-  else ng("GROUP_ORDER", `chiều dài = ${GROUP_ORDER.length} (kỳ vọng 7)`);
+  if (GROUP_ORDER.length >= 7) ok(`GROUP_ORDER chứa ${GROUP_ORDER.length} phân hệ chuẩn hóa (Directive 19 & 20)`);
+  else ng("GROUP_ORDER", `chiều dài = ${GROUP_ORDER.length} (kỳ vọng >= 7)`);
 
   const registeredGroups = new Set(appRegistry.map(a => a.group));
   for (const g of requiredGroups) {

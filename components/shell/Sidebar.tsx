@@ -63,32 +63,41 @@ export function Sidebar({
             <div key={g} className="px-2 py-1">
               {!collapsed && <div className="px-2 py-1.5 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">{GROUP_LABEL[g]}</div>}
               <ul className="space-y-0.5">
-                {items.map((a) => {
+                {items.map((a, idx) => {
                   const Icon = a.icon;
                   const href = a.href.replace("/(shell)", "") || "/";
                   const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+                  const prevSubgroup = idx > 0 ? items[idx - 1].subgroup : undefined;
+                  const showSubgroup = !collapsed && a.subgroup && a.subgroup !== prevSubgroup;
                   return (
-                    <li key={a.id}>
-                      <Link
-                        href={href}
-                        aria-current={active ? "page" : undefined}
-                        onClick={onMobileClose}
-                        className={cn(
-                          "flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                          active
-                            ? "bg-primary text-primary-foreground shadow-[0_6px_16px_-4px_rgba(14,165,233,0.45),0_1px_4px_rgba(15,23,42,0.08)] ring-1 ring-white/40"
-                            : "text-muted-foreground hover:bg-white/70 hover:text-foreground hover:shadow-sm border border-transparent hover:border-white/60 dark:hover:bg-white/10 dark:hover:border-white/10",
-                          collapsed && "justify-center px-2"
-                        )}
-                        title={collapsed ? a.label : undefined}
-                      >
-                        <Icon className={cn("h-4 w-4 shrink-0", active ? "" : "opacity-80")} />
-                        {!collapsed && <span className="flex-1 truncate font-medium">{a.label}</span>}
-                        {!collapsed && a.badge ? (
-                          <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", active ? "bg-white/20 text-white" : "bg-primary/10 text-primary")}>{a.badge}</span>
-                        ) : null}
-                      </Link>
-                    </li>
+                    <React.Fragment key={a.id}>
+                      {showSubgroup && (
+                        <li className="list-none px-2 pt-2 pb-0.5 text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                          {a.subgroup}
+                        </li>
+                      )}
+                      <li>
+                        <Link
+                          href={href}
+                          aria-current={active ? "page" : undefined}
+                          onClick={onMobileClose}
+                          className={cn(
+                            "flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                            active
+                              ? "bg-primary text-primary-foreground shadow-[0_6px_16px_-4px_rgba(14,165,233,0.45),0_1px_4px_rgba(15,23,42,0.08)] ring-1 ring-white/40"
+                              : "text-muted-foreground hover:bg-white/70 hover:text-foreground hover:shadow-sm border border-transparent hover:border-white/60 dark:hover:bg-white/10 dark:hover:border-white/10",
+                            collapsed && "justify-center px-2"
+                          )}
+                          title={collapsed ? a.label : undefined}
+                        >
+                          <Icon className={cn("h-4 w-4 shrink-0", active ? "" : "opacity-80")} />
+                          {!collapsed && <span className="flex-1 truncate font-medium">{a.label}</span>}
+                          {!collapsed && a.badge ? (
+                            <span className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium", active ? "bg-white/20 text-white" : "bg-primary/10 text-primary")}>{a.badge}</span>
+                          ) : null}
+                        </Link>
+                      </li>
+                    </React.Fragment>
                   );
                 })}
               </ul>

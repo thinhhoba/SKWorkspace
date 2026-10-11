@@ -22,17 +22,19 @@ import {
   UserCircle,
   Store,
   Globe,
+  Wrench,
 } from "lucide-react";
 
 /**
- * 7 Phân hệ Chức năng Toàn diện của Sơn Khang Workspace (Chỉ thị 19):
+ * Bộ khung Phân hệ Chức năng của Sơn Khang Workspace (Chỉ thị 19 & 20):
  * 1. Mua hàng (Procurement & Vendor Management)
  * 2. Kho hàng (Advanced F&B WMS)
- * 3. Bán hàng & Phân phối (Omnichannel & DMS)
+ * 3. Bán hàng & Phân phối (Omnichannel & DMS — gom 2 nhóm con: Bán lẻ vs Đại lý B2B)
  * 4. Đóng gói & Giao hàng (Logistics & Fulfillment)
- * 5. Tài chính - Kế toán (Tích hợp Open API MISA)
+ * 5. Tài chính - Kế toán (Tích hợp Open API MISA & meInvoice Queue)
  * 6. Nhân sự & Quản trị Công việc (HRM & Task Flow)
- * 7. Quản trị Hệ thống (System Core & Administration)
+ * 7. Công cụ & Tiện ích (Sổ tay, Mail Hub, Văn thư — tách rời để chống Visual Clutter)
+ * 8. Quản trị Hệ thống (System Core & Administration)
  */
 export type AppGroup =
   | "mua-hang"
@@ -41,6 +43,7 @@ export type AppGroup =
   | "giao-hang"
   | "tai-chinh"
   | "nhan-su"
+  | "tien-ich"
   | "he-thong";
 
 export type AppColor = "primary" | "success" | "warning" | "destructive" | "neutral";
@@ -49,6 +52,7 @@ export interface AppDef {
   id: string;
   label: string;
   group: AppGroup;
+  subgroup?: string;
   icon: LucideIcon;
   href: string;
   badge?: string;
@@ -63,7 +67,8 @@ export const GROUP_LABEL: Record<AppGroup, string> = {
   "giao-hang": "4. Đóng gói & Giao vận",
   "tai-chinh": "5. Tài chính & Kế toán",
   "nhan-su": "6. Nhân sự & Công việc",
-  "he-thong": "7. Quản trị Hệ thống",
+  "tien-ich": "7. Công cụ & Tiện ích",
+  "he-thong": "8. Quản trị Hệ thống",
 };
 
 export const GROUP_ORDER: AppGroup[] = [
@@ -73,6 +78,7 @@ export const GROUP_ORDER: AppGroup[] = [
   "giao-hang",
   "tai-chinh",
   "nhan-su",
+  "tien-ich",
   "he-thong",
 ];
 
@@ -121,19 +127,12 @@ export const appRegistry: AppDef[] = [
   },
 
   // 3. Phân hệ Bán hàng & Phân phối (Omnichannel & DMS)
-  {
-    id: "sales",
-    label: "Bán hàng Omnichannel",
-    group: "ban-hang",
-    icon: ShoppingCart,
-    href: "/sales",
-    color: "primary",
-    desc: "Đơn hàng Sapo — POS, Web, Social & TMĐT",
-  },
+  // 3A. Nhóm con: Bán lẻ đa kênh
   {
     id: "pos",
     label: "POS Bán lẻ quầy",
     group: "ban-hang",
+    subgroup: "Bán lẻ đa kênh",
     icon: Store,
     href: "/pos",
     color: "primary",
@@ -144,6 +143,7 @@ export const appRegistry: AppDef[] = [
     id: "dathang",
     label: "Web Order B2B",
     group: "ban-hang",
+    subgroup: "Bán lẻ đa kênh",
     icon: Globe,
     href: "/dathang",
     color: "success",
@@ -151,9 +151,21 @@ export const appRegistry: AppDef[] = [
     desc: "Căn tin & quán ăn đặt hàng trực tuyến nhanh chóng",
   },
   {
+    id: "sales",
+    label: "Bán hàng Omnichannel",
+    group: "ban-hang",
+    subgroup: "Bán lẻ đa kênh",
+    icon: ShoppingCart,
+    href: "/sales",
+    color: "primary",
+    desc: "Đơn hàng Sapo — POS, Web, Social & TMĐT",
+  },
+  // 3B. Nhóm con: Kênh phân phối B2B & DMS
+  {
     id: "customers",
     label: "Khách hàng & DMS",
     group: "ban-hang",
+    subgroup: "Kênh đại lý B2B",
     icon: Building2,
     href: "/customers",
     color: "neutral",
@@ -163,6 +175,7 @@ export const appRegistry: AppDef[] = [
     id: "pricing",
     label: "Bảng giá sỉ",
     group: "ban-hang",
+    subgroup: "Kênh đại lý B2B",
     icon: Tag,
     href: "/pricing",
     color: "neutral",
@@ -172,6 +185,7 @@ export const appRegistry: AppDef[] = [
     id: "pricing-quote",
     label: "Báo giá B2B Zalo",
     group: "ban-hang",
+    subgroup: "Kênh đại lý B2B",
     icon: FileText,
     href: "/pricing/quote",
     color: "success",
@@ -213,13 +227,13 @@ export const appRegistry: AppDef[] = [
   },
   {
     id: "sapo2misa",
-    label: "Sapo2Misa API",
+    label: "Cổng MISA & meInvoice",
     group: "tai-chinh",
     icon: ArrowLeftRight,
     href: "/finance/sapo2misa",
     color: "primary",
-    badge: "63 cột",
-    desc: "Đồng bộ tự động sang MISA AMIS & hóa đơn meInvoice",
+    badge: "Sync Queue",
+    desc: "Hàng đợi đồng bộ AMIS & meInvoice CQT tự động kèm retry",
   },
   {
     id: "finance-aging",
@@ -280,7 +294,37 @@ export const appRegistry: AppDef[] = [
     desc: "Trao đổi tức thời giữa Kho, Xe và Kinh doanh",
   },
 
-  // 7. Phân hệ Quản trị Hệ thống (System Core & Administration)
+  // 7. Nhóm Công cụ & Tiện ích (tách riêng khỏi Hệ thống để chống làm dài thanh cuộn)
+  {
+    id: "docs",
+    label: "Văn thư & HĐĐT",
+    group: "tien-ich",
+    icon: FileText,
+    href: "/docs",
+    color: "neutral",
+    desc: "Lưu trữ HĐĐT meInvoice C26TSK & tài liệu pháp lý",
+  },
+  {
+    id: "notes",
+    label: "Sổ tay Vận hành",
+    group: "tien-ich",
+    icon: StickyNote,
+    href: "/notes",
+    color: "neutral",
+    desc: "Quy chuẩn bảo quản, cẩm nang chành xe & ca trực",
+  },
+  {
+    id: "mail",
+    label: "Hộp thư Mail Hub",
+    group: "tien-ich",
+    icon: Mail,
+    href: "/mail",
+    color: "neutral",
+    badge: "Gmail",
+    desc: "Hộp thư điện tử liên kết đối tác & nhà máy",
+  },
+
+  // 8. Phân hệ Quản trị Hệ thống (System Core & Administration)
   {
     id: "dashboard",
     label: "Bàn làm việc Hub",
@@ -288,7 +332,7 @@ export const appRegistry: AppDef[] = [
     icon: LayoutDashboard,
     href: "/",
     color: "primary",
-    desc: "Bento cockpit — Tổng quan điều hành 7 phân hệ",
+    desc: "Bento cockpit — Tổng quan điều hành hệ sinh thái",
   },
   {
     id: "profile",
@@ -298,34 +342,6 @@ export const appRegistry: AppDef[] = [
     href: "/profile",
     color: "neutral",
     desc: "Ca trực, mật khẩu, chữ ký số & phiếu lương cá nhân",
-  },
-  {
-    id: "docs",
-    label: "Văn thư & HĐĐT",
-    group: "he-thong",
-    icon: FileText,
-    href: "/docs",
-    color: "neutral",
-    desc: "Lưu trữ HĐĐT meInvoice C26TSK & tài liệu pháp lý",
-  },
-  {
-    id: "notes",
-    label: "Sổ tay Vận hành",
-    group: "he-thong",
-    icon: StickyNote,
-    href: "/notes",
-    color: "neutral",
-    desc: "Quy chuẩn bảo quản, cẩm nang chành xe & ca trực",
-  },
-  {
-    id: "mail",
-    label: "Hộp thư Mail Hub",
-    group: "he-thong",
-    icon: Mail,
-    href: "/mail",
-    color: "neutral",
-    badge: "Gmail",
-    desc: "Hộp thư điện tử liên kết đối tác & nhà máy",
   },
   {
     id: "audit",

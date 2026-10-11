@@ -96,6 +96,14 @@ export function normalizeToCentralOrders(sapoOrders: SapoOrder[]): CentralOrder[
       ? so.customer.address || so.customer.default_address?.address1 || "Hà Nội, Việt Nam"
       : "Tại kho Định Công, Hà Nội";
 
+    // Tự động kiểm tra MST cho khách sỉ / đại lý / bếp ăn / đơn Zalo
+    const rawTax = (so.customer?.tax_number || "").trim();
+    const matchTaxInNote = (so.note || "").match(/(?:MST|mst|Mã số thuế)[:\s]*([0-9]{10}(?:-[0-9]{3})?)/);
+    const customerTaxCode = rawTax || (matchTaxInNote ? matchTaxInNote[1] : "");
+    const isValidMst = /^[0-9]{10}(-[0-9]{3})?$/.test(customerTaxCode);
+    const isWholesale = channel === "dai_ly" || channel === "bep_an" || (so.note || "").toLowerCase().includes("zalo") || (so.note || "").toLowerCase().includes("chiết khấu") || (so.note || "").toLowerCase().includes("sỉ");
+    const autoInvoiceReady = isValidMst || (isWholesale && Boolean(customerTaxCode));
+
     return {
       id: `SAPO-${code}`,
       order_code: code,
@@ -106,7 +114,7 @@ export function normalizeToCentralOrders(sapoOrders: SapoOrder[]): CentralOrder[
       accounting_date: dateStr,
       customer_code: so.customer?.code || `KH-${so.customer?.id || "LE"}`,
       customer_name: custName,
-      customer_tax_code: so.customer?.tax_number || "",
+      customer_tax_code: customerTaxCode,
       customer_address: custAddr,
       customer_phone: so.customer?.phone || so.customer?.default_address?.phone || "",
       branch: "Kho Định Công (HN)",
@@ -125,6 +133,11 @@ export function normalizeToCentralOrders(sapoOrders: SapoOrder[]): CentralOrder[
       source: "Sapo",
       sync_status: "pending",
       last_synced_at: new Date().toISOString(),
+      auto_invoice_ready: autoInvoiceReady,
+      tax_verified: isValidMst,
+      amis_sync_status: "pending",
+      meinvoice_status: autoInvoiceReady ? "pending" : "not_required",
+      retry_count: 0,
     };
   });
 }

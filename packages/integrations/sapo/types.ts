@@ -84,6 +84,12 @@ export interface CentralOrder {
   source: "Sapo" | "Web" | "POS" | "Manual";
   sync_status: "pending" | "synced_amis" | "synced_einvoice" | "error";
   last_synced_at: string;
+  auto_invoice_ready?: boolean;
+  tax_verified?: boolean;
+  amis_sync_status?: "pending" | "synced" | "failed";
+  meinvoice_status?: "pending" | "issued" | "failed" | "not_required";
+  cqt_code?: string;
+  retry_count?: number;
 }
 
 // ---------------------------------------------------------------------------

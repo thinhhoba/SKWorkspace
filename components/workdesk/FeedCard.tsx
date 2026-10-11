@@ -20,6 +20,8 @@ const ACTIVITY_ICON: Record<string, string> = {
   vietqr: "💰",
   fleet_move: "❄️",
   fefo_done: "📋",
+  qc_done: "🛡️",
+  fefo_alert: "⚠️",
 };
 
 interface Props {
