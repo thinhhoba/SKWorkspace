@@ -1,100 +1,70 @@
-# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 16
+# CHỈ THỊ LỆNH TỪ COMMANDER & CHỦ TỊCH — SỐ 17
 # DỰ ÁN: SK WORKSPACE 2.0 — CÔNG TY TNHH THỰC PHẨM SƠN KHANG
 # CHỦ ĐỀ TRỌNG TÂM:
-# THIẾT KẾ BÀN LÀM VIỆC ĐIỀU HÀNH THÔNG MINH (SMART WORKDESK)
-# PHONG CÁCH HYBRID NEWSFEED KẾT HỢP OPERATIONAL DASHBOARD C-SUITE
+# ĐÁNH GIÁ GAP ANALYSIS KIẾN TRÚC 4 PHÂN HỆ ERP (MUA HÀNG - KHO HÀNG - BÁN HÀNG - TÀI CHÍNH KẾ TOÁN)
+# ĐỐI SOÁT HIỆN TRẠNG SK WORKSPACE 2.0 VS THỰC TẾ VẬN HÀNH F&B CHUỖI LẠNH SƠN KHANG FOOD
 
 ---
 
 ### I. CĂN CỨ DOANH NGHIỆP & BỐI CẢNH NGHIỆP VỤ:
-- **Pháp nhân:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
-- **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH (CCCD: 001094016823, Sinh 20/11/1994)
-- **Cơ sở hạ tầng:** Kho Tổng Định Công (96 Ngõ 337 Định Công, Hoàng Mai) & Kho Yên Bình (Thạch Thất)
-- **Đội xe tải đông lạnh:** Isuzu QKR 270 `29C-882.60` (-18°C) — Tài xế NGÔ VĂN TÂN (`0942 22 60 60`)
-- **Tài khoản thanh toán:** Techcombank `22226060` — Chủ TK: CÔNG TY TNHH THỰC PHẨM SƠN KHANG
+- **Doanh nghiệp:** CÔNG TY TNHH THỰC PHẨM SƠN KHANG (MST: `0111252725`)
+- **Người đại diện theo pháp luật:** Giám đốc HỒ BÁ THỊNH
+- **Đặc thù cốt lõi:** Bán buôn / phân phối thực phẩm đông lạnh (Thịt bò, thịt lợn, gia cầm, thủy hải sản nhập khẩu), chuỗi lạnh âm sâu (-18°C ~ -22°C), lưu kho 2 điểm (Kho Tổng Định Công & Kho Yên Bình), vận chuyển xe lạnh Isuzu QKR 270 `29C-882.60`, thanh toán VietQR Techcombank `22226060`, hệ sinh thái bán hàng Sapo POS/Omni, phần mềm kế toán chuẩn mực MISA AMIS (63 cột) & hóa đơn điện tử meInvoice.
 
-Sau khi hoàn thành xuất sắc chu trình khép kín tại Chỉ thị 15, Ban Quản Trị yêu cầu nâng cấp toàn diện giao diện trang chủ điều hành (`/`) thành **Bàn Làm Việc Đa Năng (Hybrid Workdesk)**, kết hợp giữa sức mạnh số liệu của **Operational Dashboard** và tính tương tác sống động, gắn kết của **Newsfeed Doanh Nghiệp**.
-
----
-
-### II. QUY CÁCH THIẾT KẾ BÀN LÀM VIỆC HYBRID (TRI-COLUMN COCKPIT):
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        TOP BAR: BRANDING, SEARCH, NOTIFICATION & PROFILE               │
-├──────────────────────────┬───────────────────────────────┬─────────────────────────────┤
-│   CỘT TRÁI (25% - LEFT)  │     CỘT GIỮA (50% - CENTER)   │    CỘT PHẢI (25% - RIGHT)   │
-│   EXECUTIVE DASHBOARD    │    OPERATIONAL NEWSFEED STREAM│    LOGISTICS RADAR & CHAT   │
-├──────────────────────────┼───────────────────────────────┼─────────────────────────────┤
-│ • 4 Thẻ KPI Real-time    │ • Composer Đăng Bài Nhanh     │ • Radar Xe Lạnh Isuzu 29C   │
-│   (Doanh thu, FEFO, IoT, │   (Thông báo, Khen thưởng,    │   (-18°C, Lốc lạnh, GPS)    │
-│   Techcombank 22226060)  │   Kho vận, Chỉ đạo khẩn)      │ • Kênh Chat Mini Nội Bộ     │
-│ • Launchpad Tác Vụ Nhanh │ • Dòng Sự Kiện Tự Động:       │   (#tong-cong-ty, #dieu-kho)│
-│   (POS, B2B Order, FEFO) │   - Đơn mới Web/Sapo đổ về    │ • Quick Scratchpad Ghi Chú  │
-│ • Widget "Việc Của Tôi"  │   - Tiền VietQR về ngân hàng  │ • Nhân Sự Đang Trực Ca      │
-│   (Danh sách task cá nhân│   - Xe lạnh lăn bánh bến xe   │   (Thúy, Tân, Nho, Thịnh)   │
-│   cần xử lý trong ngày)  │ • Bình Luận & Tương Tác Thread│                             │
-└──────────────────────────┴───────────────────────────────┴─────────────────────────────┘
-```
-
-#### 1. Cột Trái (Left Column — 25%): Executive Dashboard & Quick Launcher
-- **4 Thẻ KPI Claymorphism thời gian thực:**
-  1. *Doanh thu hôm nay (Live Sapo API)*: Tổng doanh thu bán buôn & bán lẻ kèm so sánh tăng trưởng.
-  2. *Đơn cần soạn kho (FEFO)*: Số lượng đơn hàng đang chờ Thủ kho Trần Thị Ngọc Thúy kiểm đếm.
-  3. *Giám sát xe lạnh Isuzu 29C-882.60*: Trạng thái nhiệt độ hiện tại (-18.4°C) kèm đèn báo HACCP an toàn.
-  4. *Số dư ngân hàng Techcombank 22226060*: Dòng tiền thu trong ngày đã khớp VietQR tự động.
-- **Launchpad Tác Vụ Nhanh (1-Click Actions):**
-  - Mở cổng Web Order B2B (`dathang.sonkhang.vn`).
-  - Mở quầy bán lẻ POS Kho (`pos.sonkhang.vn`).
-  - Mở màn hình Soạn hàng FEFO 100% (`/sales/[id]/pick`).
-  - Tra cứu biến động số dư VietQR (`/finance`).
-- **Widget "Nhiệm vụ của tôi" (My Daily Tasks):** Tích hợp từ phân hệ `/tasks`, cho phép tích chọn hoàn thành trực tiếp ngay trên bàn làm việc.
-
-#### 2. Cột Giữa (Center Column — 50%): Operational Newsfeed Stream
-- **Khung soạn thảo bài viết nội bộ (Social Composer):**
-  - Cho phép Giám đốc và các trưởng bộ phận đăng bài kèm gắn thẻ phân loại: `#thong-bao`, `#khen-thuong`, `#kho-van`, `#kinh-doanh`, `#khan-cap`.
-  - Hỗ trợ ghim bài thông báo quan trọng lên đầu feed.
-- **Dòng sự kiện hoạt động tự động (Auto-Generated Activity Feed):**
-  Hệ thống tự động lắng nghe và đẩy các sự kiện quan trọng vào dòng tin:
-  - 📦 *Đơn hàng mới*: "Khách hàng Chành xe Nam Định vừa đặt đơn `#SK-WEB-261010-0045` trị giá 24.500.000₫."
-  - ❄️ *Hành trình xe lạnh*: "Xe Isuzu `29C-882.60` (Tài xế Ngô Văn Tân) đang di chuyển đến Bến xe Giáp Bát — Nhiệt độ thùng: `-18.5°C`."
-  - 💰 *Gạch nợ VietQR*: "Khách hàng Nhà hàng Phố Cổ vừa chuyển khoản 8.200.000₫ vào Techcombank `22226060` qua mã VietQR."
-  - 📋 *Kiểm đếm kho*: "Thủ kho Trần Thị Ngọc Thúy đã hoàn tất soạn hàng FEFO 100% cho đơn `#13542`."
-- **Tương tác xã hội doanh nghiệp:**
-  - Nút Thả tim (Like/Celebrate).
-  - Khung Bình luận theo luồng (Threaded Comments) để các bộ phận trao đổi, đôn đốc tiến độ ngay trên mỗi bài viết hoặc sự kiện.
-
-#### 3. Cột Phải (Right Column — 25%): Logistics Radar, Internal Chat & Mini-Widgets
-- **Radar Giám Sát Chuỗi Lạnh Xe `29C-882.60`:**
-  - Biểu đồ mini hiển thị biến động nhiệt độ trong ngày.
-  - Trạng thái lốc lạnh (`Đang chạy`), cửa thùng (`Đóng kín`), điện áp bình ắc quy (`24.2V`).
-  - Nút xuất nhanh biên bản kiểm định nhiệt độ HACCP cho chuyến hàng.
-- **Trò chuyện nội bộ mini (Mini Chat Box):**
-  - Cửa sổ chat nhỏ kết nối phân hệ `/chat`, hiển thị 2 kênh chính: `#tong-cong-ty` và `#dieu-kho`.
-  - Cho phép nhắn tin nhanh không cần rời khỏi bàn làm việc.
-- **Quick Scratchpad:** Sổ ghi chú nhanh cá nhân, tự động lưu trữ trên trình duyệt.
-- **Bảng trực ban & Nhân sự Online:** Hiển thị danh sách nhân sự đang trực ca (Thủ kho Thúy, Tài xế Tân, Kế toán Nho, Giám đốc Thịnh).
+Chủ tịch ban hành sơ đồ tham chiếu 4 khối phân hệ ERP tiêu chuẩn gồm:
+1. **MUA HÀNG:** Yêu cầu mua, Nhà cung cấp, Báo giá NCC, Đơn hàng mua, Hóa đơn & thanh toán, Chính sách & bảng giá, Báo cáo mua hàng.
+2. **KHO HÀNG:** Kho & hàng hóa, Chứng từ kho, Nhập - xuất kho, Kiểm kho, Chất lượng (KCS), Sổ cái kho, Báo cáo kho.
+3. **BÁN HÀNG:** CRM, Báo giá, Đơn hàng bán, Hóa đơn & thanh toán, Đóng gói & giao hàng, Chương trình bán hàng, Bán hàng POS, Bán hàng Website, Báo cáo bán hàng.
+4. **TÀI CHÍNH - KẾ TOÁN:** Tiền mặt & tiền gửi, Kế toán bán hàng, Kế toán mua hàng, Kế toán kho hàng, Kế toán tài sản, Kế toán tiền lương, Kế toán ngân sách, Kế toán tổng hợp, Báo cáo tài chính & thuế.
 
 ---
 
-### III. MA TRẬN PHÂN BỔ 6 WORKER SQUAD THỰC THI CHỈ THỊ 16
+### II. YÊU CẦU NHIỆM VỤ ĐẶT RA CHO CLAUDE (6 WORKER SQUADS):
 
-| Worker Squad | Trách Nhiệm Phân Hệ Cụ Thể | Danh Mục Tệp Trọng Tâm |
+Claude và các Subagents (Opus Plan, Sonnet Code, Haiku Test, Review) phải thực hiện phân tích chuyên sâu, quét toàn bộ codebase 66 routes của `SK Workspace 2.0` và đưa ra đánh giá toàn diện theo 4 góc nhìn:
+
+#### 1. ĐỐI SOÁT HIỆN TRẠNG (ĐÃ CÓ & ĐANG HOẠT ĐỘNG):
+- Rà soát từng mục trong 4 khối đối chiếu với mã nguồn hiện tại (`/purchase`, `/inventory`, `/sales`, `/pos`, `/dathang`, `/pricing`, `/delivery`, `/fleet`, `/finance`, `/finance/sapo2misa`, `/reports`, `/customers`, `/hr`).
+- Xác định tỷ lệ bao phủ (% coverage) của từng khối phân hệ.
+
+#### 2. PHÂN TÍCH NHỮNG ĐIỂM THIẾU CẦN BỔ SUNG (GAPS & ACTION ITEMS):
+- Xác định những tính năng trong ảnh mà một doanh nghiệp phân phối F&B thực chiến như Sơn Khang Food **thực sự cần** nhưng hệ thống đang còn thiếu hoặc mới dừng ở mức sơ khởi:
+  * *Mua hàng:* Phiếu yêu cầu mua hàng nội bộ (Purchase Requisition), bảng so sánh giá nhiều NCC.
+  * *Kho hàng:* Phiếu điều chuyển kho nội bộ giữa Kho Định Công ↔ Yên Bình (giao diện thao tác), Phiếu kiểm kê kho định kỳ (ghi nhận chênh lệch thừa/thiếu), Phiếu kiểm tra KCS chất lượng lạnh khi nhận hàng (nhiệt độ tâm hàng đông lạnh, cảm quan bao bì).
+  * *Bán hàng:* Báo giá B2B xuất PDF/Zalo cho đại lý chành xe, Quản lý công nợ gối đầu chi tiết theo hạn nợ (30-60 ngày).
+  * *Tài chính:* Báo cáo tuổi nợ (Aging report) khách buôn & nhà cung cấp.
+
+#### 3. CẢNH BÁO NHỮNG ĐIỂM "THỪA" / OVER-ENGINEERING (RANH GIỚI VỚI MISA AMIS):
+- Chỉ rõ những tính năng trong sơ đồ ERP tổng quát mà **KHÔNG NÊN** xây dựng phức tạp trên mini-app nội bộ vì sẽ gây lãng phí tài nguyên và xung đột dữ liệu với MISA AMIS:
+  * *Kế toán tài sản, Kế toán ngân sách, Kế toán tổng hợp (General Ledger), Báo cáo tài chính & thuế:* Đây là nghiệp vụ pháp lý chuyên sâu mà kế toán trưởng Hoàng Thị Nho bắt buộc phải thao tác và kết xuất trên phần mềm kế toán **MISA AMIS**.
+  * Vai trò của SK Workspace tại đây là **Cổng vận hành tác nghiệp (Operational Hub) & Trạm tiền xử lý**: gom dòng tiền VietQR, chuẩn hóa hóa đơn, xuất file 63 cột chuẩn sang MISA AMIS, chứ không biến mình thành một bản sao cồng kềnh của MISA!
+
+#### 4. ĐÁNH GIÁ LỢI THẾ ĐẶC THÙ F&B CHUỖI LẠNH (VƯỢT TRỘI SO VỚI ERP THÔNG THƯỜNG):
+- Làm nổi bật những module sống còn mà ảnh ERP mẫu thông thường **hoàn toàn không có**, nhưng SK Workspace đã xây dựng thành công:
+  * *IoT Radar Chuỗi Lạnh Xe Tải Isuzu 29C-882.60:* Giám sát nhiệt độ thùng xe -18°C ~ -22°C, GPS, cảm biến lốc lạnh, cửa thùng, còi báo động vi phạm HACCP.
+  * *Kho vận xuất hàng FEFO (First Expired, First Out):* Cảnh báo cận hạn sử dụng (< 30 ngày), ưu tiên nhặt hàng theo Lot/Date để tránh hủy hàng đông lạnh.
+  * *Đối soát tự động VietQR Techcombank 22226060:* Tự động khớp lệnh và gạch nợ real-time không cần thủ công.
+  * *Cầu nối Sapo2Misa 63 cột:* Đồng bộ tự động doanh thu và đơn hàng Sapo sang chứng từ kế toán MISA.
+
+---
+
+### III. MA TRẬN PHÂN BỔ THỰC THI (CLAUDE SQUADS):
+
+| Squad | Phạm Vi Đánh Giá & Kế Hoạch | Tệp Trọng Tâm Cần Quét |
 | :--- | :--- | :--- |
-| **Worker 1** *(Shell & Layout)* | Xây dựng kiến trúc 3 cột Responsive cho trang chủ Bàn làm việc `/`, đảm bảo co giãn mượt mà từ 4K đến Mobile. | `app/(shell)/page.tsx`<br>`components/workdesk/**`<br>`app/(shell)/layout.tsx` |
-| **Worker 2** *(Activity Stream Engine)* | Xây dựng API và cơ chế tổng hợp luồng sự kiện tự động (Aggregation Stream) kết hợp bài đăng nội bộ và sự kiện Sapo/Kho. | `app/api/feed/stream/route.ts`<br>`packages/modules/feed/**` |
-| **Worker 3** *(Finance & Task Widgets)* | Tích hợp Widget KPI doanh thu thực tế, số dư Techcombank `22226060` và Widget công việc cá nhân (My Tasks). | `components/workdesk/FinanceWidget.tsx`<br>`components/workdesk/TasksWidget.tsx` |
-| **Worker 4** *(Cold Chain Radar)* | Thiết kế Radar mini giám sát xe Isuzu `29C-882.60`, hiển thị biểu đồ nhiệt độ -18°C và trạng thái máy lạnh. | `components/workdesk/FleetRadarWidget.tsx`<br>`app/api/fleet/telemetry/route.ts` |
-| **Worker 5** *(Social Interactions)* | Hoàn thiện tính năng tương tác Newsfeed: Soạn thảo bài đăng có gắn tag, Like, Thảo luận luồng và ghim bài viết. | `components/workdesk/NewsfeedComposer.tsx`<br>`components/workdesk/FeedCard.tsx` |
-| **Worker 6** *(QA & Quality Gate)* | Kiểm tra toàn bộ mã nguồn TypeScript, đảm bảo không có lỗi type, hiệu năng tải trang `< 1.2s`, build 66+ routes thành công. | `scripts/verify-directive-16.cjs`<br>Pre-flight Quality Check |
+| **Squad 1 (Mua Hàng & NCC)** | Phân tích quy trình Thu mua, Nhà cung cấp, Báo giá, So sánh NCC | `packages/modules/purchase/**`<br>`app/purchase/**`<br>`app/api/purchase/**` |
+| **Squad 2 (Kho Hàng & FEFO)** | Phân tích Kho lạnh, Chứng từ Nhập/Xuất/Chuyển, Kiểm kê, KCS lạnh | `packages/modules/inventory/**`<br>`app/inventory/**`<br>`app/api/inventory/**` |
+| **Squad 3 (Bán Hàng & Đa Kênh)** | Phân tích B2B Web Order, POS Kho, Báo giá, Chính sách giá, Đóng gói | `packages/modules/sales/**`<br>`app/sales/**`<br>`app/pos/**`<br>`app/dathang/**`<br>`app/pricing/**` |
+| **Squad 4 (Tài Chính & Kế Toán)** | Phân định ranh giới SK Workspace vs MISA AMIS, Quản lý công nợ & dòng tiền | `packages/modules/finance/**`<br>`app/finance/**`<br>`app/finance/sapo2misa/**` |
+| **Squad 5 (Chuỗi Lạnh & Vận Tải)** | Đánh giá phân hệ Đội xe, HACCP, Giao vận tuyến nội thành | `packages/modules/fleet/**`<br>`packages/modules/delivery/**`<br>`app/fleet/**`<br>`app/delivery/**` |
+| **Squad 6 (Kiến Trúc & Lộ Trình)** | Lập bảng ma trận GAP Analysis toàn diện và xây dựng Lộ trình nâng cấp 3 giai đoạn | `docs/GAP_ANALYSIS_ERP_PHAN_HE.md`<br>`.claude/reports/directive-17.md` |
 
 ---
 
-### IV. TIÊU CHUẨN NGHIỆM THU (QUALITY GATE):
-1. **Thiết kế chuẩn thẩm mỹ:** Đạt chuẩn phong cách Modern SaaS / Claymorphism cao cấp, typography Inter, màu sắc semantic dịu mắt, không dùng màu sắc chói lóa.
-2. **TypeScript & Build:** `npx tsc --noEmit` đạt **0 lỗi tuyệt đối**; `npm run build` thành công **100% routes**.
-3. **Hiệu năng:** Tải trang nhanh, mượt mà, các widget dữ liệu tự động cập nhật ngầm mà không gây giật lag.
-4. **Báo cáo nghiệm thu:** Kết quả thực hiện được ghi nhận đầy đủ vào `.claude/reports/directive-16.md` và `.claude/reports/latest.md`.
+### IV. TIÊU CHUẨN ĐẦU RA & BÁO CÁO (QUALITY GATE):
+1. Xuất bản tệp phân tích chiến lược chi tiết: `docs/GAP_ANALYSIS_ERP_PHAN_HE.md`.
+2. Ghi nhận toàn bộ kết quả thẩm định vào tệp báo cáo chính thức `.claude/reports/directive-17.md` và đồng bộ sang `.claude/reports/latest.md`.
+3. Bảng ma trận đối chiếu phải có đầy đủ: Trạng thái (Đã có / Thiếu / Thừa), Mức độ ưu tiên (P1 - Cần ngay, P2 - Trung hạn, P3 - Không khuyến nghị), và Đề xuất giải pháp kỹ thuật cụ thể.
 
 **BAN HÀNH BỞI: COMMANDER & CHỦ TỊCH HỒ BÁ THỊNH**  
-*Chỉ thị số 16 có hiệu lực thi hành ngay lập tức.*
+*Chỉ thị số 17 có hiệu lực thi hành ngay lập tức. Claude hãy đọc tệp này và tiến hành phân tích toàn diện.*

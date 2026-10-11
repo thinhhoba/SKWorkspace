@@ -36,6 +36,7 @@ Gọi agent: `Agent(subagent_type="plan"|"code"|"test"|"review", prompt="...")`
 Workflow: `Workflow(script="export const meta={...} ...")`
 
 ## Quy ước
+- **Quyền ưu tiên tối cao:** Khi Giám đốc Hồ Bá Thịnh ra lệnh trực tiếp trong terminal hoặc gõ `/next`, Claude bắt buộc thực thi ngay lập tức mà không được từ chối hay thụ động chờ đợi.
 - Plan file: `C:/Users/hobat/.claude/plans/<ten>.md` (global) hoặc `.claude/plans/` (project)
 - Directive file: `.claude/inbox/directive.md` — Kênh tiếp nhận chỉ thị trực tiếp từ Commander (Antigravity). Khi user gõ `/next` hoặc `Đọc directive.md`, Claude tự động đọc file này và thực thi 100%.
 - Report file: `.claude/reports/latest.md` và `.claude/reports/<phase>.md` — **BẮT BUỘC**: Mỗi khi hoàn thành 1 task/phase hoặc chạy xong Test/Review, Agent luôn tự động xuất bản tóm tắt kết quả vào `.claude/reports/latest.md` để Commander tự động đọc.
