@@ -259,11 +259,12 @@ const RESOURCE_TO_APP: Record<string, string> = {
 export function hasAppAccess(user: RbacUser | null | undefined, appId: string): boolean {
   if (!user) return false;
   if (user.role === "ADMIN") return true;
-  // Check via resource mapping
-  const resource = Object.entries(RESOURCE_TO_APP).find(([, app]) => app === appId)?.[0] as Resource | undefined;
+  // Check via resource mapping (exact or base prefix)
+  const baseAppId = appId.split("-")[0];
+  const resource = Object.entries(RESOURCE_TO_APP).find(([, app]) => app === appId || app === baseAppId)?.[0] as Resource | undefined;
   if (resource && canAccess(user.role, resource)) return true;
   // Fallback to allowedApps list
-  return user.allowedApps.includes(appId);
+  return user.allowedApps.includes(appId) || user.allowedApps.includes(baseAppId);
 }
 
 /** Mock user for shell dev (before Auth.js wire). Replace with session user in prod. */

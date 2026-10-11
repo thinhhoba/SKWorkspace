@@ -10,12 +10,13 @@ import type { FeedStreamItem, FeedPost } from "@/packages/modules/feed/types";
 import type { WorkdeskTask } from "@/packages/modules/tasks/types";
 
 const GROUP_ICON_GRADIENT: Record<AppGroup, string> = {
-  "tong-quan": "from-violet-400 to-indigo-500",
-  "ban-hang": "from-emerald-400 to-teal-500",
-  "van-hanh": "from-amber-400 to-orange-500",
-  "tai-chinh": "from-sky-400 to-sky-600",
-  "tien-ich": "from-purple-400 to-pink-500",
-  "he-thong": "from-slate-400 to-slate-600",
+  "mua-hang": "from-blue-500 to-indigo-600",
+  "kho-hang": "from-amber-500 to-orange-600",
+  "ban-hang": "from-emerald-500 to-teal-600",
+  "giao-hang": "from-sky-500 to-cyan-600",
+  "tai-chinh": "from-rose-500 to-red-600",
+  "nhan-su": "from-purple-500 to-violet-600",
+  "he-thong": "from-slate-500 to-gray-700",
 };
 
 export default function SmartWorkdeskPage() {
